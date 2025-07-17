@@ -5,6 +5,10 @@ VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPGSYSTEM", "SPGSYSTEM\SPGSYSTEM.csproj", "{AF636A68-37D6-4CF7-AB07-7E9A967FAC89}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Application\Application.csproj", "{8FF13E76-6947-4413-90DC-FFF27B00935E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Database", "Database\Database.csproj", "{552C912C-FC26-4F9A-899C-CED4AA5DEFE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{AF636A68-37D6-4CF7-AB07-7E9A967FAC89}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF636A68-37D6-4CF7-AB07-7E9A967FAC89}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF636A68-37D6-4CF7-AB07-7E9A967FAC89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FF13E76-6947-4413-90DC-FFF27B00935E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FF13E76-6947-4413-90DC-FFF27B00935E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FF13E76-6947-4413-90DC-FFF27B00935E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FF13E76-6947-4413-90DC-FFF27B00935E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{552C912C-FC26-4F9A-899C-CED4AA5DEFE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{552C912C-FC26-4F9A-899C-CED4AA5DEFE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{552C912C-FC26-4F9A-899C-CED4AA5DEFE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{552C912C-FC26-4F9A-899C-CED4AA5DEFE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
