@@ -1,4 +1,4 @@
-﻿using Database.Contexts;
+using Database.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
