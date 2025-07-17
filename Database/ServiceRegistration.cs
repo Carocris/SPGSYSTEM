@@ -9,9 +9,6 @@ namespace Database
 {
     public static class ServiceRegistration
     {
-        /// <summary>
-        /// Configures the database context and repositories for the application.
-        /// </summary>
         public static void AddDatabaseInfrastructure(this IServiceCollection services, IConfiguration configuration)
         {
             // Configure DbContext: In-Memory for testing, SQL Server otherwise
