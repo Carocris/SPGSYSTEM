@@ -3,15 +3,18 @@
 //using Microsoft.Extensions.Configuration;
 //using Microsoft.Extensions.DependencyInjection;
 //using Application.Interfaces.Repositories;
-//using Infrastructure.Persistence.Repositories;
+//using Database.Repositories;
 
-//namespace Infrastructure.Persistence
+//namespace Database
 //{
-//    public static class ServicesRegistration
+//    public static class ServiceRegistration
 //    {
-//        public static void AddPersistenceInfrastructure(this IServiceCollection services, IConfiguration configuration)
+//        /// <summary>
+//        /// Configures the database context and repositories for the application.
+//        /// </summary>
+//        public static void AddDatabaseInfrastructure(this IServiceCollection services, IConfiguration configuration)
 //        {
-//            // DbContext configuration: InMemory for testing or SQL Server for production
+//            // Configure DbContext: In-Memory for testing, SQL Server otherwise
 //            if (configuration.GetValue<bool>("UseInMemoryDatabase"))
 //            {
 //                services.AddDbContext<ApplicationDbContext>(options =>
@@ -30,7 +33,7 @@
 //            // Generic repository registration
 //            services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
-//            // Specific repositories
+//            // Specific repository registrations
 //            services.AddTransient<ICustomerRepository, CustomerRepository>();
 //            services.AddTransient<IProductRepository, ProductRepository>();
 //            services.AddTransient<ISaleRepository, SaleRepository>();
