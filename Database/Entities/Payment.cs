@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Database.Enum;
 
 namespace Database.Entities
 {
@@ -12,12 +13,10 @@ namespace Database.Entities
     {
         public int Id { get; set; }
 
-        [ForeignKey("Sale")]
         public int SaleId { get; set; }
 
         [Required]
-        [StringLength(20)]
-        public string PaymentMethod { get; set; }
+        public PaymentMethodType PaymentMethod { get; set; }
 
         public decimal Amount { get; set; }
 
