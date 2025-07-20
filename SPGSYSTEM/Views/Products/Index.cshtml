@@ -13,7 +13,7 @@
                 </h2>
                 <p class="text-muted mb-0">Administra tu inventario de productos</p>
             </div>
-            <a asp-action="Create" class="btn btn-success btn-lg">
+            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
         </div>
@@ -66,18 +66,30 @@
                                     <h6 class="card-title mb-0 fw-bold text-truncate" title="@product.Name">
                                         @product.Name
                                     </h6>
-                                                                                @if (product.Stock <= 0)
-                                            {
-                                                <span class="badge bg-danger">Sin Stock</span>
-                                            }
-                                            else if (product.Stock <= 5)
-                                            {
-                                                <span class="badge bg-warning">Stock Bajo</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-success">Disponible</span>
-                                            }
+                                    @if (product.Stock <= 0)
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Sin Stock
+                                        </span>
+                                    }
+                                    else if (product.Stock <= 5)
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-circle me-1"></i>Stock Bajo (@product.Stock)
+                                        </span>
+                                    }
+                                    else if (product.Stock <= 20)
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-box me-1"></i>Stock Normal (@product.Stock)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Stock Alto (@product.Stock)
+                                        </span>
+                                    }
                                 </div>
                             </div>
                             
@@ -126,9 +138,13 @@
                                            class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@product.Id" 
+                                        <a asp-action="CreateEdit" asp-route-id="@product.Id" 
                                            class="btn btn-outline-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="AddStock" asp-route-id="@product.Id" 
+                                           class="btn btn-outline-success btn-sm" title="Agregar stock">
+                                            <i class="fas fa-plus"></i>
                                         </a>
                                         <button type="button" class="btn btn-outline-danger btn-sm" 
                                                 title="Eliminar" onclick="confirmDelete(@product.Id, '@product.Name')">

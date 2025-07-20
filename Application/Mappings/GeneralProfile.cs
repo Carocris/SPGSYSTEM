@@ -63,7 +63,17 @@ namespace Application.Mappings
 
             // Payment
             CreateMap<Payment, PaymentViewModel>()
-                .ReverseMap();
+                .ForMember(dest => dest.SaleNumber,
+                           opt => opt.MapFrom(src => src.Sale.Id.ToString("D4")))
+                .ForMember(dest => dest.CustomerName,
+                           opt => opt.MapFrom(src => src.Sale.Customer.Name))
+                .ForMember(dest => dest.SaleDate,
+                           opt => opt.MapFrom(src => src.Sale.SaleDate))
+                .ForMember(dest => dest.SaleTotal,
+                           opt => opt.MapFrom(src => src.Sale.TotalAmount))
+                .ForMember(dest => dest.PaymentStatus,
+                           opt => opt.MapFrom(src => "Completado"));
+                           
             CreateMap<PaymentSaveViewModel, Payment>()
                 .ForMember(dest => dest.PaymentDate, opt => opt.Ignore())
                 .ForMember(dest => dest.Sale, opt => opt.Ignore());
