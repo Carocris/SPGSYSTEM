@@ -1,7 +1,6 @@
 @model Application.ViewModels.Customer.CustomerSaveViewModel
 
 @{
-    // Detecta automáticamente si es edición o creación
     bool isEdit = ViewBag.CustomerId != null || ViewBag.IsEdit == true;
     ViewData["Title"] = isEdit ? "Edit Customer" : "Create Customer";
 }
