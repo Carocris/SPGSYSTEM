@@ -18,6 +18,9 @@
                 <p class="text-muted mb-0">Información completa de la venta #@Model.Id.ToString("D4")</p>
             </div>
             <div class="d-flex gap-2">
+                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
                 <button type="button" class="btn btn-outline-info" onclick="window.print()">
                     <i class="fas fa-print me-2"></i>Imprimir
                 </button>
@@ -239,10 +242,13 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
+                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                                <i class="fas fa-edit me-2"></i>Editar Venta
+                            </a>
                             <button type="button" class="btn btn-outline-info" onclick="window.print()">
                                 <i class="fas fa-print me-2"></i>Imprimir Venta
                             </button>
-                            <button type="button" class="btn btn-outline-warning" onclick="downloadPDF()">
+                            <button type="button" class="btn btn-outline-secondary" onclick="downloadPDF()">
                                 <i class="fas fa-file-pdf me-2"></i>Descargar PDF
                             </button>
                             <a asp-action="Index" class="btn btn-outline-secondary">

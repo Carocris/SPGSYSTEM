@@ -15,6 +15,8 @@ namespace Application.ViewModels.SaleDetail
         [Required]
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
+
+        public decimal Subtotal { get; set; }
     }
 
 }

@@ -14,7 +14,7 @@
                 </h2>
                 <p class="text-muted mb-0">Administra las ventas del sistema</p>
             </div>
-            <a asp-action="Create" class="btn btn-success btn-lg">
+            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
                 <i class="fas fa-plus me-2"></i>Nueva Venta
             </a>
         </div>
@@ -160,6 +160,10 @@
                                            class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        <a asp-action="CreateEdit" asp-route-id="@sale.Id" 
+                                           class="btn btn-outline-warning btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                         <button type="button" class="btn btn-outline-info btn-sm" 
                                                 title="Imprimir" onclick="printSale(@sale.Id)">
                                             <i class="fas fa-print"></i>
@@ -221,7 +225,7 @@
                 </div>
                 <h4 class="text-muted mb-3">No hay ventas registradas</h4>
                 <p class="text-muted mb-4">Comienza creando tu primera venta en el sistema</p>
-                <a asp-action="Create" class="btn btn-primary btn-lg">
+                <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
                     <i class="fas fa-plus me-2"></i>Crear Primera Venta
                 </a>
             </div>
