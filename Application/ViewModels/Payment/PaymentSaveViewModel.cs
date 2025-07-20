@@ -1,29 +1,27 @@
-﻿using System;
+﻿using Database.Enum;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Database.Enum;
 
-namespace Database.Entities
+namespace Application.ViewModels.Payment
 {
-    public class Payment
+    public class PaymentSaveViewModel
     {
-        public int Id { get; set; }
-
+        [Required]
         public int SaleId { get; set; }
 
         [Required]
+        [EnumDataType(typeof(PaymentMethodType))]
         public PaymentMethodType PaymentMethod { get; set; }
 
+        [Required]
+        [Range(0.01, double.MaxValue)]
         public decimal Amount { get; set; }
 
         [Required]
         public DateTime PaymentDate { get; set; }
-
-        // Navigation
-        public Sale Sale { get; set; }
     }
 }

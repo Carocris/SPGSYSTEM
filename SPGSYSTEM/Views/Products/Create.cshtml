@@ -1,0 +1,214 @@
+@model Application.ViewModels.Product.ProductSaveViewModel
+
+@{
+    ViewData["Title"] = "Crear Nuevo Producto";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-primary mb-1">
+                    <i class="fas fa-plus-circle me-2"></i>Nuevo Producto
+                </h2>
+                <p class="text-muted mb-0">Agrega un nuevo producto a tu inventario</p>
+            </div>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-box me-2"></i>Información del Producto
+                </h5>
+            </div>
+            
+            <div class="card-body p-4">
+                <form asp-action="Create" method="post" novalidate>
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-3">
+                        <!-- Product Name -->
+                        <div class="col-12">
+                            <label asp-for="Name" class="form-label fw-medium">
+                                <i class="fas fa-tag text-primary me-2"></i>Nombre del Producto
+                            </label>
+                            <input asp-for="Name" class="form-control form-control-lg" 
+                                   placeholder="Ej: Laptop HP Pavilion" maxlength="100" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label fw-medium">
+                                <i class="fas fa-align-left text-primary me-2"></i>Descripción
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" 
+                                      placeholder="Describe las características principales del producto..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Opcional: Agrega detalles que ayuden a identificar el producto
+                            </div>
+                        </div>
+
+                        <!-- Price and Stock Row -->
+                                                 <div class="col-md-6">
+                             <label asp-for="Price" class="form-label fw-medium">
+                                 <i class="fas fa-dollar-sign text-success me-2"></i>Precio Unitario
+                             </label>
+                             <div class="input-group">
+                                 <span class="input-group-text bg-light">$</span>
+                                 <input asp-for="Price" type="number" step="0.01" min="0.01" 
+                                        class="form-control" placeholder="0.00" />
+                             </div>
+                             <span asp-validation-for="Price" class="text-danger small"></span>
+                         </div>
+
+                         <div class="col-md-6">
+                             <label asp-for="Stock" class="form-label fw-medium">
+                                 <i class="fas fa-boxes text-info me-2"></i>Cantidad en Stock
+                             </label>
+                             <input asp-for="Stock" type="number" min="0" 
+                                    class="form-control" placeholder="0" />
+                             <span asp-validation-for="Stock" class="text-danger small"></span>
+                         </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex gap-2 justify-content-end">
+                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-save me-2"></i>Guardar Producto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card mt-4 bg-light border-0">
+            <div class="card-body">
+                <h6 class="text-muted mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>Consejos útiles
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Usa nombres descriptivos y únicos
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                El precio debe ser mayor a $0.01
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled small text-muted mb-0">
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                Stock puede ser 0 (sin inventario)
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check text-success me-2"></i>
+                                La descripción es opcional pero recomendada
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+                 // Auto-format price input
+         document.querySelector('[name="Price"]').addEventListener('input', function(e) {
+             let value = parseFloat(e.target.value);
+             if (!isNaN(value) && value > 0) {
+                 e.target.setCustomValidity('');
+             } else {
+                 e.target.setCustomValidity('El precio debe ser mayor a 0');
+             }
+         });
+
+         // Auto-format stock input
+         document.querySelector('[name="Stock"]').addEventListener('input', function(e) {
+             let value = parseInt(e.target.value);
+             if (!isNaN(value) && value >= 0) {
+                 e.target.setCustomValidity('');
+             } else {
+                 e.target.setCustomValidity('La cantidad debe ser 0 o mayor');
+             }
+         });
+
+        // Focus on first input
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('[name="Name"]').focus();
+        });
+
+        // Character counter for name field
+        const nameInput = document.querySelector('[name="Name"]');
+        const nameLabel = document.querySelector('label[for="Name"]');
+        
+        nameInput.addEventListener('input', function() {
+            const remaining = 100 - this.value.length;
+            const counterElement = nameLabel.querySelector('.char-counter');
+            
+            if (counterElement) {
+                counterElement.textContent = `(${remaining} caracteres restantes)`;
+            } else if (remaining <= 20) {
+                const counter = document.createElement('small');
+                counter.className = 'char-counter text-muted ms-2';
+                counter.textContent = `(${remaining} caracteres restantes)`;
+                nameLabel.appendChild(counter);
+            }
+        });
+    </script>
+
+    <style>
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+        }
+
+        .card {
+            transition: box-shadow 0.3s ease;
+        }
+
+        .input-group-text {
+            border-color: #dee2e6;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+            
+            .btn-lg {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+} 

@@ -1,15 +1,32 @@
+using Database;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Application;
+using Application.Mappings;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1) MVC (Controllers + Views)
 builder.Services.AddControllersWithViews();
+
+// 2) Registrar DbContext y repositorios (Database/ServiceRegistration)
+builder.Services.AddDatabaseInfrastructure(builder.Configuration);
+
+// 3) Registrar servicios de aplicación (Application/ServiceRegistration)
+builder.Services.AddApplicationLayer();
+
+builder.Services.AddAutoMapper(typeof(GeneralProfile));
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configuración del pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -18,10 +35,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Si luego necesitas autenticación/autorización:
+// app.UseAuthentication();
 app.UseAuthorization();
 
+// Ruta por defecto
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();
