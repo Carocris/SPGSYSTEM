@@ -1,0 +1,332 @@
+@model Application.ViewModels.Product.ProductViewModel
+
+@{
+    ViewData["Title"] = "Detalles del Producto";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="flex-grow-1">
+                <h2 class="h3 text-info mb-1">
+                    <i class="fas fa-eye me-2"></i>Detalles del Producto
+                </h2>
+                <p class="text-muted mb-0">Información completa del producto</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <button type="button" class="btn btn-outline-danger" 
+                        onclick="confirmDelete(@Model.Id, '@Model.Name')">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </button>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Main Product Information -->
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-gradient bg-info text-white py-3">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-box me-2"></i>@Model.Name
+                        </h4>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <!-- Product Description -->
+                        <div class="mb-4">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-align-left me-2"></i>Descripción
+                            </h6>
+                            @if (!string.IsNullOrEmpty(Model.Description))
+                            {
+                                <div class="p-3 bg-light rounded">
+                                    <p class="mb-0">@Model.Description</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="p-3 bg-light rounded text-center">
+                                    <span class="text-muted fst-italic">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        No hay descripción disponible para este producto
+                                    </span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Product Metrics -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="metric-card bg-success bg-opacity-10 border border-success border-opacity-25 rounded p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="metric-icon bg-success text-white rounded-circle me-3">
+                                            <i class="fas fa-dollar-sign"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block mb-1">Precio Unitario</small>
+                                            <h4 class="text-success mb-0">$@Model.UnitPrice.ToString("N2")</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="metric-card @(Model.StockQuantity <= 0 ? "bg-danger" : Model.StockQuantity <= 5 ? "bg-warning" : "bg-primary") bg-opacity-10 border @(Model.StockQuantity <= 0 ? "border-danger" : Model.StockQuantity <= 5 ? "border-warning" : "border-primary") border-opacity-25 rounded p-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="metric-icon @(Model.StockQuantity <= 0 ? "bg-danger" : Model.StockQuantity <= 5 ? "bg-warning" : "bg-primary") text-white rounded-circle me-3">
+                                            <i class="fas fa-boxes"></i>
+                                        </div>
+                                        <div>
+                                            <small class="text-muted d-block mb-1">Stock Disponible</small>
+                                            <div class="d-flex align-items-center">
+                                                <h4 class="@(Model.StockQuantity <= 0 ? "text-danger" : Model.StockQuantity <= 5 ? "text-warning" : "text-primary") mb-0 me-2">
+                                                    @Model.StockQuantity
+                                                </h4>
+                                                @if (Model.StockQuantity <= 0)
+                                                {
+                                                    <span class="badge bg-danger">Sin Stock</span>
+                                                }
+                                                else if (Model.StockQuantity <= 5)
+                                                {
+                                                    <span class="badge bg-warning">Stock Bajo</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-success">Disponible</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Future Sales Information (placeholder) -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-chart-line me-2"></i>Historial de Ventas
+                        </h6>
+                    </div>
+                    <div class="card-body text-center py-5">
+                        <div class="text-muted">
+                            <i class="fas fa-chart-bar fa-3x mb-3 opacity-50"></i>
+                            <h6 class="mb-2">Información de Ventas</h6>
+                            <p class="mb-0">Próximamente: Estadísticas de ventas de este producto</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Information -->
+            <div class="col-lg-4">
+                <!-- Product Summary -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>Resumen del Producto
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">ID del Producto:</span>
+                                <span class="fw-medium">#@Model.Id.ToString("D4")</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Estado:</span>
+                                @if (Model.StockQuantity <= 0)
+                                {
+                                    <span class="badge bg-danger">Agotado</span>
+                                }
+                                else if (Model.StockQuantity <= 5)
+                                {
+                                    <span class="badge bg-warning">Stock Bajo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Disponible</span>
+                                }
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Valor en Inventario:</span>
+                                <span class="fw-medium text-success">$@((Model.UnitPrice * Model.StockQuantity).ToString("N2"))</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2">
+                                <span class="text-muted">Tiene Descripción:</span>
+                                @if (!string.IsNullOrEmpty(Model.Description))
+                                {
+                                    <span class="text-success"><i class="fas fa-check"></i> Sí</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted"><i class="fas fa-times"></i> No</span>
+                                }
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                                <i class="fas fa-edit me-2"></i>Editar Producto
+                            </a>
+                            @if (Model.StockQuantity <= 5)
+                            {
+                                <button type="button" class="btn btn-outline-info" onclick="alert('Funcionalidad de restock próximamente')">
+                                    <i class="fas fa-plus me-2"></i>Reabastecer Stock
+                                </button>
+                            }
+                            <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>Imprimir Ficha
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="confirmDelete(@Model.Id, '@Model.Name')">
+                                <i class="fas fa-trash me-2"></i>Eliminar Producto
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                @if (Model.StockQuantity <= 5)
+                {
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Atención
+                        </h6>
+                        <p class="mb-2">Este producto tiene stock bajo.</p>
+                        <hr>
+                        <p class="mb-0">
+                            <small>Considera reabastecer el inventario para evitar quedarte sin stock.</small>
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">¿Estás seguro de que deseas eliminar el producto:</p>
+                <div class="alert alert-warning">
+                    <strong id="productNameToDelete"></strong>
+                </div>
+                <p class="text-muted mb-0">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" id="deleteProductId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <script>
+        function confirmDelete(productId, productName) {
+            document.getElementById('deleteProductId').value = productId;
+            document.getElementById('productNameToDelete').textContent = productName;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        // Print functionality
+        window.addEventListener('beforeprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'none';
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'flex';
+        });
+
+        // Add some interactive effects
+        document.querySelectorAll('.metric-card').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+
+    <style>
+        .card-header.bg-gradient {
+            background: linear-gradient(45deg, #17a2b8, #138496) !important;
+        }
+
+        .metric-icon {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .metric-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .metric-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        @media print {
+            .btn, .modal, .alert {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+            
+            .btn {
+                margin-bottom: 0.5rem;
+            }
+        }
+    </style>
+} 

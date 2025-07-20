@@ -1,0 +1,329 @@
+﻿@model IEnumerable<Application.ViewModels.Product.ProductViewModel>
+
+@{
+    ViewData["Title"] = "Gestión de Productos";
+}
+
+<div class="row">
+    <div class="col-12">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h2 text-primary mb-1">
+                    <i class="fas fa-box-open me-2"></i>Gestión de Productos
+                </h2>
+                <p class="text-muted mb-0">Administra tu inventario de productos</p>
+            </div>
+            <a asp-action="Create" class="btn btn-success btn-lg">
+                <i class="fas fa-plus me-2"></i>Nuevo Producto
+            </a>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar productos...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="stockFilter">
+                            <option value="">Todos los stocks</option>
+                            <option value="available">En stock</option>
+                            <option value="low">Stock bajo (≤5)</option>
+                            <option value="out">Sin stock</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="priceFilter">
+                            <option value="">Todos los precios</option>
+                            <option value="low">$0 - $50</option>
+                            <option value="medium">$50 - $200</option>
+                            <option value="high">$200+</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <!-- Products Grid -->
+            <div class="row" id="productsContainer">
+                @foreach (var product in Model)
+                {
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 product-card" 
+                         data-name="@product.Name.ToLower()" 
+                         data-price="@product.UnitPrice" 
+                         data-stock="@product.StockQuantity">
+                        <div class="card h-100 shadow-sm border-0 product-item">
+                            <div class="card-header bg-gradient bg-primary text-white py-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="card-title mb-0 fw-bold text-truncate" title="@product.Name">
+                                        @product.Name
+                                    </h6>
+                                    @if (product.StockQuantity <= 0)
+                                    {
+                                        <span class="badge bg-danger">Sin Stock</span>
+                                    }
+                                    else if (product.StockQuantity <= 5)
+                                    {
+                                        <span class="badge bg-warning">Stock Bajo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">Disponible</span>
+                                    }
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="mb-3 flex-grow-1">
+                                    @if (!string.IsNullOrEmpty(product.Description))
+                                    {
+                                        <p class="card-text text-muted small mb-2" style="height: 40px; overflow: hidden;">
+                                            @product.Description
+                                        </p>
+                                    }
+                                    else
+                                    {
+                                        <p class="card-text text-muted small mb-2" style="height: 40px;">
+                                            <em>Sin descripción disponible</em>
+                                        </p>
+                                    }
+                                </div>
+                                
+                                <div class="product-details">
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <div class="text-center p-2 bg-light rounded">
+                                                <small class="text-muted d-block">Precio</small>
+                                                <span class="h5 text-success fw-bold mb-0">
+                                                    $@product.UnitPrice.ToString("N2")
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="text-center p-2 bg-light rounded">
+                                                <small class="text-muted d-block">Stock</small>
+                                                <span class="h5 fw-bold mb-0 @(product.StockQuantity <= 5 ? "text-danger" : "text-primary")">
+                                                    @product.StockQuantity
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pt-0">
+                                <div class="d-grid gap-2">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@product.Id" 
+                                           class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@product.Id" 
+                                           class="btn btn-outline-warning btn-sm" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                title="Eliminar" onclick="confirmDelete(@product.Id, '@product.Name')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Pagination (if needed) -->
+            <nav aria-label="Productos pagination" class="mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted">
+                        <small>Mostrando @Model.Count() productos</small>
+                    </div>
+                    <!-- Aquí puedes agregar paginación si es necesario -->
+                </div>
+            </nav>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-box-open text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-muted mb-3">No hay productos registrados</h4>
+                <p class="text-muted mb-4">Comienza agregando tu primer producto al sistema</p>
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Agregar Primer Producto
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">¿Estás seguro de que deseas eliminar el producto:</p>
+                <div class="alert alert-warning">
+                    <strong id="productNameToDelete"></strong>
+                </div>
+                <p class="text-muted mb-0">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" id="deleteProductId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            filterProducts();
+        });
+
+        document.getElementById('stockFilter').addEventListener('change', function() {
+            filterProducts();
+        });
+
+        document.getElementById('priceFilter').addEventListener('change', function() {
+            filterProducts();
+        });
+
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const stockFilter = document.getElementById('stockFilter').value;
+            const priceFilter = document.getElementById('priceFilter').value;
+            const products = document.querySelectorAll('.product-card');
+
+            products.forEach(function(product) {
+                const name = product.getAttribute('data-name');
+                const price = parseFloat(product.getAttribute('data-price'));
+                const stock = parseInt(product.getAttribute('data-stock'));
+
+                let showProduct = true;
+
+                // Search filter
+                if (searchTerm && !name.includes(searchTerm)) {
+                    showProduct = false;
+                }
+
+                // Stock filter
+                if (stockFilter) {
+                    switch(stockFilter) {
+                        case 'available':
+                            if (stock <= 0) showProduct = false;
+                            break;
+                        case 'low':
+                            if (stock > 5 || stock <= 0) showProduct = false;
+                            break;
+                        case 'out':
+                            if (stock > 0) showProduct = false;
+                            break;
+                    }
+                }
+
+                // Price filter
+                if (priceFilter) {
+                    switch(priceFilter) {
+                        case 'low':
+                            if (price > 50) showProduct = false;
+                            break;
+                        case 'medium':
+                            if (price <= 50 || price > 200) showProduct = false;
+                            break;
+                        case 'high':
+                            if (price <= 200) showProduct = false;
+                            break;
+                    }
+                }
+
+                product.style.display = showProduct ? 'block' : 'none';
+            });
+        }
+
+        function confirmDelete(productId, productName) {
+            document.getElementById('deleteProductId').value = productId;
+            document.getElementById('productNameToDelete').textContent = productName;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        // Add hover effects
+        document.querySelectorAll('.product-item').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.transition = 'transform 0.3s ease';
+                this.classList.add('shadow-lg');
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.classList.remove('shadow-lg');
+            });
+        });
+    </script>
+
+    <style>
+        .product-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header.bg-gradient {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca) !important;
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+
+        .product-details .bg-light {
+            border: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .product-card {
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+}
