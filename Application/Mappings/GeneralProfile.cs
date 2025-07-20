@@ -43,7 +43,15 @@ namespace Application.Mappings
             // SaleDetail
             CreateMap<SaleDetail, SaleDetailViewModel>()
                 .ForMember(dest => dest.ProductName,
-                           opt => opt.MapFrom(src => src.Product.Name));
+                           opt => opt.MapFrom(src => src.Product.Name))
+                .ForMember(dest => dest.SaleNumber,
+                           opt => opt.MapFrom(src => src.Sale.Id.ToString("D4")))
+                .ForMember(dest => dest.CustomerName,
+                           opt => opt.MapFrom(src => src.Sale.Customer.Name))
+                .ForMember(dest => dest.SaleDate,
+                           opt => opt.MapFrom(src => src.Sale.SaleDate))
+                .ForMember(dest => dest.UnitPrice,
+                           opt => opt.MapFrom(src => src.Product.Price));
 
             CreateMap<SaleDetailSaveViewModel, SaleDetail>()
                 .ReverseMap();
