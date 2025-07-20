@@ -1,19 +1,25 @@
-using Database;                                
+using Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Application;
+using Application.Mappings;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1)  MVC (Controllers + Views)
+// 1) MVC (Controllers + Views)
 builder.Services.AddControllersWithViews();
 
 // 2) Registrar DbContext y repositorios (Database/ServiceRegistration)
 builder.Services.AddDatabaseInfrastructure(builder.Configuration);
 
-// 3) Aquí podrías añadir más servicios de tu capa Application si tuvieras:
-//    e.g. builder.Services.AddApplicationServices(builder.Configuration);
+// 3) Registrar servicios de aplicación (Application/ServiceRegistration)
+builder.Services.AddApplicationLayer();
+
+builder.Services.AddAutoMapper(typeof(GeneralProfile));
+
 
 var app = builder.Build();
 

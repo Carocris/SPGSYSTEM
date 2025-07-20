@@ -2,8 +2,6 @@ using Database.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Application.Interfaces.Repositories;
-using Database.Repositories;
 
 namespace Database
 {
@@ -27,15 +25,7 @@ namespace Database
                 );
             }
 
-            // Generic repository registration
-            services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-            // Specific repository registrations
-            services.AddTransient<ICustomerRepository, CustomerRepository>();
-            services.AddTransient<IProductRepository, ProductRepository>();
-            services.AddTransient<ISaleRepository, SaleRepository>();
-            services.AddTransient<ISaleDetailRepository, SaleDetailRepository>();
-            services.AddTransient<IPaymentRepository, PaymentRepository>();
+         
         }
     }
 }

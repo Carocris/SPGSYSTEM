@@ -1,5 +1,7 @@
-﻿using Application.Interfaces.Services;
+﻿using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
 using Application.Services;
+using Database.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -22,6 +24,16 @@ namespace Application
             services.AddTransient<ISaleService, SaleService>();
             services.AddTransient<ISaleDetailService, SaleDetailService>();
             services.AddTransient<IPaymentService, PaymentService>();
+
+            // Generic repository registration
+            services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+            // Specific repository registrations
+            services.AddTransient<ICustomerRepository, CustomerRepository>();
+            services.AddTransient<IProductRepository, ProductRepository>();
+            services.AddTransient<ISaleRepository, SaleRepository>();
+            services.AddTransient<ISaleDetailRepository, SaleDetailRepository>();
+            services.AddTransient<IPaymentRepository, PaymentRepository>();
         }
     }
 }
