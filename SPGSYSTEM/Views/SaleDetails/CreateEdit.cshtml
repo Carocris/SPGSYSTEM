@@ -1,0 +1,407 @@
+@model Application.ViewModels.SaleDetail.SaleDetailSaveViewModel
+
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var pageTitle = ViewBag.PageTitle as string ?? (isEdit ? "Editar Detalle de Venta" : "Nuevo Detalle de Venta");
+    ViewData["Title"] = pageTitle;
+    var sales = ViewBag.Sales as IEnumerable<Database.Entities.Sale>;
+    var products = ViewBag.Products as IEnumerable<Database.Entities.Product>;
+    var saleDetailId = ViewBag.SaleDetailId as int? ?? 0;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-primary mb-1">
+                    <i class="fas @(isEdit ? "fa-edit" : "fa-plus-circle") me-2"></i>@pageTitle
+                </h2>
+                <p class="text-muted mb-0">@(isEdit ? "Modifica los datos del detalle de venta" : "Agrega un nuevo detalle a una venta existente")</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (isEdit)
+        {
+            <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-info-circle me-3"></i>
+                <div>
+                    <strong>Nota importante:</strong> Al editar este detalle se actualizará el stock de productos y el total de la venta.
+                </div>
+            </div>
+        }
+
+        <!-- Form Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-warning text-dark py-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-list-alt me-2"></i>Información del Detalle
+                </h5>
+            </div>
+            
+            <div class="card-body p-4">
+                <form asp-action="CreateEdit" asp-route-id="@(isEdit ? saleDetailId : (int?)null)" method="post" id="saleDetailForm" novalidate>
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-4">
+                        <!-- Sale Selection -->
+                        <div class="col-12">
+                            <label asp-for="SaleId" class="form-label fw-medium">
+                                <i class="fas fa-receipt text-primary me-2"></i>Venta
+                            </label>
+                            <select asp-for="SaleId" class="form-select form-select-lg" required @(isEdit ? "disabled" : "")>
+                                <option value="">-- Selecciona una venta --</option>
+                                @if (sales != null)
+                                {
+                                    @foreach (var sale in sales)
+                                    {
+                                        <option value="@sale.Id" selected="@(Model?.SaleId == sale.Id)">
+                                            Venta #@sale.Id.ToString("D4") - @sale.Customer.Name (@sale.SaleDate.ToString("dd/MM/yyyy"))
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            @if (isEdit)
+                            {
+                                <input type="hidden" asp-for="SaleId" />
+                                <small class="text-muted">La venta no puede modificarse en un detalle existente</small>
+                            }
+                            <span asp-validation-for="SaleId" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Product Selection -->
+                        <div class="col-md-8">
+                            <label asp-for="ProductId" class="form-label fw-medium">
+                                <i class="fas fa-box text-primary me-2"></i>Producto
+                            </label>
+                            <select asp-for="ProductId" class="form-select form-select-lg" required id="productSelect">
+                                <option value="">-- Selecciona un producto --</option>
+                                @if (products != null)
+                                {
+                                    @foreach (var product in products)
+                                    {
+                                        <option value="@product.Id" data-price="@product.Price" data-stock="@product.Stock" selected="@(Model?.ProductId == product.Id)">
+                                            @product.Name - $@product.Price.ToString("N2") (Stock: @product.Stock)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ProductId" class="text-danger small"></span>
+                            <div class="mt-2" id="productInfo" style="display: none;">
+                                <div class="p-2 bg-light rounded">
+                                    <small class="text-muted d-block">Información del Producto:</small>
+                                    <span class="text-success fw-medium" id="productPrice"></span> |
+                                    <span class="text-info fw-medium" id="productStock"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="col-md-4">
+                            <label asp-for="Quantity" class="form-label fw-medium">
+                                <i class="fas fa-hashtag text-primary me-2"></i>Cantidad
+                            </label>
+                            <input asp-for="Quantity" type="number" min="1" class="form-control form-control-lg" 
+                                   placeholder="Ej: 2" id="quantityInput" />
+                            <span asp-validation-for="Quantity" class="text-danger small"></span>
+                            <small class="text-muted" id="stockWarning" style="display: none;"></small>
+                        </div>
+
+                        <!-- Subtotal Display -->
+                        <div class="col-12">
+                            <label class="form-label fw-medium">
+                                <i class="fas fa-calculator text-success me-2"></i>Subtotal Calculado
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-success text-white">$</span>
+                                <input type="text" class="form-control bg-light" id="subtotalDisplay" readonly 
+                                       placeholder="0.00" />
+                            </div>
+                            <input type="hidden" asp-for="Subtotal" id="subtotalHidden" />
+                            <small class="text-muted">El subtotal se calcula automáticamente: Precio × Cantidad</small>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                                <div class="d-flex gap-2">
+                                    @if (isEdit)
+                                    {
+                                        <a asp-action="Details" asp-route-id="@saleDetailId" class="btn btn-outline-info btn-lg">
+                                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                                        </a>
+                                    }
+                                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                        <i class="fas @(isEdit ? "fa-save" : "fa-plus") me-2"></i>@(isEdit ? "Actualizar Detalle" : "Crear Detalle")
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0 text-muted">
+                    <i class="fas fa-lightbulb me-2"></i>Información Útil
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-info me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Gestión de Stock</h6>
+                                <small class="text-muted">
+                                    El stock se actualiza automáticamente al @(isEdit ? "editar" : "crear") el detalle.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-calculator text-success me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Cálculo Automático</h6>
+                                <small class="text-muted">
+                                    El subtotal y total de la venta se calculan automáticamente.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let isEdit = @(isEdit.ToString().ToLower());
+
+        // Product selection change
+        document.getElementById('productSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const productInfo = document.getElementById('productInfo');
+            const productPrice = document.getElementById('productPrice');
+            const productStock = document.getElementById('productStock');
+            
+            if (selectedOption.value) {
+                const price = parseFloat(selectedOption.dataset.price);
+                const stock = parseInt(selectedOption.dataset.stock);
+                
+                productPrice.textContent = `Precio: $${price.toFixed(2)}`;
+                productStock.textContent = `Stock: ${stock} unidades`;
+                productInfo.style.display = 'block';
+                
+                calculateSubtotal();
+            } else {
+                productInfo.style.display = 'none';
+                clearSubtotal();
+            }
+            
+            updateSubmitButton();
+        });
+
+        // Quantity input change
+        document.getElementById('quantityInput').addEventListener('input', function() {
+            const productSelect = document.getElementById('productSelect');
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            const stockWarning = document.getElementById('stockWarning');
+            
+            if (selectedOption.value) {
+                const stock = parseInt(selectedOption.dataset.stock);
+                const quantity = parseInt(this.value);
+                
+                if (quantity > stock && !isEdit) {
+                    stockWarning.textContent = `⚠️ Stock insuficiente. Máximo disponible: ${stock}`;
+                    stockWarning.style.display = 'block';
+                    stockWarning.className = 'text-danger small';
+                    this.value = stock;
+                } else if (quantity > stock * 0.8) {
+                    stockWarning.textContent = `ℹ️ Advertencia: Stock bajo (${stock} disponibles)`;
+                    stockWarning.style.display = 'block';
+                    stockWarning.className = 'text-warning small';
+                } else {
+                    stockWarning.style.display = 'none';
+                }
+            }
+            
+            calculateSubtotal();
+            updateSubmitButton();
+        });
+
+        // Sale selection change
+        document.getElementById('SaleId').addEventListener('change', function() {
+            updateSubmitButton();
+        });
+
+        function calculateSubtotal() {
+            const productSelect = document.getElementById('productSelect');
+            const quantityInput = document.getElementById('quantityInput');
+            const subtotalDisplay = document.getElementById('subtotalDisplay');
+            const subtotalHidden = document.getElementById('subtotalHidden');
+            
+            const selectedOption = productSelect.options[productSelect.selectedIndex];
+            
+            if (selectedOption.value && quantityInput.value) {
+                const price = parseFloat(selectedOption.dataset.price);
+                const quantity = parseInt(quantityInput.value);
+                const subtotal = price * quantity;
+                
+                subtotalDisplay.value = subtotal.toFixed(2);
+                subtotalHidden.value = subtotal.toFixed(2);
+            } else {
+                clearSubtotal();
+            }
+        }
+
+        function clearSubtotal() {
+            document.getElementById('subtotalDisplay').value = '0.00';
+            document.getElementById('subtotalHidden').value = '0';
+        }
+
+        function updateSubmitButton() {
+            const saleSelected = document.getElementById('SaleId').value;
+            const productSelected = document.getElementById('productSelect').value;
+            const quantityEntered = document.getElementById('quantityInput').value;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (saleSelected && productSelected && quantityEntered && parseInt(quantityEntered) > 0) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-primary');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-secondary');
+            }
+        }
+
+        // Initialize form if editing
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isEdit) {
+                // Trigger change events to initialize display
+                document.getElementById('productSelect').dispatchEvent(new Event('change'));
+                calculateSubtotal();
+            }
+            updateSubmitButton();
+        });
+
+        // Form validation before submit
+        document.getElementById('saleDetailForm').addEventListener('submit', function(e) {
+            const saleSelected = document.getElementById('SaleId').value;
+            const productSelected = document.getElementById('productSelect').value;
+            const quantityEntered = document.getElementById('quantityInput').value;
+            
+            if (!saleSelected) {
+                e.preventDefault();
+                alert('Debe seleccionar una venta.');
+                return false;
+            }
+            
+            if (!productSelected) {
+                e.preventDefault();
+                alert('Debe seleccionar un producto.');
+                return false;
+            }
+            
+            if (!quantityEntered || parseInt(quantityEntered) <= 0) {
+                e.preventDefault();
+                alert('Debe ingresar una cantidad válida.');
+                return false;
+            }
+
+            // Additional stock validation for new details
+            if (!isEdit) {
+                const productSelect = document.getElementById('productSelect');
+                const selectedOption = productSelect.options[productSelect.selectedIndex];
+                const stock = parseInt(selectedOption.dataset.stock);
+                const quantity = parseInt(quantityEntered);
+                
+                if (quantity > stock) {
+                    e.preventDefault();
+                    alert(`Stock insuficiente. Stock disponible: ${stock}`);
+                    return false;
+                }
+            }
+        });
+    </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert-info {
+            border-left: 4px solid #0dcaf0;
+        }
+
+        .card-header.bg-warning {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+
+        .input-group-lg .input-group-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .bg-light.form-control {
+            background-color: #f8f9fa !important;
+            border-color: #dee2e6;
+        }
+
+        @media (max-width: 768px) {
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .d-flex.gap-2 {
+                justify-content: center;
+            }
+        }
+    </style>
+} 
