@@ -27,18 +27,10 @@ namespace Application.Mappings
 
             // Product
             CreateMap<Product, ProductViewModel>()
-                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.Price))
-                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock))
-                .ReverseMap()
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.UnitPrice))
-                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity));
+                .ReverseMap();
 
             CreateMap<ProductSaveViewModel, Product>()
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.UnitPrice))
-                .ForMember(dest => dest.Stock, opt => opt.MapFrom(src => src.StockQuantity))
-                .ReverseMap()
-                .ForMember(dest => dest.UnitPrice, opt => opt.MapFrom(src => src.Price))
-                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.Stock));
+                .ReverseMap();
 
             // SaleDetail
             CreateMap<SaleDetail, SaleDetailViewModel>()

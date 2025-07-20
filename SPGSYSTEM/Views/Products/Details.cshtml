@@ -71,29 +71,29 @@
                                         </div>
                                         <div>
                                             <small class="text-muted d-block mb-1">Precio Unitario</small>
-                                            <h4 class="text-success mb-0">$@Model.UnitPrice.ToString("N2")</h4>
+                                            <h4 class="text-success mb-0">$@Model.Price.ToString("N2")</h4>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="col-md-6">
-                                <div class="metric-card @(Model.StockQuantity <= 0 ? "bg-danger" : Model.StockQuantity <= 5 ? "bg-warning" : "bg-primary") bg-opacity-10 border @(Model.StockQuantity <= 0 ? "border-danger" : Model.StockQuantity <= 5 ? "border-warning" : "border-primary") border-opacity-25 rounded p-3">
+                                <div class="metric-card @(Model.Stock <= 0 ? "bg-danger" : Model.Stock <= 5 ? "bg-warning" : "bg-primary") bg-opacity-10 border @(Model.Stock <= 0 ? "border-danger" : Model.Stock <= 5 ? "border-warning" : "border-primary") border-opacity-25 rounded p-3">
                                     <div class="d-flex align-items-center">
-                                        <div class="metric-icon @(Model.StockQuantity <= 0 ? "bg-danger" : Model.StockQuantity <= 5 ? "bg-warning" : "bg-primary") text-white rounded-circle me-3">
+                                        <div class="metric-icon @(Model.Stock <= 0 ? "bg-danger" : Model.Stock <= 5 ? "bg-warning" : "bg-primary") text-white rounded-circle me-3">
                                             <i class="fas fa-boxes"></i>
                                         </div>
                                         <div>
                                             <small class="text-muted d-block mb-1">Stock Disponible</small>
                                             <div class="d-flex align-items-center">
-                                                <h4 class="@(Model.StockQuantity <= 0 ? "text-danger" : Model.StockQuantity <= 5 ? "text-warning" : "text-primary") mb-0 me-2">
-                                                    @Model.StockQuantity
+                                                <h4 class="@(Model.Stock <= 0 ? "text-danger" : Model.Stock <= 5 ? "text-warning" : "text-primary") mb-0 me-2">
+                                                    @Model.Stock
                                                 </h4>
-                                                @if (Model.StockQuantity <= 0)
+                                                @if (Model.Stock <= 0)
                                                 {
                                                     <span class="badge bg-danger">Sin Stock</span>
                                                 }
-                                                else if (Model.StockQuantity <= 5)
+                                                else if (Model.Stock <= 5)
                                                 {
                                                     <span class="badge bg-warning">Stock Bajo</span>
                                                 }
@@ -144,11 +144,11 @@
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
                                 <span class="text-muted">Estado:</span>
-                                @if (Model.StockQuantity <= 0)
+                                @if (Model.Stock <= 0)
                                 {
                                     <span class="badge bg-danger">Agotado</span>
                                 }
-                                else if (Model.StockQuantity <= 5)
+                                else if (Model.Stock <= 5)
                                 {
                                     <span class="badge bg-warning">Stock Bajo</span>
                                 }
@@ -159,7 +159,7 @@
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
                                 <span class="text-muted">Valor en Inventario:</span>
-                                <span class="fw-medium text-success">$@((Model.UnitPrice * Model.StockQuantity).ToString("N2"))</span>
+                                <span class="fw-medium text-success">$@((Model.Price * Model.Stock).ToString("N2"))</span>
                             </li>
                             <li class="d-flex justify-content-between align-items-center py-2">
                                 <span class="text-muted">Tiene Descripción:</span>
@@ -188,7 +188,7 @@
                             <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
                                 <i class="fas fa-edit me-2"></i>Editar Producto
                             </a>
-                            @if (Model.StockQuantity <= 5)
+                            @if (Model.Stock <= 5)
                             {
                                 <button type="button" class="btn btn-outline-info" onclick="alert('Funcionalidad de restock próximamente')">
                                     <i class="fas fa-plus me-2"></i>Reabastecer Stock
@@ -206,7 +206,7 @@
                 </div>
 
                 <!-- Recommendations -->
-                @if (Model.StockQuantity <= 5)
+                @if (Model.Stock <= 5)
                 {
                     <div class="alert alert-warning" role="alert">
                         <h6 class="alert-heading">

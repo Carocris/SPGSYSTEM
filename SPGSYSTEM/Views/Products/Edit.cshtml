@@ -58,26 +58,26 @@
                         </div>
 
                         <!-- Price and Stock Row -->
-                        <div class="col-md-6">
-                            <label asp-for="UnitPrice" class="form-label fw-medium">
-                                <i class="fas fa-dollar-sign text-success me-2"></i>Precio Unitario
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">$</span>
-                                <input asp-for="UnitPrice" type="number" step="0.01" min="0.01" 
-                                       class="form-control" placeholder="0.00" />
-                            </div>
-                            <span asp-validation-for="UnitPrice" class="text-danger small"></span>
-                        </div>
+                                                 <div class="col-md-6">
+                             <label asp-for="Price" class="form-label fw-medium">
+                                 <i class="fas fa-dollar-sign text-success me-2"></i>Precio Unitario
+                             </label>
+                             <div class="input-group">
+                                 <span class="input-group-text bg-light">$</span>
+                                 <input asp-for="Price" type="number" step="0.01" min="0.01" 
+                                        class="form-control" placeholder="0.00" />
+                             </div>
+                             <span asp-validation-for="Price" class="text-danger small"></span>
+                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="StockQuantity" class="form-label fw-medium">
-                                <i class="fas fa-boxes text-info me-2"></i>Cantidad en Stock
-                            </label>
-                            <input asp-for="StockQuantity" type="number" min="0" 
-                                   class="form-control" placeholder="0" />
-                            <span asp-validation-for="StockQuantity" class="text-danger small"></span>
-                        </div>
+                         <div class="col-md-6">
+                             <label asp-for="Stock" class="form-label fw-medium">
+                                 <i class="fas fa-boxes text-info me-2"></i>Cantidad en Stock
+                             </label>
+                             <input asp-for="Stock" type="number" min="0" 
+                                    class="form-control" placeholder="0" />
+                             <span asp-validation-for="Stock" class="text-danger small"></span>
+                         </div>
                     </div>
 
                     <!-- Action Buttons -->
@@ -153,44 +153,44 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
-        // Store original values for change detection
-        const originalValues = {
-            name: document.querySelector('[name="Name"]').value,
-            description: document.querySelector('[name="Description"]').value,
-            unitPrice: document.querySelector('[name="UnitPrice"]').value,
-            stockQuantity: document.querySelector('[name="StockQuantity"]').value
-        };
+                 // Store original values for change detection
+         const originalValues = {
+             name: document.querySelector('[name="Name"]').value,
+             description: document.querySelector('[name="Description"]').value,
+             price: document.querySelector('[name="Price"]').value,
+             stock: document.querySelector('[name="Stock"]').value
+         };
 
-        // Auto-format price input
-        document.querySelector('[name="UnitPrice"]').addEventListener('input', function(e) {
-            let value = parseFloat(e.target.value);
-            if (!isNaN(value) && value > 0) {
-                e.target.setCustomValidity('');
-            } else {
-                e.target.setCustomValidity('El precio debe ser mayor a 0');
-            }
-            checkForChanges();
-        });
+         // Auto-format price input
+         document.querySelector('[name="Price"]').addEventListener('input', function(e) {
+             let value = parseFloat(e.target.value);
+             if (!isNaN(value) && value > 0) {
+                 e.target.setCustomValidity('');
+             } else {
+                 e.target.setCustomValidity('El precio debe ser mayor a 0');
+             }
+             checkForChanges();
+         });
 
-        // Auto-format stock input
-        document.querySelector('[name="StockQuantity"]').addEventListener('input', function(e) {
-            let value = parseInt(e.target.value);
-            if (!isNaN(value) && value >= 0) {
-                e.target.setCustomValidity('');
-            } else {
-                e.target.setCustomValidity('La cantidad debe ser 0 o mayor');
-            }
-            checkForChanges();
-        });
+         // Auto-format stock input
+         document.querySelector('[name="Stock"]').addEventListener('input', function(e) {
+             let value = parseInt(e.target.value);
+             if (!isNaN(value) && value >= 0) {
+                 e.target.setCustomValidity('');
+             } else {
+                 e.target.setCustomValidity('La cantidad debe ser 0 o mayor');
+             }
+             checkForChanges();
+         });
 
-        // Check for changes
-        function checkForChanges() {
-            const currentValues = {
-                name: document.querySelector('[name="Name"]').value,
-                description: document.querySelector('[name="Description"]').value,
-                unitPrice: document.querySelector('[name="UnitPrice"]').value,
-                stockQuantity: document.querySelector('[name="StockQuantity"]').value
-            };
+         // Check for changes
+         function checkForChanges() {
+             const currentValues = {
+                 name: document.querySelector('[name="Name"]').value,
+                 description: document.querySelector('[name="Description"]').value,
+                 price: document.querySelector('[name="Price"]').value,
+                 stock: document.querySelector('[name="Stock"]').value
+             };
 
             const hasChanges = Object.keys(originalValues).some(key => 
                 originalValues[key] !== currentValues[key]

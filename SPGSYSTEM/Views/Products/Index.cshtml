@@ -59,26 +59,26 @@
                 {
                     <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 product-card" 
                          data-name="@product.Name.ToLower()" 
-                         data-price="@product.UnitPrice" 
-                         data-stock="@product.StockQuantity">
+                         data-price="@product.Price" 
+                         data-stock="@product.Stock">
                         <div class="card h-100 shadow-sm border-0 product-item">
                             <div class="card-header bg-gradient bg-primary text-white py-2">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="card-title mb-0 fw-bold text-truncate" title="@product.Name">
                                         @product.Name
                                     </h6>
-                                    @if (product.StockQuantity <= 0)
-                                    {
-                                        <span class="badge bg-danger">Sin Stock</span>
-                                    }
-                                    else if (product.StockQuantity <= 5)
-                                    {
-                                        <span class="badge bg-warning">Stock Bajo</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success">Disponible</span>
-                                    }
+                                                                                @if (product.Stock <= 0)
+                                            {
+                                                <span class="badge bg-danger">Sin Stock</span>
+                                            }
+                                            else if (product.Stock <= 5)
+                                            {
+                                                <span class="badge bg-warning">Stock Bajo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Disponible</span>
+                                            }
                                 </div>
                             </div>
                             
@@ -104,15 +104,15 @@
                                             <div class="text-center p-2 bg-light rounded">
                                                 <small class="text-muted d-block">Precio</small>
                                                 <span class="h5 text-success fw-bold mb-0">
-                                                    $@product.UnitPrice.ToString("N2")
+                                                    $@product.Price.ToString("N2")
                                                 </span>
                                             </div>
                                         </div>
                                         <div class="col-6">
                                             <div class="text-center p-2 bg-light rounded">
                                                 <small class="text-muted d-block">Stock</small>
-                                                <span class="h5 fw-bold mb-0 @(product.StockQuantity <= 5 ? "text-danger" : "text-primary")">
-                                                    @product.StockQuantity
+                                                <span class="h5 fw-bold mb-0 @(product.Stock <= 5 ? "text-danger" : "text-primary")">
+                                                    @product.Stock
                                                 </span>
                                             </div>
                                         </div>

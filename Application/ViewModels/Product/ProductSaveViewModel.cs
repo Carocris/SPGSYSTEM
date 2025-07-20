@@ -17,10 +17,10 @@ namespace Application.ViewModels.Product
 
         [Required]
         [Range(0.01, double.MaxValue)]
-        public decimal UnitPrice { get; set; }
+        public decimal Price { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
-        public int StockQuantity { get; set; }
+        public int Stock { get; set; }
     }
 }
