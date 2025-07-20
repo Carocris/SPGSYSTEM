@@ -1,0 +1,512 @@
+@model Application.ViewModels.Payment.PaymentSaveViewModel
+
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var pageTitle = ViewBag.PageTitle as string ?? (isEdit ? "Editar Pago" : "Nuevo Pago");
+    ViewData["Title"] = pageTitle;
+    var sales = ViewBag.Sales as IEnumerable<Database.Entities.Sale>;
+    var paymentMethods = ViewBag.PaymentMethods as IEnumerable<Database.Enum.PaymentMethodType>;
+    var paymentId = ViewBag.PaymentId as int? ?? 0;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-primary mb-1">
+                    <i class="fas @(isEdit ? "fa-edit" : "fa-plus-circle") me-2"></i>@pageTitle
+                </h2>
+                <p class="text-muted mb-0">@(isEdit ? "Modifica los datos del pago" : "Procesa un nuevo pago para una venta")</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (!isEdit)
+        {
+            <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-info-circle me-3"></i>
+                <div>
+                    <strong>Importante:</strong> Al procesar el pago, el stock de los productos se actualizará automáticamente.
+                </div>
+            </div>
+        }
+
+        <!-- Form Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-success text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-credit-card me-2"></i>Información del Pago
+                </h5>
+            </div>
+            
+            <div class="card-body p-4">
+                <form asp-action="CreateEdit" asp-route-id="@(isEdit ? paymentId : (int?)null)" method="post" id="paymentForm" novalidate>
+                    @Html.AntiForgeryToken()
+                    
+                    <div class="row g-4">
+                        <!-- Sale Selection -->
+                        <div class="col-12">
+                            <label asp-for="SaleId" class="form-label fw-medium">
+                                <i class="fas fa-shopping-cart text-primary me-2"></i>Venta a Pagar
+                            </label>
+                            <select asp-for="SaleId" class="form-select form-select-lg" required @(isEdit ? "disabled" : "") id="saleSelect">
+                                <option value="">-- Selecciona una venta --</option>
+                                @if (sales != null)
+                                {
+                                    @foreach (var sale in sales)
+                                    {
+                                        <option value="@sale.Id" 
+                                                data-total="@sale.TotalAmount" 
+                                                data-customer="@sale.Customer.Name"
+                                                data-date="@sale.SaleDate.ToString("dd/MM/yyyy")"
+                                                selected="@(Model?.SaleId == sale.Id)">
+                                            Venta #@sale.Id.ToString("D4") - @sale.Customer.Name - $@sale.TotalAmount.ToString("N2") (@sale.SaleDate.ToString("dd/MM/yyyy"))
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            @if (isEdit)
+                            {
+                                <input type="hidden" asp-for="SaleId" />
+                                <small class="text-muted">La venta no puede modificarse en un pago existente</small>
+                            }
+                            <span asp-validation-for="SaleId" class="text-danger small"></span>
+                            
+                            <!-- Sale Information Display -->
+                            <div class="mt-3" id="saleInfo" style="display: none;">
+                                <div class="p-3 bg-light rounded">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Cliente:</small>
+                                            <span class="fw-medium" id="saleCustomer"></span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Fecha de Venta:</small>
+                                            <span class="fw-medium" id="saleDate"></span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted d-block">Total a Pagar:</small>
+                                            <span class="fw-bold text-success" id="saleTotal"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="col-md-6">
+                            <label asp-for="PaymentMethod" class="form-label fw-medium">
+                                <i class="fas fa-credit-card text-primary me-2"></i>Método de Pago
+                            </label>
+                            <select asp-for="PaymentMethod" class="form-select form-select-lg" required id="paymentMethodSelect">
+                                <option value="">-- Selecciona método --</option>
+                                @if (paymentMethods != null)
+                                {
+                                    @foreach (var method in paymentMethods)
+                                    {
+                                        <option value="@method" selected="@(Model?.PaymentMethod == method)">
+                                            @switch(method.ToString())
+                                            {
+                                                case "Cash":
+                                                    <text>💵 Efectivo</text>
+                                                    break;
+                                                case "Card":
+                                                    <text>💳 Tarjeta de Crédito/Débito</text>
+                                                    break;
+                                                case "Transfer":
+                                                    <text>🏦 Transferencia Bancaria</text>
+                                                    break;
+                                            }
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                            
+                            <!-- Payment Method Info -->
+                            <div class="mt-2" id="paymentMethodInfo" style="display: none;">
+                                <div class="p-2 bg-light rounded">
+                                    <small class="text-muted d-block">Información del Método:</small>
+                                    <span id="methodDescription"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Amount -->
+                        <div class="col-md-6">
+                            <label asp-for="Amount" class="form-label fw-medium">
+                                <i class="fas fa-dollar-sign text-primary me-2"></i>Monto del Pago
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text bg-success text-white">$</span>
+                                <input asp-for="Amount" type="number" step="0.01" min="0.01" 
+                                       class="form-control" placeholder="0.00" id="amountInput" readonly />
+                            </div>
+                            <span asp-validation-for="Amount" class="text-danger small"></span>
+                            <small class="text-muted">El monto se establece automáticamente según el total de la venta</small>
+                        </div>
+
+                        <!-- Payment Date -->
+                        <div class="col-12">
+                            <label asp-for="PaymentDate" class="form-label fw-medium">
+                                <i class="fas fa-calendar text-primary me-2"></i>Fecha de Pago
+                            </label>
+                            <input asp-for="PaymentDate" type="datetime-local" class="form-control form-control-lg" 
+                                   value="@(Model?.PaymentDate.ToString("yyyy-MM-ddTHH:mm") ?? DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" 
+                                   @(isEdit ? "" : "readonly") />
+                            <span asp-validation-for="PaymentDate" class="text-danger small"></span>
+                            @if (!isEdit)
+                            {
+                                <small class="text-muted">La fecha se establece automáticamente al momento del procesamiento</small>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Payment Summary -->
+                    <div class="row mt-4" id="paymentSummary" style="display: none;">
+                        <div class="col-12">
+                            <div class="card bg-light border-0">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-receipt me-2"></i>Resumen del Pago
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-3">
+                                            <div class="summary-item">
+                                                <i class="fas fa-shopping-cart text-primary fa-2x mb-2"></i>
+                                                <h6 class="text-muted">Venta</h6>
+                                                <span class="fw-bold" id="summaryVenta"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="summary-item">
+                                                <i class="fas fa-user text-info fa-2x mb-2"></i>
+                                                <h6 class="text-muted">Cliente</h6>
+                                                <span class="fw-bold" id="summaryCliente"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="summary-item">
+                                                <i class="fas fa-credit-card text-warning fa-2x mb-2"></i>
+                                                <h6 class="text-muted">Método</h6>
+                                                <span class="fw-bold" id="summaryMetodo"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="summary-item">
+                                                <i class="fas fa-dollar-sign text-success fa-2x mb-2"></i>
+                                                <h6 class="text-muted">Total</h6>
+                                                <span class="fw-bold text-success fs-5" id="summaryTotal"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </a>
+                                <div class="d-flex gap-2">
+                                    @if (isEdit)
+                                    {
+                                        <a asp-action="Details" asp-route-id="@paymentId" class="btn btn-outline-info btn-lg">
+                                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                                        </a>
+                                    }
+                                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                                        <i class="fas @(isEdit ? "fa-save" : "fa-credit-card") me-2"></i>
+                                        <span id="submitText">@(isEdit ? "Actualizar Pago" : "Procesar Pago")</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Section -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0 text-muted">
+                    <i class="fas fa-lightbulb me-2"></i>Información Importante
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Gestión de Stock</h6>
+                                <small class="text-muted">
+                                    Al @(isEdit ? "editar" : "procesar") el pago, el stock de productos se actualiza automáticamente.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-shield-alt text-success me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Proceso Seguro</h6>
+                                <small class="text-muted">
+                                    Todas las transacciones son procesadas de forma segura y registradas.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let isEdit = @(isEdit.ToString().ToLower());
+
+        // Sale selection change
+        document.getElementById('saleSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const saleInfo = document.getElementById('saleInfo');
+            const saleCustomer = document.getElementById('saleCustomer');
+            const saleDate = document.getElementById('saleDate');
+            const saleTotal = document.getElementById('saleTotal');
+            const amountInput = document.getElementById('amountInput');
+            
+            if (selectedOption.value) {
+                const total = parseFloat(selectedOption.dataset.total);
+                const customer = selectedOption.dataset.customer;
+                const date = selectedOption.dataset.date;
+                
+                saleCustomer.textContent = customer;
+                saleDate.textContent = date;
+                saleTotal.textContent = `$${total.toFixed(2)}`;
+                amountInput.value = total.toFixed(2);
+                saleInfo.style.display = 'block';
+                
+                updatePaymentSummary();
+            } else {
+                saleInfo.style.display = 'none';
+                amountInput.value = '';
+                hidePaymentSummary();
+            }
+            
+            updateSubmitButton();
+        });
+
+        // Payment method selection change
+        document.getElementById('paymentMethodSelect').addEventListener('change', function() {
+            const paymentMethodInfo = document.getElementById('paymentMethodInfo');
+            const methodDescription = document.getElementById('methodDescription');
+            
+            if (this.value) {
+                let description = '';
+                let icon = '';
+                
+                switch(this.value) {
+                    case '1': // Cash
+                        description = '💵 Pago en efectivo - Inmediato y sin comisiones';
+                        icon = 'fas fa-money-bill-wave';
+                        break;
+                    case '2': // Card
+                        description = '💳 Pago con tarjeta - Seguro y confiable';
+                        icon = 'fas fa-credit-card';
+                        break;
+                    case '3': // Transfer
+                        description = '🏦 Transferencia bancaria - Proceso verificado';
+                        icon = 'fas fa-exchange-alt';
+                        break;
+                }
+                
+                methodDescription.innerHTML = `<i class="${icon} me-2"></i>${description}`;
+                paymentMethodInfo.style.display = 'block';
+                
+                updatePaymentSummary();
+            } else {
+                paymentMethodInfo.style.display = 'none';
+                hidePaymentSummary();
+            }
+            
+            updateSubmitButton();
+        });
+
+        function updatePaymentSummary() {
+            const saleSelect = document.getElementById('saleSelect');
+            const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+            const amountInput = document.getElementById('amountInput');
+            
+            if (saleSelect.value && paymentMethodSelect.value && amountInput.value) {
+                const selectedSale = saleSelect.options[saleSelect.selectedIndex];
+                const selectedMethod = paymentMethodSelect.options[paymentMethodSelect.selectedIndex];
+                
+                document.getElementById('summaryVenta').textContent = `#${selectedSale.value.padStart(4, '0')}`;
+                document.getElementById('summaryCliente').textContent = selectedSale.dataset.customer;
+                document.getElementById('summaryMetodo').textContent = selectedMethod.textContent;
+                document.getElementById('summaryTotal').textContent = `$${parseFloat(amountInput.value).toFixed(2)}`;
+                
+                document.getElementById('paymentSummary').style.display = 'block';
+            }
+        }
+
+        function hidePaymentSummary() {
+            document.getElementById('paymentSummary').style.display = 'none';
+        }
+
+        function updateSubmitButton() {
+            const saleSelected = document.getElementById('saleSelect').value;
+            const methodSelected = document.getElementById('paymentMethodSelect').value;
+            const amountEntered = document.getElementById('amountInput').value;
+            
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (saleSelected && methodSelected && amountEntered && parseFloat(amountEntered) > 0) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-success');
+                
+                if (!isEdit) {
+                    document.getElementById('submitText').innerHTML = '<i class="fas fa-credit-card me-2"></i>Procesar Pago';
+                }
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-secondary');
+                
+                if (!isEdit) {
+                    document.getElementById('submitText').innerHTML = '<i class="fas fa-credit-card me-2"></i>Completar Datos';
+                }
+            }
+        }
+
+        // Initialize form if editing
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isEdit) {
+                // Trigger change events to initialize display
+                document.getElementById('saleSelect').dispatchEvent(new Event('change'));
+                document.getElementById('paymentMethodSelect').dispatchEvent(new Event('change'));
+            }
+            updateSubmitButton();
+        });
+
+        // Form validation before submit
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            const saleSelected = document.getElementById('saleSelect').value;
+            const methodSelected = document.getElementById('paymentMethodSelect').value;
+            const amountEntered = document.getElementById('amountInput').value;
+            
+            if (!saleSelected) {
+                e.preventDefault();
+                alert('Debe seleccionar una venta.');
+                return false;
+            }
+            
+            if (!methodSelected) {
+                e.preventDefault();
+                alert('Debe seleccionar un método de pago.');
+                return false;
+            }
+            
+            if (!amountEntered || parseFloat(amountEntered) <= 0) {
+                e.preventDefault();
+                alert('Debe ingresar un monto válido.');
+                return false;
+            }
+
+            // Show processing message for new payments
+            if (!isEdit) {
+                const submitBtn = document.getElementById('submitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+            }
+        });
+    </script>
+
+    <style>
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-success);
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert-info {
+            border-left: 4px solid #0dcaf0;
+        }
+
+        .card-header.bg-success {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+
+        .input-group-lg .input-group-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .summary-item {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            background: white;
+            margin: 0.5rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .summary-item i {
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .d-flex.gap-2 {
+                justify-content: center;
+            }
+
+            .summary-item {
+                margin: 0.25rem;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+} 
