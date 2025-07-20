@@ -1,0 +1,419 @@
+@model Application.ViewModels.SaleDetail.SaleDetailViewModel
+
+@{
+    ViewData["Title"] = "Eliminar Detalle de Venta";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-danger mb-1">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Eliminar Detalle de Venta
+                </h2>
+                <p class="text-muted mb-0">Confirma la eliminación del item #@Model.Id</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Warning Message -->
+        <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+            <i class="fas fa-exclamation-triangle me-3 fs-4"></i>
+            <div>
+                <h6 class="alert-heading mb-1">¡Atención!</h6>
+                <p class="mb-0">
+                    Esta acción eliminará permanentemente el detalle de venta y 
+                    <strong>restaurará @Model.Quantity unidades</strong> del producto 
+                    <strong>"@Model.ProductName"</strong> al stock disponible.
+                </p>
+            </div>
+        </div>
+
+        <!-- Item to Delete - Preview Card -->
+        <div class="card shadow-sm border-danger mb-4">
+            <div class="card-header bg-danger text-white py-3">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-trash me-2"></i>Item a Eliminar
+                </h5>
+            </div>
+            
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center">
+                            <div class="item-icon me-3">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1">@Model.ProductName</h5>
+                                <small class="text-muted">Item ID: #@Model.Id</small>
+                                <div class="mt-1">
+                                    <span class="badge bg-primary">Venta: @Model.SaleNumber</span>
+                                    <span class="badge bg-info">Cliente: @Model.CustomerName</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <div class="delete-summary">
+                            <h4 class="text-danger mb-0">$@Model.Subtotal.ToString("N2")</h4>
+                            <small class="text-muted">Subtotal a eliminar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Impact Information -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0 text-muted">
+                    <i class="fas fa-info-circle me-2"></i>Impacto de la Eliminación
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Stock Impact -->
+                    <div class="col-md-6">
+                        <div class="impact-card stock-impact">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="impact-icon bg-success me-3">
+                                    <i class="fas fa-arrow-up"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Restauración de Stock</h6>
+                                    <small class="text-muted">El stock del producto se incrementará</small>
+                                </div>
+                            </div>
+                            <div class="impact-details">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Producto:</span>
+                                    <span class="fw-medium">@Model.ProductName</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Unidades a restaurar:</span>
+                                    <span class="fw-bold text-success">+@Model.Quantity</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sale Impact -->
+                    <div class="col-md-6">
+                        <div class="impact-card sale-impact">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="impact-icon bg-warning me-3">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Actualización de Venta</h6>
+                                    <small class="text-muted">El total de la venta se reducirá</small>
+                                </div>
+                            </div>
+                            <div class="impact-details">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Venta:</span>
+                                    <span class="fw-medium">@Model.SaleNumber</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Reducción del total:</span>
+                                    <span class="fw-bold text-warning">-$@Model.Subtotal.ToString("N2")</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detail Summary -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0 text-muted">
+                    <i class="fas fa-list me-2"></i>Resumen del Detalle
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <h6 class="text-muted mb-2">Información del Item</h6>
+                            <ul class="list-unstyled">
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>ID del Item:</span>
+                                    <span class="fw-medium">#@Model.Id</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Producto:</span>
+                                    <span class="fw-medium">@Model.ProductName</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Cantidad:</span>
+                                    <span class="fw-medium">@Model.Quantity</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Precio Unitario:</span>
+                                    <span class="fw-medium">$@Model.UnitPrice.ToString("N2")</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-group">
+                            <h6 class="text-muted mb-2">Información de la Venta</h6>
+                            <ul class="list-unstyled">
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Número de Venta:</span>
+                                    <span class="fw-medium">@Model.SaleNumber</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Cliente:</span>
+                                    <span class="fw-medium">@Model.CustomerName</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1">
+                                    <span>Fecha:</span>
+                                    <span class="fw-medium">@Model.SaleDate.ToString("dd/MM/yyyy")</span>
+                                </li>
+                                <li class="d-flex justify-content-between py-1 border-top pt-2">
+                                    <span class="fw-bold">Subtotal:</span>
+                                    <span class="fw-bold text-danger">$@Model.Subtotal.ToString("N2")</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Actions -->
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="action-info">
+                        <h6 class="mb-1">¿Confirmas la eliminación?</h6>
+                        <small class="text-muted">Esta acción no se puede deshacer</small>
+                    </div>
+                    <div class="action-buttons d-flex gap-2">
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info btn-lg">
+                            <i class="fas fa-eye me-2"></i>Ver Detalles
+                        </a>
+                        <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-lg">
+                            <i class="fas fa-edit me-2"></i>Editar Item
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <form asp-action="Delete" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <button type="submit" class="btn btn-danger btn-lg" id="confirmDeleteBtn">
+                                <i class="fas fa-trash me-2"></i>Eliminar Definitivamente
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Context -->
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0 text-muted">
+                    <i class="fas fa-lightbulb me-2"></i>¿Necesitas ayuda?
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-edit text-warning me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">¿Quieres modificar en lugar de eliminar?</h6>
+                                <small class="text-muted">
+                                    Puedes editar la cantidad o cambiar el producto sin eliminar el item.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-shopping-cart text-primary me-2"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">¿Ver toda la venta?</h6>
+                                <small class="text-muted">
+                                    Revisa todos los items de la venta antes de eliminar este detalle.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-3 text-center">
+                    <a asp-controller="Sales" asp-action="Details" asp-route-id="@Model.SaleId" class="btn btn-outline-primary">
+                        <i class="fas fa-external-link-alt me-2"></i>Ver Venta Completa: @Model.SaleNumber
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <script>
+        // Add confirmation dialog before form submission
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const productName = '@Model.ProductName';
+            const quantity = @Model.Quantity;
+            const subtotal = @Model.Subtotal;
+            
+            if (confirm(`¿Estás completamente seguro de eliminar el item "${productName}"?\n\nEsta acción:\n• Restaurará ${quantity} unidades al stock\n• Reducirá el total de la venta en $${subtotal.toFixed(2)}\n• No se puede deshacer\n\n¿Continuar?`)) {
+                this.closest('form').submit();
+            }
+        });
+
+        // Add warning animation to delete button
+        const deleteBtn = document.getElementById('confirmDeleteBtn');
+        deleteBtn.addEventListener('mouseenter', function() {
+            this.classList.add('animate__animated', 'animate__pulse');
+        });
+        
+        deleteBtn.addEventListener('mouseleave', function() {
+            this.classList.remove('animate__animated', 'animate__pulse');
+        });
+
+        // Add hover effects to cards
+        document.querySelectorAll('.impact-card').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.02)';
+                this.style.transition = 'transform 0.3s ease';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+
+    <style>
+        .item-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bs-danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .impact-card {
+            border-left: 4px solid;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        .stock-impact {
+            border-left-color: #198754;
+        }
+
+        .sale-impact {
+            border-left-color: #ffc107;
+        }
+
+        .impact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .detail-group {
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+
+        .delete-summary {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(220, 53, 69, 0.1);
+            border-radius: 0.5rem;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #dc3545, #c82333);
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(45deg, #c82333, #a71e2a);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .card.border-danger {
+            border-width: 2px !important;
+        }
+
+        .alert-warning {
+            border-left: 4px solid #ffc107;
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animation for delete button */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .animate__pulse {
+            animation: pulse 1s infinite;
+        }
+    </style>
+} 
