@@ -1,0 +1,420 @@
+@model IEnumerable<Application.ViewModels.Sale.SaleViewModel>
+
+@{
+    ViewData["Title"] = "Gestión de Ventas";
+}
+
+<div class="row">
+    <div class="col-12">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h2 text-primary mb-1">
+                    <i class="fas fa-shopping-cart me-2"></i>Gestión de Ventas
+                </h2>
+                <p class="text-muted mb-0">Administra las ventas del sistema</p>
+            </div>
+            <a asp-action="Create" class="btn btn-success btn-lg">
+                <i class="fas fa-plus me-2"></i>Nueva Venta
+            </a>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Search and Filter Section -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar por ID de venta o nombre de cliente...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="paymentFilter">
+                            <option value="">Todos los pagos</option>
+                            <option value="Cash">Efectivo</option>
+                            <option value="Card">Tarjeta</option>
+                            <option value="Transfer">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="amountFilter">
+                            <option value="">Todos los montos</option>
+                            <option value="low">$0 - $100</option>
+                            <option value="medium">$100 - $500</option>
+                            <option value="high">$500+</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <!-- Sales Grid -->
+            <div class="row" id="salesContainer">
+                @foreach (var sale in Model)
+                {
+                    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-4 sale-card" 
+                         data-customer="@sale.CustomerName.ToLower()" 
+                         data-payment="@sale.PaymentMethod.ToString()" 
+                         data-amount="@sale.TotalAmount"
+                         data-date="@sale.SaleDate.ToString("yyyy-MM-dd")">
+                        <div class="card h-100 shadow-sm border-0 sale-item">
+                            <div class="card-header bg-gradient bg-success text-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <div class="sale-icon me-3">
+                                            <i class="fas fa-receipt"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="card-title mb-0 fw-bold">
+                                                Venta #@sale.Id.ToString("D4")
+                                            </h6>
+                                            <small class="opacity-75">@sale.SaleDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark">
+                                        @switch(sale.PaymentMethod.ToString())
+                                        {
+                                            case "Cash":
+                                                <i class="fas fa-money-bill-wave me-1"></i><span>Efectivo</span>
+                                                break;
+                                            case "Card":
+                                                <i class="fas fa-credit-card me-1"></i><span>Tarjeta</span>
+                                                break;
+                                            case "Transfer":
+                                                <i class="fas fa-exchange-alt me-1"></i><span>Transferencia</span>
+                                                break;
+                                        }
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="card-body d-flex flex-column">
+                                <div class="sale-details flex-grow-1">
+                                    <!-- Customer Information -->
+                                    <div class="detail-item mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="detail-icon bg-primary me-3">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <small class="text-muted d-block">Cliente</small>
+                                                <span class="fw-medium">@sale.CustomerName</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Total Amount -->
+                                    <div class="detail-item mb-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="detail-icon bg-success me-3">
+                                                <i class="fas fa-dollar-sign"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <small class="text-muted d-block">Total</small>
+                                                <span class="fw-bold text-success h5 mb-0">$@sale.TotalAmount.ToString("N2")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Items Count -->
+                                    <div class="detail-item">
+                                        <div class="d-flex align-items-center">
+                                            <div class="detail-icon bg-info me-3">
+                                                <i class="fas fa-boxes"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <small class="text-muted d-block">Productos</small>
+                                                <span class="fw-medium">@sale.Details.Count() artículo(s)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card-footer bg-transparent border-0 pt-0">
+                                <div class="d-grid gap-2">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@sale.Id" 
+                                           class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-info btn-sm" 
+                                                title="Imprimir" onclick="printSale(@sale.Id)">
+                                            <i class="fas fa-print"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                title="Eliminar" onclick="confirmDelete(@sale.Id, '@sale.Id.ToString("D4")')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <h4 class="text-primary mb-1">@Model.Count()</h4>
+                                        <small class="text-muted">Total Ventas</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <h4 class="text-success mb-1">$@Model.Sum(s => s.TotalAmount).ToString("N2")</h4>
+                                        <small class="text-muted">Ventas Totales</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <h4 class="text-info mb-1">$@Model.Average(s => s.TotalAmount).ToString("N2")</h4>
+                                        <small class="text-muted">Promedio por Venta</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <h4 class="text-warning mb-1">@Model.Where(s => s.SaleDate.Date == DateTime.Today).Count()</h4>
+                                        <small class="text-muted">Ventas Hoy</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Empty State -->
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-shopping-cart text-muted" style="font-size: 4rem;"></i>
+                </div>
+                <h4 class="text-muted mb-3">No hay ventas registradas</h4>
+                <p class="text-muted mb-4">Comienza creando tu primera venta en el sistema</p>
+                <a asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Crear Primera Venta
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">¿Estás seguro de que deseas eliminar la venta:</p>
+                <div class="alert alert-warning">
+                    <strong id="saleNumberToDelete"></strong>
+                </div>
+                <p class="text-muted mb-0">Esta acción restaurará el stock de los productos y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" id="deleteSaleId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar Venta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function() {
+            filterSales();
+        });
+
+        document.getElementById('paymentFilter').addEventListener('change', function() {
+            filterSales();
+        });
+
+        document.getElementById('amountFilter').addEventListener('change', function() {
+            filterSales();
+        });
+
+        function filterSales() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const paymentFilter = document.getElementById('paymentFilter').value;
+            const amountFilter = document.getElementById('amountFilter').value;
+            const sales = document.querySelectorAll('.sale-card');
+
+            sales.forEach(function(sale) {
+                const customer = sale.getAttribute('data-customer');
+                const payment = sale.getAttribute('data-payment');
+                const amount = parseFloat(sale.getAttribute('data-amount'));
+                const saleId = sale.querySelector('.card-title').textContent.toLowerCase();
+
+                let showSale = true;
+
+                // Search filter
+                if (searchTerm && !customer.includes(searchTerm) && !saleId.includes(searchTerm)) {
+                    showSale = false;
+                }
+
+                // Payment filter
+                if (paymentFilter && payment !== paymentFilter) {
+                    showSale = false;
+                }
+
+                // Amount filter
+                if (amountFilter) {
+                    switch(amountFilter) {
+                        case 'low':
+                            if (amount > 100) showSale = false;
+                            break;
+                        case 'medium':
+                            if (amount <= 100 || amount > 500) showSale = false;
+                            break;
+                        case 'high':
+                            if (amount <= 500) showSale = false;
+                            break;
+                    }
+                }
+
+                sale.style.display = showSale ? 'block' : 'none';
+            });
+        }
+
+        function confirmDelete(saleId, saleNumber) {
+            document.getElementById('deleteSaleId').value = saleId;
+            document.getElementById('saleNumberToDelete').textContent = 'Venta #' + saleNumber;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        function printSale(saleId) {
+            // Future implementation for printing sales
+            alert('Función de impresión no implementada aún. ID de venta: ' + saleId);
+        }
+
+        // Add hover effects
+        document.querySelectorAll('.sale-item').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.transition = 'transform 0.3s ease';
+                this.classList.add('shadow-lg');
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.classList.remove('shadow-lg');
+            });
+        });
+    </script>
+
+    <style>
+        .sale-item {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .sale-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header.bg-gradient {
+            background: linear-gradient(45deg, #28a745, #20c997) !important;
+        }
+
+        .sale-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .detail-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .detail-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+
+        .stat-item {
+            padding: 1rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .sale-card {
+                margin-bottom: 1rem;
+            }
+            
+            .btn-group .btn {
+                font-size: 0.8rem;
+                padding: 0.375rem 0.5rem;
+            }
+        }
+    </style>
+} 

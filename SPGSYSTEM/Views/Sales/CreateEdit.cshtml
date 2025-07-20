@@ -1,0 +1,433 @@
+@model Application.ViewModels.Sale.SaleSaveViewModel
+
+@{
+    var isEdit = ViewBag.IsEdit as bool? ?? false;
+    var pageTitle = ViewBag.PageTitle as string ?? (isEdit ? "Editar Venta" : "Nueva Venta");
+    ViewData["Title"] = pageTitle;
+    var customers = ViewBag.Customers as IEnumerable<Database.Entities.Customer>;
+    var products = ViewBag.Products as IEnumerable<Database.Entities.Product>;
+    var paymentMethods = ViewBag.PaymentMethods as IEnumerable<Database.Enum.PaymentMethodType>;
+    var saleId = ViewBag.SaleId as int? ?? 0;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10 col-md-12">
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-primary mb-1">
+                    <i class="fas @(isEdit ? "fa-edit" : "fa-plus-circle") me-2"></i>@pageTitle
+                </h2>
+                <p class="text-muted mb-0">@(isEdit ? "Modifica los datos de la venta" : "Registra una nueva venta en el sistema")</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (isEdit)
+        {
+            <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                <i class="fas fa-info-circle me-3"></i>
+                <div>
+                    <strong>Nota importante:</strong> Al editar una venta, los cambios en productos afectarán el stock disponible.
+                </div>
+            </div>
+        }
+
+        <form asp-action="CreateEdit" asp-route-id="@(isEdit ? saleId : (int?)null)" method="post" id="saleForm" novalidate>
+            @Html.AntiForgeryToken()
+            
+            <div class="row g-4">
+                <!-- Customer Selection -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-user me-2"></i>Cliente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <label asp-for="CustomerId" class="form-label fw-medium">
+                                <i class="fas fa-users text-primary me-2"></i>Seleccionar Cliente
+                            </label>
+                            <select asp-for="CustomerId" class="form-select form-select-lg" required @(isEdit ? "disabled" : "")>
+                                <option value="">-- Selecciona un cliente --</option>
+                                @if (customers != null)
+                                {
+                                    @foreach (var customer in customers)
+                                    {
+                                        <option value="@customer.Id" selected="@(Model?.CustomerId == customer.Id)">@customer.Name</option>
+                                    }
+                                }
+                            </select>
+                            @if (isEdit)
+                            {
+                                <input type="hidden" asp-for="CustomerId" />
+                                <small class="text-muted">El cliente no puede modificarse en una venta existente</small>
+                            }
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Information -->
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-success text-white py-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-credit-card me-2"></i>Pago
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label asp-for="PaymentMethod" class="form-label fw-medium">
+                                        <i class="fas fa-money-bill text-success me-2"></i>Método de Pago
+                                    </label>
+                                    <select asp-for="PaymentMethod" class="form-select" required>
+                                        <option value="">-- Selecciona método --</option>
+                                        @if (paymentMethods != null)
+                                        {
+                                            @foreach (var method in paymentMethods)
+                                            {
+                                                <option value="@method" selected="@(Model?.PaymentMethod == method)">
+                                                    @switch(method.ToString())
+                                                    {
+                                                        case "Cash":
+                                                            <text>💵 Efectivo</text>
+                                                            break;
+                                                        case "Card":
+                                                            <text>💳 Tarjeta</text>
+                                                            break;
+                                                        case "Transfer":
+                                                            <text>🏦 Transferencia</text>
+                                                            break;
+                                                    }
+                                                </option>
+                                            }
+                                        }
+                                    </select>
+                                    <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                                </div>
+                                <div class="col-12">
+                                    <label asp-for="AmountPaid" class="form-label fw-medium">
+                                        <i class="fas fa-dollar-sign text-success me-2"></i>Monto Pagado
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input asp-for="AmountPaid" type="number" step="0.01" min="0.01" 
+                                               class="form-control" placeholder="0.00" readonly id="amountPaidInput" 
+                                               value="@(Model?.AmountPaid.ToString("F2") ?? "")" />
+                                    </div>
+                                    <span asp-validation-for="AmountPaid" class="text-danger small"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Selection -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-header bg-info text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-boxes me-2"></i>Productos
+                        </h5>
+                        <button type="button" class="btn btn-light btn-sm" onclick="addProductRow()">
+                            <i class="fas fa-plus me-1"></i>Agregar Producto
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="productsContainer">
+                        <!-- Product rows will be added here dynamically -->
+                        @if (Model?.Details != null && Model.Details.Any())
+                        {
+                            @for (int i = 0; i < Model.Details.Count; i++)
+                            {
+                                <input type="hidden" name="Details[@i].ProductId" value="@Model.Details[i].ProductId" />
+                                <input type="hidden" name="Details[@i].Quantity" value="@Model.Details[i].Quantity" />
+                            }
+                        }
+                    </div>
+                    
+                    <div class="row mt-3">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h6 class="text-muted mb-1">Total de la Venta</h6>
+                                    <h3 class="text-success mb-0" id="totalAmount">$@(Model?.AmountPaid.ToString("N2") ?? "0.00")</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </a>
+                        <div class="d-flex gap-2">
+                            @if (isEdit)
+                            {
+                                <a asp-action="Details" asp-route-id="@saleId" class="btn btn-outline-info btn-lg">
+                                    <i class="fas fa-eye me-2"></i>Ver Detalles
+                                </a>
+                            }
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                                <i class="fas @(isEdit ? "fa-save" : "fa-plus") me-2"></i>@(isEdit ? "Actualizar Venta" : "Crear Venta")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Product Row Template -->
+<template id="productRowTemplate">
+    <div class="product-row border rounded p-3 mb-3" style="background-color: #f8f9fa;">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label fw-medium">
+                    <i class="fas fa-box text-info me-2"></i>Producto
+                </label>
+                <select name="Details[INDEX].ProductId" class="form-select product-select" required>
+                    <option value="">-- Selecciona un producto --</option>
+                    @if (products != null)
+                    {
+                        @foreach (var product in products)
+                        {
+                            <option value="@product.Id" data-price="@product.Price" data-stock="@product.Stock">
+                                @product.Name - $@product.Price.ToString("N2") (Stock: @product.Stock)
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-medium">
+                    <i class="fas fa-hashtag text-info me-2"></i>Cantidad
+                </label>
+                <input name="Details[INDEX].Quantity" type="number" min="1" class="form-control quantity-input" 
+                       placeholder="1" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-medium">
+                    <i class="fas fa-dollar-sign text-success me-2"></i>Subtotal
+                </label>
+                <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="text" class="form-control subtotal-display" readonly placeholder="0.00" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-outline-danger w-100" onclick="removeProductRow(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        let productIndex = 0;
+        let totalSale = @(Model?.AmountPaid ?? 0);
+        let isEdit = @(isEdit.ToString().ToLower());
+        let existingDetails = @Html.Raw(Json.Serialize(Model?.Details ?? new List<Application.ViewModels.SaleDetail.SaleDetailSaveViewModel>()));
+
+        function addProductRow(productId = null, quantity = null) {
+            const template = document.getElementById('productRowTemplate');
+            const clone = template.content.cloneNode(true);
+            
+            // Replace INDEX placeholder with actual index
+            const html = clone.querySelector('.product-row').outerHTML.replace(/INDEX/g, productIndex);
+            
+            const container = document.getElementById('productsContainer');
+            container.insertAdjacentHTML('beforeend', html);
+            
+            // Add event listeners to the new row
+            const newRow = container.lastElementChild;
+            const productSelect = newRow.querySelector('.product-select');
+            const quantityInput = newRow.querySelector('.quantity-input');
+            
+            // Set values if provided (for editing)
+            if (productId) {
+                productSelect.value = productId;
+            }
+            if (quantity) {
+                quantityInput.value = quantity;
+            }
+            
+            productSelect.addEventListener('change', calculateSubtotal);
+            quantityInput.addEventListener('input', calculateSubtotal);
+            
+            if (productId && quantity) {
+                calculateSubtotal({ target: productSelect });
+            }
+            
+            productIndex++;
+            updateSubmitButton();
+        }
+
+        function removeProductRow(button) {
+            button.closest('.product-row').remove();
+            calculateTotal();
+            updateSubmitButton();
+        }
+
+        function calculateSubtotal(event) {
+            const row = event.target.closest('.product-row');
+            const productSelect = row.querySelector('.product-select');
+            const quantityInput = row.querySelector('.quantity-input');
+            const subtotalDisplay = row.querySelector('.subtotal-display');
+            
+            const selectedOption = productSelect.selectedOptions[0];
+            if (selectedOption && quantityInput.value) {
+                const price = parseFloat(selectedOption.dataset.price || 0);
+                const quantity = parseInt(quantityInput.value || 0);
+                const stock = parseInt(selectedOption.dataset.stock || 0);
+                
+                if (quantity > stock && !isEdit) {
+                    quantityInput.value = stock;
+                    alert(`Stock insuficiente. Stock disponible: ${stock}`);
+                    return;
+                }
+                
+                const subtotal = price * quantity;
+                subtotalDisplay.value = subtotal.toFixed(2);
+            } else {
+                subtotalDisplay.value = '0.00';
+            }
+            
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('.subtotal-display').forEach(function(input) {
+                total += parseFloat(input.value || 0);
+            });
+            
+            totalSale = total;
+            document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+            document.getElementById('amountPaidInput').value = total.toFixed(2);
+            
+            updateSubmitButton();
+        }
+
+        function updateSubmitButton() {
+            const customerSelected = document.querySelector('[name="CustomerId"]').value;
+            const paymentMethodSelected = document.querySelector('[name="PaymentMethod"]').value;
+            const hasProducts = document.querySelectorAll('.product-row').length > 0;
+            const allProductsValid = Array.from(document.querySelectorAll('.product-row')).every(row => {
+                const productSelect = row.querySelector('.product-select');
+                const quantityInput = row.querySelector('.quantity-input');
+                return productSelect.value && quantityInput.value && parseInt(quantityInput.value) > 0;
+            });
+            
+            const submitBtn = document.getElementById('submitBtn');
+            if (customerSelected && paymentMethodSelected && hasProducts && allProductsValid && totalSale > 0) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-primary');
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-primary');
+                submitBtn.classList.add('btn-secondary');
+            }
+        }
+
+        // Add event listeners for customer and payment method
+        document.querySelector('[name="CustomerId"]').addEventListener('change', updateSubmitButton);
+        document.querySelector('[name="PaymentMethod"]').addEventListener('change', updateSubmitButton);
+
+        // Initialize existing products for edit mode
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isEdit && existingDetails.length > 0) {
+                existingDetails.forEach(detail => {
+                    addProductRow(detail.ProductId, detail.Quantity);
+                });
+            } else {
+                addProductRow();
+            }
+        });
+
+        // Form validation before submit
+        document.getElementById('saleForm').addEventListener('submit', function(e) {
+            if (totalSale <= 0) {
+                e.preventDefault();
+                alert('Debe agregar al menos un producto a la venta.');
+                return false;
+            }
+            
+            if (!document.querySelector('[name="CustomerId"]').value) {
+                e.preventDefault();
+                alert('Debe seleccionar un cliente.');
+                return false;
+            }
+            
+            if (!document.querySelector('[name="PaymentMethod"]').value) {
+                e.preventDefault();
+                alert('Debe seleccionar un método de pago.');
+                return false;
+            }
+        });
+    </script>
+
+    <style>
+        .product-row {
+            transition: all 0.3s ease;
+        }
+        
+        .product-row:hover {
+            background-color: #e9ecef !important;
+        }
+        
+        .card-header.bg-gradient {
+            background: linear-gradient(45deg, var(--bs-primary), var(--bs-primary-dark)) !important;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-primary);
+            box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.25);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert-info {
+            border-left: 4px solid #0dcaf0;
+        }
+    </style>
+} 
