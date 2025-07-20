@@ -1,0 +1,72 @@
+@model Application.ViewModels.Customer.CustomerViewModel
+
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<h1>Customer Details</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">@Model.Name</h5>
+                
+                <div class="row mb-2">
+                    <div class="col-sm-3">
+                        <strong>ID:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        @Model.Id
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-sm-3">
+                        <strong>Name:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        @Model.Name
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-sm-3">
+                        <strong>Phone:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Phone))
+                        {
+                            <a href="tel:@Model.Phone">@Model.Phone</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-sm-3">
+                        <strong>Email:</strong>
+                    </div>
+                    <div class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.Email))
+                        {
+                            <a href="mailto:@Model.Email">@Model.Email</a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">N/A</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </div>
+</div> 
