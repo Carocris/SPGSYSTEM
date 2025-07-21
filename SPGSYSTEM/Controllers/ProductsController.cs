@@ -64,34 +64,6 @@ namespace SPGSYSTEM.Controllers
             return View(new ProductSaveViewModel());
         }
 
-        // POST: Products/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ProductSaveViewModel viewModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(viewModel);
-            }
-
-            try
-            {
-                var product = _mapper.Map<Product>(viewModel);
-                await _productService.CreateAsync(product);
-                
-                TempData["Success"] = $"Producto '{product.Name}' creado exitosamente.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al crear el producto: " + ex.Message;
-                return View(viewModel);
-            }
-        }
-
-        // GET: Products/Edit/5
-        public async Task<IActionResult> Edit(int id)
-
         // GET: Products/CreateEdit/5 (para editar)
         public async Task<IActionResult> CreateEdit(int id)
         {
@@ -133,7 +105,7 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var product = _mapper.Map<Product>(viewModel);
-                await _productService.AddAsync(product);
+                await _productService.CreateAsync(product);
                 
                 TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
                 return RedirectToAction(nameof(Index));

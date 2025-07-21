@@ -45,6 +45,5 @@ namespace Application.ViewModels.Payment
                 return CardNumber;
             }
         }
-        public string PaymentStatus { get; set; }
     }
 }
