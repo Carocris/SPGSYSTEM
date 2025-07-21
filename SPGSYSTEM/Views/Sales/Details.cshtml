@@ -18,6 +18,12 @@
                 <p class="text-muted mb-0">Información completa de la venta #@Model.Id.ToString("D4")</p>
             </div>
             <div class="d-flex gap-2">
+                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-outline-success">
+                    <i class="fas fa-credit-card me-2"></i>Simular Pago
+                </a>
                 <button type="button" class="btn btn-outline-info" onclick="window.print()">
                     <i class="fas fa-print me-2"></i>Imprimir
                 </button>
@@ -322,6 +328,12 @@
                         <div class="d-grid gap-2">
                             <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
                                 <i class="fas fa-edit me-2"></i>Editar Venta
+                            </a>
+                            <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-outline-success">
+                                <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                            </a>
+                            <a asp-controller="Payments" asp-action="Index" class="btn btn-outline-primary">
+                                <i class="fas fa-credit-card me-2"></i>Ver Pagos
                             </a>
                             <button type="button" class="btn btn-outline-info" onclick="window.print()">
                                 <i class="fas fa-print me-2"></i>Imprimir Venta

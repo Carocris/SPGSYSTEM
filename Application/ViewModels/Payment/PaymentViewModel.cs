@@ -11,6 +11,10 @@ namespace Application.ViewModels.Payment
     {
         public int Id { get; set; }
         public int SaleId { get; set; }
+        public string SaleNumber { get; set; }
+        public string CustomerName { get; set; }
+        public DateTime SaleDate { get; set; }
+        public decimal SaleTotal { get; set; }
         public PaymentMethodType PaymentMethod { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
@@ -41,5 +45,6 @@ namespace Application.ViewModels.Payment
                 return CardNumber;
             }
         }
+        public string PaymentStatus { get; set; }
     }
 }

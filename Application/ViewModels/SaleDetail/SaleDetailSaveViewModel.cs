@@ -10,6 +10,9 @@ namespace Application.ViewModels.SaleDetail
     public class SaleDetailSaveViewModel
     {
         [Required]
+        public int SaleId { get; set; }
+
+        [Required]
         public int ProductId { get; set; }
 
         [Required]

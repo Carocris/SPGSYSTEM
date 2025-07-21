@@ -167,6 +167,10 @@
                                            class="btn btn-outline-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
+                                        <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@sale.Id" 
+                                           class="btn btn-outline-success btn-sm" title="Simular pago">
+                                            <i class="fas fa-credit-card"></i>
+                                        </a>
                                         <button type="button" class="btn btn-outline-info btn-sm" 
                                                 title="Imprimir" onclick="printSale(@sale.Id)">
                                             <i class="fas fa-print"></i>

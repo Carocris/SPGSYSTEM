@@ -1,0 +1,530 @@
+@model Application.ViewModels.Payment.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Detalles del Pago";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="flex-grow-1">
+                <h2 class="h3 text-success mb-1">
+                    <i class="fas fa-credit-card me-2"></i>Detalles del Pago
+                </h2>
+                <p class="text-muted mb-0">Información completa del pago #@Model.Id</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <button type="button" class="btn btn-outline-danger" 
+                        onclick="confirmDelete(@Model.Id, '@Model.SaleNumber')">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </button>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Main Payment Information -->
+            <div class="col-lg-8">
+                <!-- Payment Header -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header @GetPaymentMethodHeaderClass(Model.PaymentMethod) text-white py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="payment-icon-large me-3">
+                                    @switch(Model.PaymentMethod.ToString())
+                                    {
+                                        case "Cash":
+                                            <i class="fas fa-money-bill-wave"></i>
+                                            break;
+                                        case "Card":
+                                            <i class="fas fa-credit-card"></i>
+                                            break;
+                                        case "Transfer":
+                                            <i class="fas fa-exchange-alt"></i>
+                                            break;
+                                    }
+                                </div>
+                                <div>
+                                    <h4 class="card-title mb-0">@GetPaymentMethodName(Model.PaymentMethod)</h4>
+                                    <small class="opacity-75">Pago ID: #@Model.Id | Estado: @Model.PaymentStatus</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <h3 class="mb-0">$@Model.Amount.ToString("N2")</h3>
+                                <small class="opacity-75">Monto Pagado</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sale Information -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-shopping-cart me-2"></i>Información de la Venta
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center">
+                                    <div class="sale-avatar me-3">
+                                        <i class="fas fa-receipt"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="mb-1">Venta @Model.SaleNumber</h5>
+                                        <small class="text-muted">@Model.SaleDate.ToString("dddd, dd 'de' MMMM 'de' yyyy")</small>
+                                        <br>
+                                        <span class="badge bg-primary">Cliente: @Model.CustomerName</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="sale-total">
+                                    <small class="text-muted d-block">Total de Venta:</small>
+                                    <h4 class="text-success mb-0">$@Model.SaleTotal.ToString("N2")</h4>
+                                </div>
+                                <a asp-controller="Sales" asp-action="Details" asp-route-id="@Model.SaleId" class="btn btn-outline-primary btn-sm mt-2">
+                                    <i class="fas fa-external-link-alt me-1"></i>Ver Venta Completa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Details -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>Detalles del Pago
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="payment-detail-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="payment-detail-icon bg-success me-3">
+                                            <i class="fas fa-calendar"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Fecha y Hora del Pago</h6>
+                                            <small class="text-muted">Cuando se procesó el pago</small>
+                                        </div>
+                                    </div>
+                                    <div class="payment-detail-content">
+                                        <h5 class="mb-1">@Model.PaymentDate.ToString("dd/MM/yyyy")</h5>
+                                        <p class="text-muted mb-0">@Model.PaymentDate.ToString("HH:mm:ss")</p>
+                                        <small class="text-muted">@Model.PaymentDate.ToString("dddd")</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="payment-detail-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="payment-detail-icon @GetPaymentMethodBgClass(Model.PaymentMethod) me-3">
+                                            @switch(Model.PaymentMethod.ToString())
+                                            {
+                                                case "Cash":
+                                                    <i class="fas fa-money-bill"></i>
+                                                    break;
+                                                case "Card":
+                                                    <i class="fas fa-credit-card"></i>
+                                                    break;
+                                                case "Transfer":
+                                                    <i class="fas fa-university"></i>
+                                                    break;
+                                            }
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Método de Pago</h6>
+                                            <small class="text-muted">Forma de procesamiento</small>
+                                        </div>
+                                    </div>
+                                    <div class="payment-detail-content">
+                                        <h5 class="mb-1">@GetPaymentMethodName(Model.PaymentMethod)</h5>
+                                        <p class="text-muted mb-0">@GetPaymentMethodDescription(Model.PaymentMethod)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="payment-detail-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="payment-detail-icon bg-info me-3">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Cliente</h6>
+                                            <small class="text-muted">Quien realizó el pago</small>
+                                        </div>
+                                    </div>
+                                    <div class="payment-detail-content">
+                                        <h5 class="mb-1">@Model.CustomerName</h5>
+                                        <p class="text-muted mb-0">Cliente de la venta @Model.SaleNumber</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="payment-detail-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="payment-detail-icon bg-warning me-3">
+                                            <i class="fas fa-check-circle"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Estado del Pago</h6>
+                                            <small class="text-muted">Estado actual</small>
+                                        </div>
+                                    </div>
+                                    <div class="payment-detail-content">
+                                        <span class="badge bg-success fs-6 px-3 py-2">
+                                            <i class="fas fa-check me-1"></i>@Model.PaymentStatus
+                                        </span>
+                                        <p class="text-muted mb-0 mt-2">Pago procesado exitosamente</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Information -->
+            <div class="col-lg-4">
+                <!-- Payment Summary -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-receipt me-2"></i>Resumen del Pago
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0">
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">ID del Pago:</span>
+                                <span class="fw-medium">#@Model.Id</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Venta:</span>
+                                <span class="fw-medium">@Model.SaleNumber</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Cliente:</span>
+                                <span class="fw-medium">@Model.CustomerName</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Método:</span>
+                                <span class="fw-medium">@GetPaymentMethodName(Model.PaymentMethod)</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                <span class="text-muted">Fecha:</span>
+                                <span class="fw-medium">@Model.PaymentDate.ToString("dd/MM/yyyy")</span>
+                            </li>
+                            <li class="d-flex justify-content-between align-items-center py-2">
+                                <span class="text-muted">Monto:</span>
+                                <span class="fw-bold text-success">$@Model.Amount.ToString("N2")</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Amount Breakdown -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-calculator me-2"></i>Desglose del Monto
+                        </h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="amount-display">
+                            <div class="amount-row mb-2">
+                                <span class="amount-label">Total de Venta:</span>
+                                <span class="amount-value text-primary">$@Model.SaleTotal.ToString("N2")</span>
+                            </div>
+                            <div class="amount-row mb-2">
+                                <span class="amount-operator">=</span>
+                            </div>
+                            <div class="amount-row">
+                                <span class="amount-label fw-bold">Monto Pagado:</span>
+                                <span class="amount-value fw-bold text-success">$@Model.Amount.ToString("N2")</span>
+                            </div>
+                            @if (Model.Amount == Model.SaleTotal)
+                            {
+                                <div class="mt-3">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Pago Completo
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                                <i class="fas fa-edit me-2"></i>Editar Pago
+                            </a>
+                            <a asp-controller="Sales" asp-action="Details" asp-route-id="@Model.SaleId" class="btn btn-outline-primary">
+                                <i class="fas fa-shopping-cart me-2"></i>Ver Venta Completa
+                            </a>
+                            <button type="button" class="btn btn-outline-info" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>Imprimir Recibo
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-list me-2"></i>Ver Todos los Pagos
+                            </a>
+                            <button type="button" class="btn btn-outline-danger" 
+                                    onclick="confirmDelete(@Model.Id, '@Model.SaleNumber')">
+                                <i class="fas fa-trash me-2"></i>Eliminar Pago
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">¿Estás seguro de que deseas eliminar el pago de la venta:</p>
+                <div class="alert alert-warning">
+                    <strong id="saleNumberToDelete"></strong>
+                </div>
+                <p class="text-muted mb-0">Esta acción restaurará el stock de los productos y no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form asp-action="Delete" method="post" class="d-inline">
+                    <input type="hidden" id="deletePaymentId" name="id" value="" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar Pago
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    
+    <script>
+        function confirmDelete(paymentId, saleNumber) {
+            document.getElementById('deletePaymentId').value = paymentId;
+            document.getElementById('saleNumberToDelete').textContent = saleNumber;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        // Print functionality
+        window.addEventListener('beforeprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'none';
+            document.querySelectorAll('.btn').forEach(btn => {
+                if (!btn.closest('.modal')) {
+                    btn.style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'flex';
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.style.display = '';
+            });
+        });
+
+        // Add some interactive effects
+        document.querySelectorAll('.card').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('no-hover')) {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.3s ease';
+                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+        });
+    </script>
+
+    <style>
+        .payment-icon-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .sale-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bs-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .payment-detail-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.375rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .payment-detail-card {
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            height: 100%;
+            border-left: 4px solid #198754;
+        }
+
+        .amount-display {
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+        }
+
+        .amount-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .amount-operator {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--bs-secondary);
+        }
+
+        @media print {
+            .btn, .modal, .alert {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
+
+            .card-header {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .d-flex.gap-2 {
+                flex-direction: column;
+            }
+            
+            .btn {
+                margin-bottom: 0.5rem;
+            }
+
+            .payment-detail-card {
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+        }
+    </style>
+}
+
+@functions {
+    public string GetPaymentMethodHeaderClass(Database.Enum.PaymentMethodType method)
+    {
+        return method switch
+        {
+            Database.Enum.PaymentMethodType.Cash => "bg-success",
+            Database.Enum.PaymentMethodType.Card => "bg-primary",
+            Database.Enum.PaymentMethodType.Transfer => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPaymentMethodBgClass(Database.Enum.PaymentMethodType method)
+    {
+        return method switch
+        {
+            Database.Enum.PaymentMethodType.Cash => "bg-success",
+            Database.Enum.PaymentMethodType.Card => "bg-primary",
+            Database.Enum.PaymentMethodType.Transfer => "bg-info",
+            _ => "bg-secondary"
+        };
+    }
+
+    public string GetPaymentMethodName(Database.Enum.PaymentMethodType method)
+    {
+        return method switch
+        {
+            Database.Enum.PaymentMethodType.Cash => "💵 Efectivo",
+            Database.Enum.PaymentMethodType.Card => "💳 Tarjeta",
+            Database.Enum.PaymentMethodType.Transfer => "🏦 Transferencia",
+            _ => "Desconocido"
+        };
+    }
+
+    public string GetPaymentMethodDescription(Database.Enum.PaymentMethodType method)
+    {
+        return method switch
+        {
+            Database.Enum.PaymentMethodType.Cash => "Pago realizado en efectivo",
+            Database.Enum.PaymentMethodType.Card => "Pago con tarjeta de crédito/débito",
+            Database.Enum.PaymentMethodType.Transfer => "Transferencia bancaria",
+            _ => "Método no especificado"
+        };
+    }
+} 

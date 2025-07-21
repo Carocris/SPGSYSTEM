@@ -56,9 +56,11 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Products/Create
-        public IActionResult Create()
+        // GET: Products/CreateEdit (para crear)
+        public IActionResult CreateEdit()
         {
+            ViewBag.IsEdit = false;
+            ViewBag.PageTitle = "Nuevo Producto";
             return View(new ProductSaveViewModel());
         }
 
@@ -89,6 +91,9 @@ namespace SPGSYSTEM.Controllers
 
         // GET: Products/Edit/5
         public async Task<IActionResult> Edit(int id)
+
+        // GET: Products/CreateEdit/5 (para editar)
+        public async Task<IActionResult> CreateEdit(int id)
         {
             try
             {
@@ -100,7 +105,10 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var viewModel = _mapper.Map<ProductSaveViewModel>(product);
+                ViewBag.IsEdit = true;
+                ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
+                ViewBag.OriginalStock = product.Stock; // Para mostrar cambios de stock
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -110,13 +118,44 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Products/Edit/5
+        // POST: Products/CreateEdit (crear)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, ProductSaveViewModel viewModel)
+        public async Task<IActionResult> CreateEdit(ProductSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
+                ViewBag.IsEdit = false;
+                ViewBag.PageTitle = "Nuevo Producto";
+                return View(viewModel);
+            }
+
+            try
+            {
+                var product = _mapper.Map<Product>(viewModel);
+                await _productService.AddAsync(product);
+                
+                TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al crear el producto: " + ex.Message;
+                ViewBag.IsEdit = false;
+                ViewBag.PageTitle = "Nuevo Producto";
+                return View(viewModel);
+            }
+        }
+
+        // POST: Products/CreateEdit/5 (editar)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateEdit(int id, ProductSaveViewModel viewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = true;
+                ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
                 return View(viewModel);
             }
@@ -130,21 +169,102 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                var originalStock = existingProduct.Stock;
+                
                 // Mapear los cambios al producto existente
                 _mapper.Map(viewModel, existingProduct);
                 
                 await _productService.UpdateAsync(existingProduct);
                 
-                TempData["Success"] = $"Producto '{existingProduct.Name}' actualizado exitosamente.";
+                // Mensaje específico sobre cambios de stock
+                var stockChange = existingProduct.Stock - originalStock;
+                string stockMessage = stockChange switch
+                {
+                    > 0 => $" Stock incrementado en {stockChange} unidades (ahora: {existingProduct.Stock}).",
+                    < 0 => $" Stock reducido en {Math.Abs(stockChange)} unidades (ahora: {existingProduct.Stock}).",
+                    0 => "",
+                    _ => ""
+                };
+                
+                TempData["Success"] = $"Producto '{existingProduct.Name}' actualizado exitosamente.{stockMessage}";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al actualizar el producto: " + ex.Message;
+                ViewBag.IsEdit = true;
+                ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
                 return View(viewModel);
             }
         }
+
+        // GET: Products/AddStock/5 (agregar stock)
+        public async Task<IActionResult> AddStock(int id)
+        {
+            try
+            {
+                var product = await _productService.GetByIdAsync(id);
+                if (product == null)
+                {
+                    TempData["Error"] = "Producto no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                ViewBag.Product = product;
+                ViewBag.CurrentStock = product.Stock;
+                return View(new AddStockViewModel { ProductId = id, QuantityToAdd = 0 });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar el producto: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Products/AddStock
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStock(AddStockViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var product = await _productService.GetByIdAsync(model.ProductId);
+                ViewBag.Product = product;
+                ViewBag.CurrentStock = product?.Stock ?? 0;
+                return View(model);
+            }
+
+            try
+            {
+                var product = await _productService.GetByIdAsync(model.ProductId);
+                if (product == null)
+                {
+                    TempData["Error"] = "Producto no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var previousStock = product.Stock;
+                product.Stock += model.QuantityToAdd;
+                
+                await _productService.UpdateAsync(product);
+                
+                TempData["Success"] = $"Stock agregado exitosamente. {product.Name}: {previousStock} → {product.Stock} unidades (+{model.QuantityToAdd})";
+                return RedirectToAction(nameof(Details), new { id = model.ProductId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al agregar stock: " + ex.Message;
+                var product = await _productService.GetByIdAsync(model.ProductId);
+                ViewBag.Product = product;
+                ViewBag.CurrentStock = product?.Stock ?? 0;
+                return View(model);
+            }
+        }
+
+        // Mantener compatibilidad con métodos anteriores
+        public IActionResult Create() => CreateEdit();
+        public async Task<IActionResult> Edit(int id) => await CreateEdit(id);
 
         // POST: Products/Delete/5
         [HttpPost]

@@ -81,7 +81,30 @@
                                         </h6>
                                         <small class="text-light opacity-75">Código: @product.Code</small>
                                     </div>
-                                    <span class="badge @product.StockBadgeClass">@product.StockStatus</span>
+                                    @if (product.Stock <= 0)
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Sin Stock
+                                        </span>
+                                    }
+                                    else if (product.IsLowStock)
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-circle me-1"></i>Stock Bajo (@product.Stock)
+                                        </span>
+                                    }
+                                    else if (product.Stock <= 20)
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-box me-1"></i>Stock Normal (@product.Stock)
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Stock Alto (@product.Stock)
+                                        </span>
+                                    }
                                 </div>
                             </div>
                             
@@ -170,6 +193,10 @@
                                         <a asp-action="CreateEdit" asp-route-id="@product.Id" 
                                            class="btn btn-outline-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="AddStock" asp-route-id="@product.Id" 
+                                           class="btn btn-outline-success btn-sm" title="Agregar stock">
+                                            <i class="fas fa-plus"></i>
                                         </a>
                                         <button type="button" class="btn btn-outline-danger btn-sm" 
                                                 title="Eliminar" onclick="confirmDelete(@product.Id, '@product.Name')">
