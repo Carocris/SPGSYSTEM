@@ -1,0 +1,192 @@
+@model Application.ViewModels.Supplier.SupplierViewModel
+@{
+    ViewData["Title"] = "Detalles de Proveedor";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Navegación -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Home")">Inicio</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index")">Proveedores</a>
+                    </li>
+                    <li class="breadcrumb-item active">@Model.Name</li>
+                </ol>
+            </nav>
+
+            <!-- Información del proveedor -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-truck me-2"></i>
+                            @Model.Name
+                        </h3>
+                        <div class="btn-group">
+                            <a href="@Url.Action("CreateEdit", new { id = Model.Id })" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </a>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Información General -->
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>ID:</strong></td>
+                                    <td>@Model.Id</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>@Model.Name</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Persona de Contacto:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.ContactPerson) ? "Sin contacto" : Model.ContactPerson)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ID Fiscal:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.TaxId) ? "Sin ID fiscal" : Model.TaxId)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Creación:</strong></td>
+                                    <td>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <!-- Información de Contacto -->
+                        <div class="col-md-6">
+                            <h5>Información de Contacto</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Teléfono:</strong></td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(Model.Phone))
+                                        {
+                                            <a href="tel:@Model.Phone" class="text-decoration-none">
+                                                <i class="fas fa-phone me-1"></i>@Model.Phone
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin teléfono</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Email:</strong></td>
+                                    <td>
+                                        @if (!string.IsNullOrWhiteSpace(Model.Email))
+                                        {
+                                            <a href="mailto:@Model.Email" class="text-decoration-none">
+                                                <i class="fas fa-envelope me-1"></i>@Model.Email
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sin email</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Dirección:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.Address) ? "Sin dirección" : Model.Address)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ciudad:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.City) ? "Sin ciudad" : Model.City)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Código Postal:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.PostalCode) ? "Sin código postal" : Model.PostalCode)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>País:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.Country) ? "Sin país" : Model.Country)</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Estadísticas</h5>
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                                            <h4 class="mb-0">@Model.ProductCount</h4>
+                                            <small class="text-muted">Productos suministrados</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos del proveedor -->
+            @if (Model.ProductCount > 0)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-boxes me-2"></i>
+                            Productos de este Proveedor
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Este proveedor suministra <strong>@Model.ProductCount producto(s)</strong>.
+                            <a href="@Url.Action("Index", "Products", new { supplierId = Model.Id })" class="alert-link">
+                                Ver productos de este proveedor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mt-4">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay productos de este proveedor</h5>
+                        <p class="text-muted">Puedes agregar productos y asignar este proveedor desde el módulo de productos.</p>
+                        <a href="@Url.Action("CreateEdit", "Products")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Agregar Producto
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div> 

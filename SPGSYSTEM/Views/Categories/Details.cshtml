@@ -1,0 +1,130 @@
+@model Application.ViewModels.Category.CategoryViewModel
+@{
+    ViewData["Title"] = "Detalles de Categoría";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Navegación -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Home")">Inicio</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index")">Categorías</a>
+                    </li>
+                    <li class="breadcrumb-item active">@Model.Name</li>
+                </ol>
+            </nav>
+
+            <!-- Información de la categoría -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-tag me-2"></i>
+                            @Model.Name
+                        </h3>
+                        <div class="btn-group">
+                            <a href="@Url.Action("CreateEdit", new { id = Model.Id })" class="btn btn-warning">
+                                <i class="fas fa-edit me-2"></i>Editar
+                            </a>
+                            <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>ID:</strong></td>
+                                    <td>@Model.Id</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>@Model.Name</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Descripción:</strong></td>
+                                    <td>@(string.IsNullOrWhiteSpace(Model.Description) ? "Sin descripción" : Model.Description)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        @if (Model.IsActive)
+                                        {
+                                            <span class="badge bg-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactivo</span>
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha de Creación:</strong></td>
+                                    <td>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Estadísticas</h5>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                                            <h4 class="mb-0">@Model.ProductCount</h4>
+                                            <small class="text-muted">Productos en esta categoría</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos de la categoría -->
+            @if (Model.ProductCount > 0)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-boxes me-2"></i>
+                            Productos en esta Categoría
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Esta categoría tiene <strong>@Model.ProductCount producto(s)</strong> asociado(s).
+                            <a href="@Url.Action("Index", "Products", new { categoryId = Model.Id })" class="alert-link">
+                                Ver productos de esta categoría
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mt-4">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay productos en esta categoría</h5>
+                        <p class="text-muted">Puedes agregar productos y asignarlos a esta categoría desde el módulo de productos.</p>
+                        <a href="@Url.Action("CreateEdit", "Products")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Agregar Producto
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,278 @@
+@model Application.ViewModels.Supplier.SupplierSaveViewModel
+@{
+    ViewData["Title"] = ViewBag.PageTitle;
+    bool isEdit = ViewBag.IsEdit ?? false;
+    int? supplierId = ViewBag.SupplierId;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Navegación -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index", "Home")">Inicio</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="@Url.Action("Index")">Proveedores</a>
+                    </li>
+                    <li class="breadcrumb-item active">@ViewBag.PageTitle</li>
+                </ol>
+            </nav>
+
+            <!-- Formulario -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-@(isEdit ? "edit" : "plus") me-2"></i>
+                        @ViewBag.PageTitle
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="@(isEdit ? Url.Action("CreateEdit", new { id = supplierId }) : Url.Action("CreateEdit"))">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Información General -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Información General
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <!-- Nombre -->
+                                                <div class="mb-3">
+                                                    <label asp-for="Name" class="form-label">
+                                                        <i class="fas fa-building me-1"></i>
+                                                        Nombre del Proveedor <span class="text-danger">*</span>
+                                                    </label>
+                                                    <input asp-for="Name" class="form-control" placeholder="Ingrese el nombre del proveedor">
+                                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <!-- Persona de Contacto -->
+                                                <div class="mb-3">
+                                                    <label asp-for="ContactPerson" class="form-label">
+                                                        <i class="fas fa-user me-1"></i>
+                                                        Persona de Contacto
+                                                    </label>
+                                                    <input asp-for="ContactPerson" class="form-control" placeholder="Nombre del contacto principal">
+                                                    <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <!-- ID Fiscal -->
+                                                <div class="mb-3">
+                                                    <label asp-for="TaxId" class="form-label">
+                                                        <i class="fas fa-id-card me-1"></i>
+                                                        ID Fiscal / RUC
+                                                    </label>
+                                                    <input asp-for="TaxId" class="form-control" placeholder="Identificación fiscal">
+                                                    <span asp-validation-for="TaxId" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <!-- Estado -->
+                                                <div class="mb-3">
+                                                    <label class="form-label">Estado</label>
+                                                    <div class="form-check form-switch">
+                                                        <input asp-for="IsActive" class="form-check-input" type="checkbox" role="switch">
+                                                        <label asp-for="IsActive" class="form-check-label">
+                                                            <i class="fas fa-toggle-on me-1"></i>
+                                                            Proveedor Activo
+                                                        </label>
+                                                    </div>
+                                                    <small class="form-text text-muted">
+                                                        Los proveedores inactivos no aparecerán en los formularios de productos.
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Información de Contacto -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-address-book me-1"></i>
+                                            Información de Contacto
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <!-- Teléfono -->
+                                                <div class="mb-3">
+                                                    <label asp-for="Phone" class="form-label">
+                                                        <i class="fas fa-phone me-1"></i>
+                                                        Teléfono
+                                                    </label>
+                                                    <input asp-for="Phone" class="form-control" placeholder="+1234567890">
+                                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <!-- Email -->
+                                                <div class="mb-3">
+                                                    <label asp-for="Email" class="form-label">
+                                                        <i class="fas fa-envelope me-1"></i>
+                                                        Email
+                                                    </label>
+                                                    <input asp-for="Email" class="form-control" type="email" placeholder="email@ejemplo.com">
+                                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <!-- Dirección -->
+                                            <label asp-for="Address" class="form-label">
+                                                <i class="fas fa-map-marker-alt me-1"></i>
+                                                Dirección
+                                            </label>
+                                            <textarea asp-for="Address" class="form-control" rows="2" placeholder="Dirección completa del proveedor"></textarea>
+                                            <span asp-validation-for="Address" class="text-danger"></span>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <!-- Ciudad -->
+                                                <div class="mb-3">
+                                                    <label asp-for="City" class="form-label">
+                                                        <i class="fas fa-city me-1"></i>
+                                                        Ciudad
+                                                    </label>
+                                                    <input asp-for="City" class="form-control" placeholder="Ciudad">
+                                                    <span asp-validation-for="City" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <!-- Código Postal -->
+                                                <div class="mb-3">
+                                                    <label asp-for="PostalCode" class="form-label">
+                                                        <i class="fas fa-mail-bulk me-1"></i>
+                                                        Código Postal
+                                                    </label>
+                                                    <input asp-for="PostalCode" class="form-control" placeholder="12345">
+                                                    <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <!-- País -->
+                                                <div class="mb-3">
+                                                    <label asp-for="Country" class="form-label">
+                                                        <i class="fas fa-globe me-1"></i>
+                                                        País
+                                                    </label>
+                                                    <input asp-for="Country" class="form-control" placeholder="País">
+                                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Panel de información -->
+                                <div class="card bg-light">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-lightbulb me-1"></i>
+                                            Información
+                                        </h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2">
+                                                <i class="fas fa-check text-success me-2"></i>
+                                                <small>Los campos marcados con <span class="text-danger">*</span> son obligatorios</small>
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-building text-primary me-2"></i>
+                                                <small>El nombre debe ser único en el sistema</small>
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-boxes text-info me-2"></i>
+                                                <small>Los productos pueden ser asignados a este proveedor</small>
+                                            </li>
+                                            <li class="mb-2">
+                                                <i class="fas fa-phone text-warning me-2"></i>
+                                                <small>El teléfono debe incluir código de país</small>
+                                            </li>
+                                            @if (isEdit)
+                                            {
+                                                <li>
+                                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                    <small>No se puede eliminar si tiene productos asociados</small>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="@Url.Action("Index")" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>
+                                        @(isEdit ? "Actualizar" : "Crear") Proveedor
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        $(document).ready(function() {
+            // Enfocar el primer campo
+            $('#Name').focus();
+
+            // Validación en tiempo real
+            $('#Name').on('input', function() {
+                const name = $(this).val().trim();
+                if (name.length > 0 && name.length < 2) {
+                    $(this).addClass('is-invalid');
+                } else {
+                    $(this).removeClass('is-invalid');
+                }
+            });
+
+            // Formatear teléfono en tiempo real
+            $('#Phone').on('input', function() {
+                let value = $(this).val().replace(/\D/g, '');
+                if (value.length > 0) {
+                    // Formato básico para teléfono
+                    if (value.length <= 10) {
+                        value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+                    }
+                }
+                $(this).val(value);
+            });
+
+        
+        });
+    </script>
+} 

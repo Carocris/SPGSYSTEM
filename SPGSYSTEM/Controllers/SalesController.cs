@@ -16,19 +16,36 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly IPaymentService _paymentService;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public SalesController(
             ISaleService saleService,
             ICustomerService customerService,
             IProductService productService,
             IPaymentService paymentService,
-            IMapper mapper)
+            IMapper mapper,
+            IWebHostEnvironment webHostEnvironment)
         {
             _saleService = saleService;
             _customerService = customerService;
             _productService = productService;
             _paymentService = paymentService;
             _mapper = mapper;
+            _webHostEnvironment = webHostEnvironment;
+        }
+
+        // Helper method to get products with stock available for sale
+        private async Task<IReadOnlyList<Product>> GetAvailableProductsAsync()
+        {
+            var allProducts = await _productService.GetAllAsync();
+            return allProducts.Where(p => p.Stock > 0).ToList();
+        }
+
+        // Helper method to get products with stock + existing products in a sale (for editing)
+        private async Task<IReadOnlyList<Product>> GetProductsForEditAsync(IEnumerable<int> existingProductIds)
+        {
+            var allProducts = await _productService.GetAllAsync();
+            return allProducts.Where(p => p.Stock > 0 || existingProductIds.Contains(p.Id)).ToList();
         }
 
         // GET: Sales
@@ -78,12 +95,14 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Sales/CreateEdit (para crear)
+        [HttpGet]
+        [Route("Sales/CreateEdit")]
         public async Task<IActionResult> CreateEdit()
         {
             try
             {
                 var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                var products = await GetAvailableProductsAsync(); // Solo productos con stock
 
                 ViewBag.Customers = customers;
                 ViewBag.Products = products;
@@ -101,6 +120,8 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Sales/CreateEdit/5 (para editar)
+        [HttpGet]
+        [Route("Sales/CreateEdit/{id:int}")]
         public async Task<IActionResult> CreateEdit(int id)
         {
             try
@@ -113,7 +134,8 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                var existingProductIds = sale.Details.Select(d => d.ProductId);
+                var products = await GetProductsForEditAsync(existingProductIds);
 
                 // Map sale to SaleSaveViewModel
                 var viewModel = new SaleSaveViewModel
@@ -146,16 +168,47 @@ namespace SPGSYSTEM.Controllers
 
         // POST: Sales/CreateEdit (crear)
         [HttpPost]
+        [Route("Sales/CreateEdit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEdit(SaleSaveViewModel model)
         {
+            // Declarar variables una sola vez al inicio del método
+            IReadOnlyList<Customer> customers = null;
+            IReadOnlyList<Product> products = null;
+
             try
             {
                 if (ModelState.IsValid)
                 {
+                    // Handle file upload for transfer receipt
+                    string transferReceiptPath = null;
+                    if (model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer && model.TransferReceipt != null)
+                    {
+                        try
+                        {
+                            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "transfer-receipts");
+                            Directory.CreateDirectory(uploadsFolder);
+
+                            var uniqueFileName = Guid.NewGuid().ToString() + "_" + model.TransferReceipt.FileName;
+                            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                            using (var fileStream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await model.TransferReceipt.CopyToAsync(fileStream);
+                            }
+
+                            transferReceiptPath = "/uploads/transfer-receipts/" + uniqueFileName;
+                        }
+                        catch (Exception ex)
+                        {
+                            TempData["Error"] = "Error al subir el comprobante: " + ex.Message;
+                            // Continue with the sale even if file upload fails
+                        }
+                    }
+
                     // Calculate totals
                     decimal totalAmount = 0;
-                    var products = await _productService.GetAllAsync();
+                    products = await _productService.GetAllAsync();
 
                     foreach (var detail in model.Details)
                     {
@@ -183,7 +236,15 @@ namespace SPGSYSTEM.Controllers
                         {
                             PaymentMethod = model.PaymentMethod,
                             Amount = model.AmountPaid,
-                            PaymentDate = DateTime.Now
+                            PaymentDate = DateTime.Now,
+                            // Campos específicos según método de pago
+                            CardNumber = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardNumber : null,
+                            CardHolderName = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardHolderName : null,
+                            CardExpiryDate = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardExpiryDate : null,
+                            CardCVV = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardCVV : null,
+                            TransferReference = model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer ? model.TransferReference : null,
+                            BankAccount = model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer ? model.BankAccount : null,
+                            TransferReceiptPath = transferReceiptPath
                         }
                     };
 
@@ -202,52 +263,67 @@ namespace SPGSYSTEM.Controllers
                     TempData["Success"] = "Venta creada exitosamente.";
                     return RedirectToAction(nameof(Index));
                 }
+                else
+                {
+                    // Debug: Log validation errors
+                    var errors = ModelState
+                        .Where(x => x.Value.Errors.Count > 0)
+                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                        .ToList();
+                    
+                    string errorMessages = string.Join("; ", errors.SelectMany(e => e.Errors));
+                    TempData["Error"] = "Errores de validación: " + errorMessages;
+                }
 
                 // If we got this far, something failed, redisplay form
-                var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                customers = await _customerService.GetAllAsync();
+                if (products == null) products = await GetAvailableProductsAsync();
 
                 ViewBag.Customers = customers;
                 ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
+                ViewBag.PaymentMethods = Enum.GetValues(typeof(Database.Enum.PaymentMethodType));
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nueva Venta";
-
                 return View(model);
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al crear la venta: " + ex.Message;
-
-                var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                
+                customers = await _customerService.GetAllAsync();
+                if (products == null) products = await GetAvailableProductsAsync();
 
                 ViewBag.Customers = customers;
                 ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
+                ViewBag.PaymentMethods = Enum.GetValues(typeof(Database.Enum.PaymentMethodType));
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nueva Venta";
-
                 return View(model);
             }
         }
 
         // POST: Sales/CreateEdit/5 (editar)
         [HttpPost]
+        [Route("Sales/CreateEdit/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEdit(int id, SaleSaveViewModel model)
         {
+            // Declarar variables una sola vez al inicio del método
+            IReadOnlyList<Customer> customers = null;
+            IReadOnlyList<Product> products = null;
+            Sale existingSale = null;
+
             try
             {
+                existingSale = await _saleService.GetFullSaleAsync(id);
+                if (existingSale == null)
+                {
+                    TempData["Error"] = "Venta no encontrada.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 if (ModelState.IsValid)
                 {
-                    var existingSale = await _saleService.GetFullSaleAsync(id);
-                    if (existingSale == null)
-                    {
-                        TempData["Error"] = "Venta no encontrada.";
-                        return RedirectToAction(nameof(Index));
-                    }
-
                     // Restore stock from original sale
                     foreach (var originalDetail in existingSale.Details)
                     {
@@ -261,7 +337,7 @@ namespace SPGSYSTEM.Controllers
 
                     // Calculate new totals
                     decimal totalAmount = 0;
-                    var products = await _productService.GetAllAsync();
+                    products = await _productService.GetAllAsync();
 
                     foreach (var detail in model.Details)
                     {
@@ -305,8 +381,8 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 // If we got this far, something failed, redisplay form
-                var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                customers = await _customerService.GetAllAsync();
+                if (products == null) products = await GetProductsForEditAsync(existingSale.Details.Select(d => d.ProductId));
 
                 ViewBag.Customers = customers;
                 ViewBag.Products = products;
@@ -321,8 +397,15 @@ namespace SPGSYSTEM.Controllers
             {
                 TempData["Error"] = "Error al actualizar la venta: " + ex.Message;
 
-                var customers = await _customerService.GetAllAsync();
-                var products = await _productService.GetAllAsync();
+                customers = await _customerService.GetAllAsync();
+                // Si existingSale es null, obtenemos productos disponibles, sino obtenemos productos para editar
+                if (products == null)
+                {
+                    if (existingSale != null)
+                        products = await GetProductsForEditAsync(existingSale.Details.Select(d => d.ProductId));
+                    else
+                        products = await GetAvailableProductsAsync();
+                }
 
                 ViewBag.Customers = customers;
                 ViewBag.Products = products;

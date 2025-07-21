@@ -18,15 +18,8 @@
                 <p class="text-muted mb-0">Información completa de la venta #@Model.Id.ToString("D4")</p>
             </div>
             <div class="d-flex gap-2">
-                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
-                    <i class="fas fa-edit me-2"></i>Editar
-                </a>
                 <button type="button" class="btn btn-outline-info" onclick="window.print()">
                     <i class="fas fa-print me-2"></i>Imprimir
-                </button>
-                <button type="button" class="btn btn-outline-danger" 
-                        onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
-                    <i class="fas fa-trash me-2"></i>Eliminar
                 </button>
             </div>
         </div>
@@ -137,7 +130,10 @@
                                                 <span class="badge bg-primary rounded-pill">@detail.Quantity</span>
                                             </td>
                                             <td class="text-end">
-                                                <span class="text-muted">$@(detail.Subtotal / detail.Quantity).ToString("N2")</span>
+                                                @{
+                                                    var unitPrice = detail.Subtotal / detail.Quantity;
+                                                }
+                                                <span class="text-muted">$@unitPrice.ToString("N2")</span>
                                             </td>
                                             <td class="text-end">
                                                 <span class="fw-bold text-success">$@detail.Subtotal.ToString("N2")</span>
@@ -205,30 +201,112 @@
                             <i class="fas fa-credit-card me-2"></i>Información de Pago
                         </h6>
                     </div>
-                    <div class="card-body text-center">
-                        <div class="payment-method-display mb-3">
+                    <div class="card-body">
+                        <div class="payment-method-display mb-3 text-center">
                             @switch(Model.PaymentMethod.ToString())
                             {
                                 case "Cash":
                                     <div class="payment-icon text-success mb-2">
                                         <i class="fas fa-money-bill-wave fa-2x"></i>
                                     </div>
-                                    <h6 class="mb-1">Efectivo</h6>
+                                    <h6 class="mb-1">Pago en Efectivo</h6>
+                                    <p class="text-muted small mb-0">Pago realizado en efectivo</p>
                                     break;
                                 case "Card":
                                     <div class="payment-icon text-primary mb-2">
                                         <i class="fas fa-credit-card fa-2x"></i>
                                     </div>
-                                    <h6 class="mb-1">Tarjeta</h6>
+                                    <h6 class="mb-1">Pago con Tarjeta</h6>
+                                    @if (Model.Payment != null)
+                                    {
+                                        <div class="card-details mt-3">
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <small class="text-muted">Número de Tarjeta:</small>
+                                                    <div class="fw-medium">@Model.Payment.MaskedCardNumber</div>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(Model.Payment.CardHolderName))
+                                                {
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Titular:</small>
+                                                        <div class="fw-medium">@Model.Payment.CardHolderName</div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(Model.Payment.CardExpiryDate))
+                                                {
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Vencimiento:</small>
+                                                        <div class="fw-medium">@Model.Payment.CardExpiryDate</div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
                                     break;
                                 case "Transfer":
                                     <div class="payment-icon text-info mb-2">
                                         <i class="fas fa-exchange-alt fa-2x"></i>
                                     </div>
-                                    <h6 class="mb-1">Transferencia</h6>
+                                    <h6 class="mb-1">Transferencia Bancaria</h6>
+                                    @if (Model.Payment != null)
+                                    {
+                                        <div class="transfer-details mt-3">
+                                            <div class="row g-2">
+                                                @if (!string.IsNullOrEmpty(Model.Payment.TransferReference))
+                                                {
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Número de Referencia:</small>
+                                                        <div class="fw-medium text-primary">@Model.Payment.TransferReference</div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(Model.Payment.BankAccount))
+                                                {
+                                                    <div class="col-12">
+                                                        <small class="text-muted">Banco Origen:</small>
+                                                        <div class="fw-medium">@Model.Payment.BankAccount</div>
+                                                    </div>
+                                                }
+                                                @if (!string.IsNullOrEmpty(Model.Payment.TransferReceiptPath))
+                                                {
+                                                    <div class="col-12 mt-3">
+                                                        <small class="text-muted d-block mb-2">Comprobante de Transferencia:</small>
+                                                        <div class="text-center">
+                                                            <img src="@Model.Payment.TransferReceiptPath" 
+                                                                 alt="Comprobante de transferencia" 
+                                                                 class="img-fluid rounded border" 
+                                                                 style="max-height: 200px; cursor: pointer;"
+                                                                 onclick="showReceiptModal('@Model.Payment.TransferReceiptPath')" />
+                                                            <div class="mt-2">
+                                                                <a href="@Model.Payment.TransferReceiptPath" 
+                                                                   target="_blank" 
+                                                                   class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-external-link-alt me-1"></i>Ver completo
+                                                                </a>
+                                                                <a href="@Model.Payment.TransferReceiptPath" 
+                                                                   download 
+                                                                   class="btn btn-sm btn-outline-secondary">
+                                                                    <i class="fas fa-download me-1"></i>Descargar
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
                                     break;
                             }
-                            <p class="text-muted small mb-0">Método de pago utilizado</p>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Monto Pagado:</span>
+                            <span class="fw-bold text-success h5 mb-0">$@Model.TotalAmount.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Fecha de Pago:</span>
+                            <span class="fw-medium">@(Model.Payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm") ?? Model.SaleDate.ToString("dd/MM/yyyy HH:mm"))</span>
                         </div>
                     </div>
                 </div>
@@ -391,7 +469,7 @@
             background: rgba(var(--bs-light-rgb), 0.5);
         }
 
-        @media print {
+        @@media print {
             .btn, .modal, .alert {
                 display: none !important;
             }
@@ -407,7 +485,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .d-flex.gap-2 {
                 flex-direction: column;
             }
@@ -421,4 +499,35 @@
             }
         }
     </style>
-} 
+}
+
+<!-- Modal para mostrar comprobante de transferencia -->
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="receiptModalLabel">
+                    <i class="fas fa-receipt me-2"></i>Comprobante de Transferencia
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="receiptImage" src="" alt="Comprobante de transferencia" class="img-fluid rounded" />
+            </div>
+            <div class="modal-footer">
+                <a id="downloadReceiptBtn" href="" download class="btn btn-success">
+                    <i class="fas fa-download me-2"></i>Descargar Comprobante
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showReceiptModal(imagePath) {
+        document.getElementById('receiptImage').src = imagePath;
+        document.getElementById('downloadReceiptBtn').href = imagePath;
+        new bootstrap.Modal(document.getElementById('receiptModal')).show();
+    }
+</script> 

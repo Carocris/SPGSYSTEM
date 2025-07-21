@@ -51,7 +51,7 @@
             </div>
         }
 
-        <form asp-action="CreateEdit" asp-route-id="@(isEdit ? saleId : (int?)null)" method="post" id="saleForm" novalidate>
+        <form asp-action="CreateEdit" asp-route-id="@(isEdit ? saleId : (int?)null)" method="post" id="saleForm" enctype="multipart/form-data" novalidate>
             @Html.AntiForgeryToken()
             
             <div class="row g-4">
@@ -67,23 +67,37 @@
                             <label asp-for="CustomerId" class="form-label fw-medium">
                                 <i class="fas fa-users text-primary me-2"></i>Seleccionar Cliente
                             </label>
-                            <select asp-for="CustomerId" class="form-select form-select-lg" required @(isEdit ? "disabled" : "")>
-                                <option value="">-- Selecciona un cliente --</option>
+                            <select asp-for="CustomerId"
+                                    class="form-select form-select-lg"
+                                    required
+                            @* este bloque genera el atributo disabled solo en edición *@
+                            @if (isEdit)
+                            {
+                            <text>disabled</text>
+                            }>
+                              <option value="">-- Selecciona un cliente --</option>
                                 @if (customers != null)
                                 {
                                     @foreach (var customer in customers)
                                     {
-                                        <option value="@customer.Id" selected="@(Model?.CustomerId == customer.Id)">@customer.Name</option>
+                                 <option value="@customer.Id"
+                                selected="@(Model?.CustomerId == customer.Id)">
+                                            @customer.Name
+                                 </option>
                                     }
                                 }
-                            </select>
+                                </select>
+
                             @if (isEdit)
                             {
                                 <input type="hidden" asp-for="CustomerId" />
-                                <small class="text-muted">El cliente no puede modificarse en una venta existente</small>
+                                <small class="text-muted">
+                                    El cliente no puede modificarse en una venta existente
+                                </small>
                             }
                             <span asp-validation-for="CustomerId" class="text-danger small"></span>
                         </div>
+
                     </div>
                 </div>
 
@@ -137,6 +151,108 @@
                                                value="@(Model?.AmountPaid.ToString("F2") ?? "")" />
                                     </div>
                                     <span asp-validation-for="AmountPaid" class="text-danger small"></span>
+                                </div>
+
+                                <!-- Campos específicos para EFECTIVO -->
+                                <div id="cashPaymentSection" class="payment-section" style="display: none;">
+                                    <div class="col-12 mt-3">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-money-bill-wave me-2"></i>
+                                            <strong>Pago en Efectivo</strong><br>
+                                            <small>Asegúrate de tener el cambio exacto. El monto se calculará automáticamente.</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Campos específicos para TARJETA -->
+                                <div id="cardPaymentSection" class="payment-section" style="display: none;">
+                                    <div class="col-12 mt-3">
+                                        <div class="alert alert-primary">
+                                            <i class="fas fa-credit-card me-2"></i>
+                                            <strong>Pago con Tarjeta</strong><br>
+                                            <small>Complete la información de la tarjeta para procesar el pago.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="CardNumber" class="form-label fw-medium">
+                                            <i class="fas fa-credit-card text-primary me-2"></i>Número de Tarjeta
+                                        </label>
+                                        <input asp-for="CardNumber" type="text" class="form-control" 
+                                               placeholder="1234 5678 9012 3456" maxlength="19" 
+                                               pattern="[0-9\s]{13,19}" id="cardNumber" />
+                                        <span asp-validation-for="CardNumber" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="CardHolderName" class="form-label fw-medium">
+                                            <i class="fas fa-user text-primary me-2"></i>Nombre del Titular
+                                        </label>
+                                        <input asp-for="CardHolderName" type="text" class="form-control" 
+                                               placeholder="Nombre como aparece en la tarjeta" />
+                                        <span asp-validation-for="CardHolderName" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="CardExpiryDate" class="form-label fw-medium">
+                                            <i class="fas fa-calendar text-primary me-2"></i>Fecha de Expiración
+                                        </label>
+                                        <input asp-for="CardExpiryDate" type="text" class="form-control" 
+                                               placeholder="MM/YYYY" maxlength="7" id="cardExpiry" />
+                                        <span asp-validation-for="CardExpiryDate" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="CardCVV" class="form-label fw-medium">
+                                            <i class="fas fa-lock text-primary me-2"></i>CVV
+                                        </label>
+                                        <input asp-for="CardCVV" type="password" class="form-control" 
+                                               placeholder="123" maxlength="4" pattern="[0-9]{3,4}" />
+                                        <span asp-validation-for="CardCVV" class="text-danger small"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Campos específicos para TRANSFERENCIA -->
+                                <div id="transferPaymentSection" class="payment-section" style="display: none;">
+                                    <div class="col-12 mt-3">
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-university me-2"></i>
+                                            <strong>Pago por Transferencia Bancaria</strong><br>
+                                            <small>Complete los siguientes datos y adjunte el comprobante de transferencia.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <h6><i class="fas fa-info-circle me-2"></i>Datos Bancarios:</h6>
+                                            <strong>Banco:</strong> Banco Nacional<br>
+                                            <strong>Cuenta:</strong> 123-456-789-012<br>
+                                            <strong>Beneficiario:</strong> SPG SYSTEM<br>
+                                            <strong>Tipo:</strong> Cuenta Corriente
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="TransferReference" class="form-label fw-medium">
+                                            <i class="fas fa-hashtag text-warning me-2"></i>Número de Referencia
+                                        </label>
+                                        <input asp-for="TransferReference" type="text" class="form-control" 
+                                               placeholder="Ej: REF123456789" />
+                                        <span asp-validation-for="TransferReference" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="BankAccount" class="form-label fw-medium">
+                                            <i class="fas fa-university text-warning me-2"></i>Banco Origen
+                                        </label>
+                                        <input asp-for="BankAccount" type="text" class="form-control" 
+                                               placeholder="Nombre del banco desde donde transfiere" />
+                                        <span asp-validation-for="BankAccount" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="TransferReceipt" class="form-label fw-medium">
+                                            <i class="fas fa-file-image text-warning me-2"></i>Comprobante de Transferencia
+                                        </label>
+                                        <input asp-for="TransferReceipt" type="file" class="form-control" 
+                                               accept="image/*,.pdf" />
+                                        <div class="form-text">
+                                            <small>Formatos permitidos: JPG, PNG, PDF. Tamaño máximo: 5MB</small>
+                                        </div>
+                                        <span asp-validation-for="TransferReceipt" class="text-danger small"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -366,9 +482,81 @@
             }
         }
 
+        // Function to show/hide payment sections based on method
+        function showPaymentSection() {
+            const paymentMethod = document.querySelector('[name="PaymentMethod"]').value;
+            
+            // Hide all sections first
+            document.querySelectorAll('.payment-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show appropriate section
+            switch(paymentMethod) {
+                case 'Cash':
+                    document.getElementById('cashPaymentSection').style.display = 'block';
+                    clearCardFields();
+                    clearTransferFields();
+                    break;
+                case 'Card':
+                    document.getElementById('cardPaymentSection').style.display = 'block';
+                    clearTransferFields();
+                    setupCardValidation();
+                    break;
+                case 'Transfer':
+                    document.getElementById('transferPaymentSection').style.display = 'block';
+                    clearCardFields();
+                    break;
+            }
+        }
+        
+        // Clear card fields when not using card payment
+        function clearCardFields() {
+            document.querySelector('[name="CardNumber"]').value = '';
+            document.querySelector('[name="CardHolderName"]').value = '';
+            document.querySelector('[name="CardExpiryDate"]').value = '';
+            document.querySelector('[name="CardCVV"]').value = '';
+        }
+        
+        // Clear transfer fields when not using transfer payment
+        function clearTransferFields() {
+            document.querySelector('[name="TransferReference"]').value = '';
+            document.querySelector('[name="BankAccount"]').value = '';
+            const fileInput = document.querySelector('[name="TransferReceipt"]');
+            if (fileInput) fileInput.value = '';
+        }
+        
+        // Setup card number formatting and validation
+        function setupCardValidation() {
+            const cardNumber = document.getElementById('cardNumber');
+            const cardExpiry = document.getElementById('cardExpiry');
+            
+            // Format card number (add spaces every 4 digits)
+            cardNumber.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+                let formattedValue = value.replace(/(.{4})/g, '$1 ');
+                if (formattedValue.endsWith(' ')) {
+                    formattedValue = formattedValue.slice(0, -1);
+                }
+                e.target.value = formattedValue;
+            });
+            
+            // Format expiry date (MM/YYYY)
+            cardExpiry.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 6);
+                }
+                e.target.value = value;
+            });
+        }
+
         // Add event listeners for customer and payment method
         document.querySelector('[name="CustomerId"]').addEventListener('change', updateSubmitButton);
-        document.querySelector('[name="PaymentMethod"]').addEventListener('change', updateSubmitButton);
+        document.querySelector('[name="PaymentMethod"]').addEventListener('change', function() {
+            updateSubmitButton();
+            showPaymentSection();
+        });
 
         // Initialize existing products for edit mode
         document.addEventListener('DOMContentLoaded', function() {
@@ -379,6 +567,9 @@
             } else {
                 addProductRow();
             }
+            
+            // Initialize payment section visibility
+            showPaymentSection();
         });
 
         // Form validation before submit
@@ -395,10 +586,57 @@
                 return false;
             }
             
-            if (!document.querySelector('[name="PaymentMethod"]').value) {
+            const paymentMethod = document.querySelector('[name="PaymentMethod"]').value;
+            if (!paymentMethod) {
                 e.preventDefault();
                 alert('Debe seleccionar un método de pago.');
                 return false;
+            }
+            
+            // Validate specific payment method fields
+            if (paymentMethod === 'Card') {
+                const cardNumber = document.querySelector('[name="CardNumber"]').value;
+                const cardHolder = document.querySelector('[name="CardHolderName"]').value;
+                const cardExpiry = document.querySelector('[name="CardExpiryDate"]').value;
+                const cardCVV = document.querySelector('[name="CardCVV"]').value;
+                
+                if (!cardNumber || !cardHolder || !cardExpiry || !cardCVV) {
+                    e.preventDefault();
+                    alert('Debe completar todos los campos de la tarjeta.');
+                    return false;
+                }
+                
+                // Validate card number format (remove spaces and check length)
+                const cleanCardNumber = cardNumber.replace(/\s/g, '');
+                if (cleanCardNumber.length < 13 || cleanCardNumber.length > 19) {
+                    e.preventDefault();
+                    alert('El número de tarjeta debe tener entre 13 y 19 dígitos.');
+                    return false;
+                }
+                
+                // Validate expiry format (MM/YYYY)
+                const expiryPattern = /^(0[1-9]|1[0-2])\/\d{4}$/;
+                if (!expiryPattern.test(cardExpiry)) {
+                    e.preventDefault();
+                    alert('La fecha de expiración debe tener el formato MM/YYYY.');
+                    return false;
+                }
+                
+                // Validate CVV format
+                if (cardCVV.length < 3 || cardCVV.length > 4) {
+                    e.preventDefault();
+                    alert('El CVV debe tener 3 o 4 dígitos.');
+                    return false;
+                }
+            } else if (paymentMethod === 'Transfer') {
+                const transferRef = document.querySelector('[name="TransferReference"]').value;
+                const bankAccount = document.querySelector('[name="BankAccount"]').value;
+                
+                if (!transferRef || !bankAccount) {
+                    e.preventDefault();
+                    alert('Debe completar el número de referencia y el banco de origen para la transferencia.');
+                    return false;
+                }
             }
         });
     </script>

@@ -75,8 +75,8 @@
                 @foreach (var sale in Model)
                 {
                     <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-4 sale-card" 
-                         data-customer="@sale.CustomerName.ToLower()" 
-                         data-payment="@sale.PaymentMethod.ToString()" 
+                         data-customer="@(sale.CustomerName?.ToLower() ?? "")" 
+                         data-payment="@(sale.PaymentMethod.ToString() ?? "")" 
                          data-amount="@sale.TotalAmount"
                          data-date="@sale.SaleDate.ToString("yyyy-MM-dd")">
                         <div class="card h-100 shadow-sm border-0 sale-item">
@@ -105,6 +105,9 @@
                                             case "Transfer":
                                                 <i class="fas fa-exchange-alt me-1"></i><span>Transferencia</span>
                                                 break;
+                                            default:
+                                                <i class="fas fa-question me-1"></i><span>N/A</span>
+                                                break;
                                         }
                                     </span>
                                 </div>
@@ -120,7 +123,7 @@
                                             </div>
                                             <div class="flex-grow-1">
                                                 <small class="text-muted d-block">Cliente</small>
-                                                <span class="fw-medium">@sale.CustomerName</span>
+                                                <span class="fw-medium">@(sale.CustomerName ?? "Cliente no disponible")</span>
                                             </div>
                                         </div>
                                     </div>
@@ -146,7 +149,7 @@
                                             </div>
                                             <div class="flex-grow-1">
                                                 <small class="text-muted d-block">Productos</small>
-                                                <span class="fw-medium">@sale.Details.Count() artículo(s)</span>
+                                                <span class="fw-medium">@(sale.Details?.Count() ?? 0) artículo(s)</span>
                                             </div>
                                         </div>
                                     </div>
@@ -410,7 +413,7 @@
             padding: 1rem 0;
         }
 
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .sale-card {
                 margin-bottom: 1rem;
             }

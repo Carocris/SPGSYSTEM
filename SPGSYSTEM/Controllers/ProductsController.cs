@@ -75,7 +75,7 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var product = _mapper.Map<Product>(viewModel);
-                await _productService.AddAsync(product);
+                await _productService.CreateAsync(product);
                 
                 TempData["Success"] = $"Producto '{product.Name}' creado exitosamente.";
                 return RedirectToAction(nameof(Index));
@@ -168,7 +168,7 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                await _productService.DeleteAsync(product);
+                await _productService.DeleteAsync(product.Id);
                 
                 TempData["Success"] = $"Producto '{product.Name}' eliminado exitosamente.";
             }

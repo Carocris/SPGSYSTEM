@@ -1,4 +1,5 @@
 ﻿using Application.ViewModels.SaleDetail;
+using Application.ViewModels.Payment;
 using Database.Enum;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,10 @@ namespace Application.ViewModels.Sale
         public decimal TotalAmount { get; set; }
         public List<SaleDetailViewModel> Details { get; set; }
         public PaymentMethodType PaymentMethod { get; set; }
+        public PaymentViewModel Payment { get; set; }
+        
+        // Propiedades calculadas para el dashboard
+        public decimal Total => TotalAmount;
+        public int TotalItems { get; set; }
     }
-
 }

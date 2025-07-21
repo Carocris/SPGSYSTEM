@@ -14,5 +14,32 @@ namespace Application.ViewModels.Payment
         public PaymentMethodType PaymentMethod { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
+
+        // Campos específicos para pago con tarjeta
+        public string? CardNumber { get; set; }
+        public string? CardHolderName { get; set; }
+        public string? CardExpiryDate { get; set; }
+        public string? CardCVV { get; set; }
+
+        // Campos específicos para transferencia bancaria
+        public string? TransferReference { get; set; }
+        public string? BankAccount { get; set; }
+        public string? TransferReceiptPath { get; set; }
+
+        // Helper properties
+        public string MaskedCardNumber 
+        { 
+            get 
+            {
+                if (string.IsNullOrEmpty(CardNumber)) return "";
+                
+                var cleanNumber = CardNumber.Replace(" ", "");
+                if (cleanNumber.Length >= 4)
+                {
+                    return "**** **** **** " + cleanNumber.Substring(cleanNumber.Length - 4);
+                }
+                return CardNumber;
+            }
+        }
     }
 }

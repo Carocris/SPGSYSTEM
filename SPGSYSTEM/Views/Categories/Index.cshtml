@@ -1,0 +1,218 @@
+@model List<Application.ViewModels.Category.CategoryViewModel>
+@{
+    ViewData["Title"] = "Gestión de Categorías";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-tags me-2"></i>
+                            Gestión de Categorías
+                        </h3>
+                        <a href="@Url.Action("CreateEdit")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Nueva Categoría
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="statusFilter" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="true">Activos</option>
+                                <option value="false">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" id="clearFilters" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Limpiar Filtros
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de categorías -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Descripción</th>
+                                    <th>Estado</th>
+                                    <th>Productos</th>
+                                    <th>Fecha Creación</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody">
+                                @foreach (var category in Model)
+                                {
+                                    <tr data-name="@category.Name.ToLower()" data-status="@category.IsActive.ToString().ToLower()">
+                                        <td>
+                                            <strong>@category.Name</strong>
+                                        </td>
+                                        <td>
+                                            @(string.IsNullOrWhiteSpace(category.Description) ? "Sin descripción" : category.Description)
+                                        </td>
+                                        <td>
+                                            @if (category.IsActive)
+                                            {
+                                                <span class="badge bg-success">Activo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@category.ProductCount productos</span>
+                                        </td>
+                                        <td>
+                                            @category.CreatedDate.ToString("dd/MM/yyyy")
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Details", new { id = category.Id })" 
+                                                   class="btn btn-outline-info btn-sm" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("CreateEdit", new { id = category.Id })" 
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-btn" 
+                                                        data-id="@category.Id" 
+                                                        data-name="@category.Name"
+                                                        data-products="@category.ProductCount"
+                                                        title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-tags fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay categorías registradas</h5>
+                            <p class="text-muted">Haz clic en "Nueva Categoría" para agregar la primera categoría.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="deleteMessage"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Filtro de búsqueda en tiempo real
+            $('#searchInput').on('keyup', function() {
+                filterTable();
+            });
+
+            // Filtro de estado
+            $('#statusFilter').on('change', function() {
+                filterTable();
+            });
+
+            // Limpiar filtros
+            $('#clearFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#statusFilter').val('');
+                filterTable();
+            });
+
+            // Función para filtrar la tabla
+            function filterTable() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                const statusFilter = $('#statusFilter').val();
+
+                $('#categoriesTableBody tr').each(function() {
+                    const $row = $(this);
+                    const name = $row.data('name');
+                    const status = $row.data('status').toString();
+
+                    let showRow = true;
+
+                    // Filtro de búsqueda
+                    if (searchText && !name.includes(searchText)) {
+                        showRow = false;
+                    }
+
+                    // Filtro de estado
+                    if (statusFilter && status !== statusFilter) {
+                        showRow = false;
+                    }
+
+                    $row.toggle(showRow);
+                });
+            }
+
+            // Manejo del modal de eliminación
+            $('.delete-btn').on('click', function() {
+                const categoryId = $(this).data('id');
+                const categoryName = $(this).data('name');
+                const productCount = $(this).data('products');
+
+                let message;
+                if (productCount > 0) {
+                    message = `No se puede eliminar la categoría "<strong>${categoryName}</strong>" porque tiene <strong>${productCount} producto(s)</strong> asociado(s).`;
+                    $('#deleteForm button[type="submit"]').hide();
+                } else {
+                    message = `¿Está seguro que desea eliminar la categoría "<strong>${categoryName}</strong>"?`;
+                    $('#deleteForm button[type="submit"]').show();
+                    $('#deleteForm').attr('action', '@Url.Action("Delete")/' + categoryId);
+                }
+
+                $('#deleteMessage').html(message);
+                $('#deleteModal').modal('show');
+            });
+        });
+    </script>
+} 
