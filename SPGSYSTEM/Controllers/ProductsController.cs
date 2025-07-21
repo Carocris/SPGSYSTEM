@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Application.Interfaces.Services;
 using Application.ViewModels.Product;
 using AutoMapper;
@@ -17,7 +21,7 @@ namespace SPGSYSTEM.Controllers
             _mapper = mapper;
         }
 
-        // GET: Products
+        // GET: /Products
         public async Task<IActionResult> Index()
         {
             try
@@ -28,13 +32,12 @@ namespace SPGSYSTEM.Controllers
             }
             catch (Exception ex)
             {
-                // Log error here
                 TempData["Error"] = "Error al cargar los productos: " + ex.Message;
                 return View(new List<ProductViewModel>());
             }
         }
 
-        // GET: Products/Details/5
+        // GET: /Products/Details/5
         public async Task<IActionResult> Details(int id)
         {
             try
@@ -46,8 +49,8 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var viewModel = _mapper.Map<ProductViewModel>(product);
-                return View(viewModel);
+                var vm = _mapper.Map<ProductViewModel>(product);
+                return View(vm);
             }
             catch (Exception ex)
             {
@@ -56,16 +59,46 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Products/CreateEdit (para crear)
-        public IActionResult CreateEdit()
+        // GET: /Products/Create
+        [HttpGet]
+        public IActionResult Create()
         {
             ViewBag.IsEdit = false;
             ViewBag.PageTitle = "Nuevo Producto";
-            return View(new ProductSaveViewModel());
+            return View("CreateEdit", new ProductSaveViewModel());
         }
 
-        // GET: Products/CreateEdit/5 (para editar)
-        public async Task<IActionResult> CreateEdit(int id)
+        // POST: /Products/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(ProductSaveViewModel vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsEdit = false;
+                ViewBag.PageTitle = "Nuevo Producto";
+                return View("CreateEdit", vm);
+            }
+
+            try
+            {
+                var product = _mapper.Map<Product>(vm);
+                await _productService.CreateAsync(product);
+
+                TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al crear el producto: " + ex.Message;
+                ViewBag.IsEdit = false;
+                ViewBag.PageTitle = "Nuevo Producto";
+                return View("CreateEdit", vm);
+            }
+        }
+        // GET: /Products/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
             try
             {
@@ -76,12 +109,12 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var viewModel = _mapper.Map<ProductSaveViewModel>(product);
+                var vm = _mapper.Map<ProductSaveViewModel>(product);
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
-                ViewBag.OriginalStock = product.Stock; // Para mostrar cambios de stock
-                return View(viewModel);
+                ViewBag.OriginalStock = product.Stock;
+                return View("CreateEdit", vm);
             }
             catch (Exception ex)
             {
@@ -90,74 +123,42 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Products/CreateEdit (crear)
+      
+
+        // POST: /Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(ProductSaveViewModel viewModel)
-        {
-            if (!ModelState.IsValid)
-            {
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nuevo Producto";
-                return View(viewModel);
-            }
-
-            try
-            {
-                var product = _mapper.Map<Product>(viewModel);
-                await _productService.CreateAsync(product);
-                
-                TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al crear el producto: " + ex.Message;
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nuevo Producto";
-                return View(viewModel);
-            }
-        }
-
-        // POST: Products/CreateEdit/5 (editar)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, ProductSaveViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, ProductSaveViewModel vm)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
-                return View(viewModel);
+                return View("CreateEdit", vm);
             }
 
             try
             {
-                var existingProduct = await _productService.GetByIdAsync(id);
-                if (existingProduct == null)
+                var existing = await _productService.GetByIdAsync(id);
+                if (existing == null)
                 {
                     TempData["Error"] = "Producto no encontrado.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                var originalStock = existingProduct.Stock;
-                
-                // Mapear los cambios al producto existente
-                _mapper.Map(viewModel, existingProduct);
-                
-                await _productService.UpdateAsync(existingProduct);
-                
-                // Mensaje específico sobre cambios de stock
-                var stockChange = existingProduct.Stock - originalStock;
-                string stockMessage = stockChange switch
-                {
-                    > 0 => $" Stock incrementado en {stockChange} unidades (ahora: {existingProduct.Stock}).",
-                    < 0 => $" Stock reducido en {Math.Abs(stockChange)} unidades (ahora: {existingProduct.Stock}).",
-                    _ => ""
-                };
-                
-                TempData["Success"] = $"Producto '{existingProduct.Name}' actualizado exitosamente.{stockMessage}";
+                var originalStock = existing.Stock;
+                _mapper.Map(vm, existing);
+                await _productService.UpdateAsync(existing);
+
+                var delta = existing.Stock - originalStock;
+                var stockMsg = delta > 0
+                    ? $" Stock incrementado en {delta} unidades (ahora: {existing.Stock})."
+                    : delta < 0
+                        ? $" Stock reducido en {Math.Abs(delta)} unidades (ahora: {existing.Stock})."
+                        : "";
+                TempData["Success"] = $"Producto '{existing.Name}' actualizado exitosamente.{stockMsg}";
+
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -166,11 +167,12 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
-                return View(viewModel);
+                return View("CreateEdit", vm);
             }
         }
 
-        // GET: Products/AddStock/5 (agregar stock)
+        // GET: /Products/AddStock/5
+        [HttpGet]
         public async Task<IActionResult> AddStock(int id)
         {
             try
@@ -193,16 +195,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Products/AddStock
+        // POST: /Products/AddStock
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStock(AddStockViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                var product = await _productService.GetByIdAsync(model.ProductId);
-                ViewBag.Product = product;
-                ViewBag.CurrentStock = product?.Stock ?? 0;
+                var prod = await _productService.GetByIdAsync(model.ProductId);
+                ViewBag.Product = prod;
+                ViewBag.CurrentStock = prod?.Stock ?? 0;
                 return View(model);
             }
 
@@ -215,29 +217,24 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var previousStock = product.Stock;
+                var before = product.Stock;
                 product.Stock += model.QuantityToAdd;
-                
                 await _productService.UpdateAsync(product);
-                
-                TempData["Success"] = $"Stock agregado exitosamente. {product.Name}: {previousStock} → {product.Stock} unidades (+{model.QuantityToAdd})";
+
+                TempData["Success"] = $"Stock agregado exitosamente. {product.Name}: {before} → {product.Stock} unidades (+{model.QuantityToAdd})";
                 return RedirectToAction(nameof(Details), new { id = model.ProductId });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al agregar stock: " + ex.Message;
-                var product = await _productService.GetByIdAsync(model.ProductId);
-                ViewBag.Product = product;
-                ViewBag.CurrentStock = product?.Stock ?? 0;
+                var prod = await _productService.GetByIdAsync(model.ProductId);
+                ViewBag.Product = prod;
+                ViewBag.CurrentStock = prod?.Stock ?? 0;
                 return View(model);
             }
         }
 
-        // Mantener compatibilidad con métodos anteriores
-        public IActionResult Create() => CreateEdit();
-        public async Task<IActionResult> Edit(int id) => await CreateEdit(id);
-
-        // POST: Products/Delete/5
+        // POST: /Products/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -245,46 +242,40 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var product = await _productService.GetByIdAsync(id);
-                if (product == null)
+                if (product != null)
                 {
-                    TempData["Error"] = "Producto no encontrado.";
-                    return RedirectToAction(nameof(Index));
+                    var withDetails = await _productService.GetWithDetailsAsync(id);
+                    if (withDetails.SaleDetails?.Any() == true)
+                    {
+                        TempData["Error"] = $"No se puede eliminar '{product.Name}' porque está asociado a ventas.";
+                    }
+                    else
+                    {
+                        await _productService.DeleteAsync(id);
+                        TempData["Success"] = $"Producto '{product.Name}' eliminado exitosamente.";
+                    }
                 }
-
-                // Verificar si el producto está siendo usado en ventas
-                var productWithDetails = await _productService.GetWithDetailsAsync(id);
-                if (productWithDetails?.SaleDetails?.Any() == true)
-                {
-                    TempData["Error"] = $"No se puede eliminar el producto '{product.Name}' porque está asociado a ventas existentes.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                await _productService.DeleteAsync(product.Id);
-                
-                TempData["Success"] = $"Producto '{product.Name}' eliminado exitosamente.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al eliminar el producto: " + ex.Message;
             }
-
             return RedirectToAction(nameof(Index));
         }
 
-        // API endpoint para búsqueda rápida (opcional)
+        // GET: /Products/Search?term=...
         [HttpGet]
         public async Task<JsonResult> Search(string term)
         {
             try
             {
                 var products = await _productService.GetAllAsync();
-                var filteredProducts = products
-                    .Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+                var result = products
+                    .Where(p => p.Name.Contains(term ?? "", StringComparison.OrdinalIgnoreCase))
                     .Take(10)
-                    .Select(p => new { id = p.Id, name = p.Name, price = p.SalePrice, stock = p.Stock })
+                    .Select(p => new { id = p.Id, name = p.Name, price = p.Price, stock = p.Stock })
                     .ToList();
-
-                return Json(filteredProducts);
+                return Json(result);
             }
             catch
             {
@@ -292,4 +283,4 @@ namespace SPGSYSTEM.Controllers
             }
         }
     }
-} 
+}

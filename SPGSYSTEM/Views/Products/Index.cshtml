@@ -13,7 +13,8 @@
                 </h2>
                 <p class="text-muted mb-0">Administra tu inventario de productos</p>
             </div>
-            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
+            <!-- Ahora apunta a Create -->
+            <a asp-action="Create" class="btn btn-success btn-lg">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
         </div>
@@ -66,9 +67,9 @@
             <div class="row" id="productsContainer">
                 @foreach (var product in Model)
                 {
-                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 product-card" 
-                         data-name="@product.Name.ToLower()" 
-                         data-price="@product.SalePrice" 
+                    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-4 product-card"
+                         data-name="@product.Name.ToLower()"
+                         data-price="@product.SalePrice"
                          data-stock="@product.Stock"
                          data-category="@(product.CategoryName?.ToLower() ?? "")"
                          data-supplier="@(product.SupplierName?.ToLower() ?? "")">
@@ -107,7 +108,7 @@
                                     }
                                 </div>
                             </div>
-                            
+
                             <div class="card-body d-flex flex-column">
                                 <!-- Información de categoría y proveedor -->
                                 <div class="mb-2">
@@ -139,7 +140,7 @@
                                         </p>
                                     }
                                 </div>
-                                
+
                                 <div class="product-details">
                                     <div class="row mb-3">
                                         <div class="col-6">
@@ -163,7 +164,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Información adicional -->
                                     <div class="row mb-2">
                                         <div class="col-6">
@@ -173,7 +174,7 @@
                                             <small class="text-muted">Margen: @product.ProfitMargin.ToString("P1")</small>
                                         </div>
                                     </div>
-                                    
+
                                     @if (product.IsLowStock)
                                     {
                                         <div class="alert alert-warning py-1 px-2 mb-2">
@@ -182,23 +183,24 @@
                                     }
                                 </div>
                             </div>
-                            
+
                             <div class="card-footer bg-transparent border-0 pt-0">
                                 <div class="d-grid gap-2">
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Details" asp-route-id="@product.Id" 
+                                        <a asp-action="Details" asp-route-id="@product.Id"
                                            class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="CreateEdit" asp-route-id="@product.Id" 
+                                        <!-- Ahora apunta a Edit -->
+                                        <a asp-action="Edit" asp-route-id="@product.Id"
                                            class="btn btn-outline-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a asp-action="AddStock" asp-route-id="@product.Id" 
+                                        <a asp-action="AddStock" asp-route-id="@product.Id"
                                            class="btn btn-outline-success btn-sm" title="Agregar stock">
                                             <i class="fas fa-plus"></i>
                                         </a>
-                                        <button type="button" class="btn btn-outline-danger btn-sm" 
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
                                                 title="Eliminar" onclick="confirmDelete(@product.Id, '@product.Name')">
                                             <i class="fas fa-trash"></i>
                                         </button>
@@ -210,26 +212,24 @@
                 }
             </div>
 
-            <!-- Pagination (if needed) -->
             <nav aria-label="Productos pagination" class="mt-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="text-muted">
                         <small>Mostrando @Model.Count() productos</small>
                     </div>
-                    <!-- Aquí puedes agregar paginación si es necesario -->
                 </div>
             </nav>
         }
         else
         {
-            <!-- Empty State -->
             <div class="text-center py-5">
                 <div class="mb-4">
                     <i class="fas fa-box-open text-muted" style="font-size: 4rem;"></i>
                 </div>
                 <h4 class="text-muted mb-3">No hay productos registrados</h4>
                 <p class="text-muted mb-4">Comienza agregando tu primer producto al sistema</p>
-                <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
+                <!-- Ahora apunta a Create -->
+                <a asp-action="Create" class="btn btn-primary btn-lg">
                     <i class="fas fa-plus me-2"></i>Agregar Primer Producto
                 </a>
             </div>
@@ -257,7 +257,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <form asp-action="Delete" method="post" class="d-inline">
-                    <input type="hidden" id="deleteProductId" name="id" value="" />
+                    <input type="hidden" id="deleteProductId" name="id" />
                     <button type="submit" class="btn btn-danger">
                         <i class="fas fa-trash me-2"></i>Eliminar
                     </button>
@@ -266,6 +266,8 @@
         </div>
     </div>
 </div>
+
+
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>

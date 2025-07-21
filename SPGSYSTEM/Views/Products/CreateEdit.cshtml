@@ -3,9 +3,9 @@
 @{
     var isEdit = ViewBag.IsEdit as bool? ?? false;
     var pageTitle = ViewBag.PageTitle as string ?? (isEdit ? "Editar Producto" : "Nuevo Producto");
-    ViewData["Title"] = pageTitle;
     var productId = ViewBag.ProductId as int? ?? 0;
     var originalStock = ViewBag.OriginalStock as int? ?? 0;
+    ViewData["Title"] = pageTitle;
 }
 
 <div class="row justify-content-center">
@@ -18,11 +18,15 @@
                 <h2 class="h3 text-primary mb-1">
                     <i class="fas @(isEdit ? "fa-edit" : "fa-plus-circle") me-2"></i>@pageTitle
                 </h2>
-                <p class="text-muted mb-0">@(isEdit ? "Modifica los datos del producto" : "Agrega un nuevo producto al inventario")</p>
+                <p class="text-muted mb-0">
+                    @(isEdit
+                        ? "Modifica los datos del producto"
+                        : "Agrega un nuevo producto al inventario")
+                </p>
             </div>
         </div>
 
-        <!-- Alert Messages -->
+        @* Alert Messages *@
         @if (TempData["Success"] != null)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -30,7 +34,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-
         @if (TempData["Error"] != null)
         {
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -38,14 +41,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
-
         @if (isEdit && originalStock != Model?.Stock)
         {
             <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
                 <i class="fas fa-info-circle me-3"></i>
                 <div>
-                    <strong>Cambio de Stock Detectado:</strong> 
-                    Stock anterior: @originalStock → Stock actual: @Model?.Stock 
+                    <strong>Cambio de Stock Detectado:</strong><br />
+                    Stock anterior: <strong>@originalStock</strong>
+                    → Stock actual: <strong>@(Model?.Stock ?? 0)</strong><br />
                     (Diferencia: @((Model?.Stock ?? 0) - originalStock))
                 </div>
             </div>
@@ -58,20 +61,42 @@
                     <i class="fas fa-box me-2"></i>Información del Producto
                 </h5>
             </div>
-            
             <div class="card-body p-4">
-                <form asp-action="CreateEdit" asp-route-id="@(isEdit ? productId : (int?)null)" method="post" id="productForm" novalidate>
+                <!-- Aquí apuntamos a Create o Edit según corresponda -->
+                <form asp-action="@(isEdit ? "Edit" : "Create")"
+                      asp-route-id="@(isEdit ? productId : (int?)null)"
+                      method="post"
+                      id="productForm"
+                      novalidate>
                     @Html.AntiForgeryToken()
-                    
+                    @* si es edición, enviamos también el id por hidden *@
+                    @if (isEdit)
+                    {
+                        <input type="hidden" name="id" value="@productId" />
+                    }
                     <div class="row g-4">
                         <!-- Product Name -->
                         <div class="col-12">
                             <label asp-for="Name" class="form-label fw-medium">
                                 <i class="fas fa-tag text-primary me-2"></i>Nombre del Producto
                             </label>
-                            <input asp-for="Name" type="text" class="form-control form-control-lg" 
-                                   placeholder="Ej: Laptop Dell Inspiron 15" maxlength="100" />
+                            <input asp-for="Name"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ej: Laptop Dell Inspiron 15"
+                                   maxlength="100" />
                             <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Code -->
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-medium">
+                                <i class="fas fa-barcode text-primary me-2"></i>Código del Producto
+                            </label>
+                            <input asp-for="Code"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ej: PROD001"
+                                   maxlength="20" />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
                         </div>
 
                         <!-- Description -->
@@ -79,22 +104,46 @@
                             <label asp-for="Description" class="form-label fw-medium">
                                 <i class="fas fa-align-left text-primary me-2"></i>Descripción
                             </label>
-                            <textarea asp-for="Description" class="form-control" rows="3" 
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="3"
                                       placeholder="Descripción detallada del producto..."></textarea>
                             <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
 
-                        <!-- Price and Stock Row -->
+                        <!-- Purchase Price and Sale Price Row -->
                         <div class="col-md-6">
-                            <label asp-for="Price" class="form-label fw-medium">
-                                <i class="fas fa-dollar-sign text-primary me-2"></i>Precio Unitario
+                            <label asp-for="PurchasePrice" class="form-label fw-medium">
+                                <i class="fas fa-dollar-sign text-primary me-2"></i>Precio de Compra
                             </label>
                             <div class="input-group input-group-lg">
                                 <span class="input-group-text">$</span>
-                                <input asp-for="Price" type="number" step="0.01" min="0.01" 
-                                       class="form-control" placeholder="0.00" id="priceInput" />
+                                <input asp-for="PurchasePrice"
+                                       type="number"
+                                       step="0.01"
+                                       min="0.01"
+                                       class="form-control"
+                                       placeholder="0.00"
+                                       id="purchasePriceInput" />
                             </div>
-                            <span asp-validation-for="Price" class="text-danger small"></span>
+                            <span asp-validation-for="PurchasePrice" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="SalePrice" class="form-label fw-medium">
+                                <i class="fas fa-dollar-sign text-success me-2"></i>Precio de Venta
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">$</span>
+                                <input asp-for="SalePrice"
+                                       type="number"
+                                       step="0.01"
+                                       min="0.01"
+                                       class="form-control"
+                                       placeholder="0.00"
+                                       id="salePriceInput" />
+                            </div>
+                            <span asp-validation-for="SalePrice" class="text-danger small"></span>
                         </div>
 
                         <div class="col-md-6">
@@ -102,8 +151,12 @@
                                 <i class="fas fa-boxes text-primary me-2"></i>Cantidad en Stock
                             </label>
                             <div class="input-group input-group-lg">
-                                <input asp-for="Stock" type="number" min="0" 
-                                       class="form-control" placeholder="0" id="stockInput" />
+                                <input asp-for="Stock"
+                                       type="number"
+                                       min="0"
+                                       class="form-control"
+                                       placeholder="0"
+                                       id="stockInput" />
                                 <span class="input-group-text">
                                     <i class="fas fa-cube"></i>
                                 </span>
@@ -111,8 +164,40 @@
                             <span asp-validation-for="Stock" class="text-danger small"></span>
                             @if (isEdit && originalStock > 0)
                             {
-                                <small class="text-muted">Stock anterior: @originalStock unidades</small>
+                                <small class="text-muted">
+                                    Stock anterior: @originalStock unidades
+                                </small>
                             }
+                        </div>
+
+                        <!-- Unit of Measure and Minimum Stock Row -->
+                        <div class="col-md-6">
+                            <label asp-for="UnitOfMeasure" class="form-label fw-medium">
+                                <i class="fas fa-ruler text-primary me-2"></i>Unidad de Medida
+                            </label>
+                            <input asp-for="UnitOfMeasure"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ej: kg, pz, lt"
+                                   maxlength="20" />
+                            <span asp-validation-for="UnitOfMeasure" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="MinimumStock" class="form-label fw-medium">
+                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>Stock Mínimo
+                            </label>
+                            <div class="input-group input-group-lg">
+                                <input asp-for="MinimumStock"
+                                       type="number"
+                                       min="0"
+                                       class="form-control"
+                                       placeholder="5"
+                                       id="minimumStockInput" />
+                                <span class="input-group-text">
+                                    <i class="fas fa-cube"></i>
+                                </span>
+                            </div>
+                            <span asp-validation-for="MinimumStock" class="text-danger small"></span>
                         </div>
                     </div>
 
@@ -129,10 +214,14 @@
                                 <div class="row align-items-center">
                                     <div class="col-md-8">
                                         <h6 class="mb-1">¿Necesitas agregar más stock?</h6>
-                                        <small class="text-muted">Usa la función de agregar stock para incrementar fácilmente el inventario</small>
+                                        <small class="text-muted">
+                                            Usa la función de agregar stock para incrementar fácilmente el inventario
+                                        </small>
                                     </div>
                                     <div class="col-md-4 text-end">
-                                        <a asp-action="AddStock" asp-route-id="@productId" class="btn btn-outline-success">
+                                        <a asp-action="AddStock"
+                                           asp-route-id="@productId"
+                                           class="btn btn-outline-success">
                                             <i class="fas fa-plus me-2"></i>Agregar Stock
                                         </a>
                                     </div>
@@ -151,16 +240,24 @@
                                 <div class="d-flex gap-2">
                                     @if (isEdit)
                                     {
-                                        <a asp-action="Details" asp-route-id="@productId" class="btn btn-outline-info btn-lg">
+                                        <a asp-action="Details"
+                                           asp-route-id="@productId"
+                                           class="btn btn-outline-info btn-lg">
                                             <i class="fas fa-eye me-2"></i>Ver Detalles
                                         </a>
-                                        <a asp-action="AddStock" asp-route-id="@productId" class="btn btn-outline-success btn-lg">
+                                        <a asp-action="AddStock"
+                                           asp-route-id="@productId"
+                                           class="btn btn-outline-success btn-lg">
                                             <i class="fas fa-plus me-2"></i>Agregar Stock
                                         </a>
                                     }
-                                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                    <button type="submit"
+                                            class="btn btn-primary btn-lg"
+                                            id="submitBtn">
                                         <i class="fas @(isEdit ? "fa-save" : "fa-plus") me-2"></i>
-                                        <span id="submitText">@(isEdit ? "Actualizar Producto" : "Crear Producto")</span>
+                                        <span id="submitText">
+                                            @(isEdit ? "Actualizar Producto" : "Crear Producto")
+                                        </span>
                                     </button>
                                 </div>
                             </div>
@@ -214,7 +311,8 @@
                             <div>
                                 <h6 class="mb-1">Gestión de Stock</h6>
                                 <small class="text-muted">
-                                    El stock se actualiza automáticamente cuando se @(isEdit ? "edita el producto" : "crea el producto") o se realizan ventas.
+                                    El stock se actualiza automáticamente cuando se
+                                    @(isEdit ? "edita el producto" : "crea el producto") o se realizan ventas.
                                 </small>
                             </div>
                         </div>
@@ -235,6 +333,7 @@
                 </div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -247,7 +346,7 @@
         let originalStock = @originalStock;
 
         // Form field change detection
-        const formFields = ['Name', 'Description', 'Price', 'Stock'];
+        const formFields = ['Code', 'Name', 'Description', 'PurchasePrice', 'SalePrice', 'Stock', 'UnitOfMeasure', 'MinimumStock'];
         let hasChanges = false;
 
         formFields.forEach(field => {
@@ -262,18 +361,19 @@
 
         function updatePreview() {
             if (!isEdit) {
+                const code = document.querySelector('[name="Code"]').value || 'Código del producto';
                 const name = document.querySelector('[name="Name"]').value || 'Nombre del producto';
                 const description = document.querySelector('[name="Description"]').value || 'Descripción del producto';
-                const price = parseFloat(document.querySelector('[name="Price"]').value) || 0;
+                const salePrice = parseFloat(document.querySelector('[name="SalePrice"]').value) || 0;
                 const stock = parseInt(document.querySelector('[name="Stock"]').value) || 0;
 
-                document.getElementById('previewName').textContent = name;
+                document.getElementById('previewName').textContent = `${code} - ${name}`;
                 document.getElementById('previewDescription').textContent = description;
-                document.getElementById('previewPrice').textContent = `$${price.toFixed(2)}`;
+                document.getElementById('previewPrice').textContent = `$${salePrice.toFixed(2)}`;
                 document.getElementById('previewStock').textContent = `${stock} en stock`;
 
                 // Show preview if any field has content
-                if (name !== 'Nombre del producto' || description !== 'Descripción del producto' || price > 0 || stock > 0) {
+                if (code !== 'Código del producto' || name !== 'Nombre del producto' || description !== 'Descripción del producto' || salePrice > 0 || stock > 0) {
                     document.getElementById('productPreview').style.display = 'block';
                 } else {
                     document.getElementById('productPreview').style.display = 'none';
@@ -286,9 +386,10 @@
             const submitText = document.getElementById('submitText');
             
             // Check if any field has been filled (for create) or changed (for edit)
+            const code = document.querySelector('[name="Code"]').value;
             const name = document.querySelector('[name="Name"]').value;
-            const description = document.querySelector('[name="Description"]').value;
-            const price = document.querySelector('[name="Price"]').value;
+            const purchasePrice = parseFloat(document.querySelector('[name="PurchasePrice"]').value) || 0;
+            const salePrice = parseFloat(document.querySelector('[name="SalePrice"]').value) || 0;
             const stock = parseInt(document.querySelector('[name="Stock"]').value) || 0;
 
             if (isEdit) {
@@ -313,7 +414,7 @@
                 }
             } else {
                 // For create, enable button if required fields are filled
-                if (name && price && stock >= 0) {
+                if (code && name && purchasePrice > 0 && salePrice > 0 && stock >= 0) {
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-secondary');
                     submitBtn.classList.add('btn-primary');
@@ -325,11 +426,21 @@
             }
         }
 
-        // Validate price input
-        document.getElementById('priceInput').addEventListener('input', function() {
+        // Validate purchase price input
+        document.getElementById('purchasePriceInput').addEventListener('input', function() {
             const value = parseFloat(this.value);
             if (isNaN(value) || value <= 0) {
-                this.setCustomValidity('El precio debe ser mayor a 0');
+                this.setCustomValidity('El precio de compra debe ser mayor a 0');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
+        // Validate sale price input
+        document.getElementById('salePriceInput').addEventListener('input', function() {
+            const value = parseFloat(this.value);
+            if (isNaN(value) || value <= 0) {
+                this.setCustomValidity('El precio de venta debe ser mayor a 0');
             } else {
                 this.setCustomValidity('');
             }
@@ -345,6 +456,16 @@
             }
         });
 
+        // Validate minimum stock input
+        document.getElementById('minimumStockInput').addEventListener('input', function() {
+            const value = parseInt(this.value);
+            if (isNaN(value) || value < 0) {
+                this.setCustomValidity('El stock mínimo debe ser 0 o mayor');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             detectChanges();
@@ -353,9 +474,18 @@
 
         // Form validation before submit
         document.getElementById('productForm').addEventListener('submit', function(e) {
+            const code = document.querySelector('[name="Code"]').value.trim();
             const name = document.querySelector('[name="Name"]').value.trim();
-            const price = parseFloat(document.querySelector('[name="Price"]').value);
+            const purchasePrice = parseFloat(document.querySelector('[name="PurchasePrice"]').value);
+            const salePrice = parseFloat(document.querySelector('[name="SalePrice"]').value);
             const stock = parseInt(document.querySelector('[name="Stock"]').value);
+            const minimumStock = parseInt(document.querySelector('[name="MinimumStock"]').value);
+
+            if (!code) {
+                e.preventDefault();
+                alert('El código del producto es obligatorio.');
+                return false;
+            }
 
             if (!name) {
                 e.preventDefault();
@@ -363,15 +493,39 @@
                 return false;
             }
 
-            if (isNaN(price) || price <= 0) {
+            if (isNaN(purchasePrice) || purchasePrice <= 0) {
                 e.preventDefault();
-                alert('El precio debe ser mayor a 0.');
+                alert('El precio de compra debe ser mayor a 0.');
+                return false;
+            }
+
+            if (isNaN(salePrice) || salePrice <= 0) {
+                e.preventDefault();
+                alert('El precio de venta debe ser mayor a 0.');
+                return false;
+            }
+
+            if (salePrice <= purchasePrice) {
+                e.preventDefault();
+                alert('El precio de venta debe ser mayor al precio de compra.');
                 return false;
             }
 
             if (isNaN(stock) || stock < 0) {
                 e.preventDefault();
                 alert('El stock debe ser 0 o mayor.');
+                return false;
+            }
+
+            if (isNaN(minimumStock) || minimumStock < 0) {
+                e.preventDefault();
+                alert('El stock mínimo debe ser 0 o mayor.');
+                return false;
+            }
+
+            if (minimumStock > stock) {
+                e.preventDefault();
+                alert('El stock mínimo no puede ser mayor al stock actual.');
                 return false;
             }
         });
