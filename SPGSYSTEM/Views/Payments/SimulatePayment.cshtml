@@ -1,0 +1,529 @@
+@model Application.ViewModels.Payment.PaymentSaveViewModel
+
+@{
+    ViewData["Title"] = "Simular Pago";
+    var sale = ViewBag.Sale as Database.Entities.Sale;
+    var paymentMethods = ViewBag.PaymentMethods as IEnumerable<Database.Enum.PaymentMethodType>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center mb-4">
+            <h2 class="h2 text-success mb-2">
+                <i class="fas fa-credit-card me-2"></i>Procesamiento de Pago
+            </h2>
+            <p class="text-muted">Simula el proceso de pago para la venta #@sale.Id.ToString("D4")</p>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Sale Summary -->
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow border-0 h-100">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-shopping-cart me-2"></i>Resumen de Venta
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Sale Info -->
+                        <div class="sale-summary">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <span class="text-muted">Venta:</span>
+                                <span class="fw-bold">#@sale.Id.ToString("D4")</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <span class="text-muted">Cliente:</span>
+                                <span class="fw-bold">@sale.Customer.Name</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <span class="text-muted">Fecha:</span>
+                                <span class="fw-bold">@sale.SaleDate.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+
+                        <!-- Products Detail -->
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-boxes me-2"></i>Productos (@sale.Details.Count() items)
+                        </h6>
+                        <div class="products-list mb-3">
+                            @foreach (var detail in sale.Details)
+                            {
+                                <div class="product-item d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <div>
+                                        <span class="fw-medium">@detail.Product.Name</span>
+                                        <br>
+                                        <small class="text-muted">$@detail.Product.Price.ToString("N2") × @detail.Quantity</small>
+                                    </div>
+                                    <span class="fw-bold text-success">$@detail.Subtotal.ToString("N2")</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Total -->
+                        <div class="total-section bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0 text-muted">Total a Pagar:</h5>
+                                <h3 class="mb-0 text-success">$@sale.TotalAmount.ToString("N2")</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Process -->
+            <div class="col-lg-7">
+                <div class="card shadow border-0">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="ProcessPayment" method="post" id="paymentForm" novalidate>
+                            @Html.AntiForgeryToken()
+                                                <input asp-for="SaleId" type="hidden" />
+                    <input asp-for="Amount" type="hidden" />
+                    <input asp-for="PaymentDate" type="hidden" />
+
+                            <!-- Payment Method Selection -->
+                            <div class="mb-4">
+                                <label asp-for="PaymentMethod" class="form-label fw-medium h6">
+                                    <i class="fas fa-credit-card text-success me-2"></i>Selecciona Método de Pago
+                                </label>
+                                <div class="payment-methods">
+                                    @if (paymentMethods != null)
+                                    {
+                                        @foreach (var method in paymentMethods)
+                                        {
+                                            <div class="payment-method-option" data-method="@method">
+                                                <input asp-for="PaymentMethod" type="radio" value="@method" id="method_@method" class="payment-radio" />
+                                                <label for="method_@method" class="payment-method-card">
+                                                    <div class="method-content">
+                                                        <div class="method-icon">
+                                                            @switch(method.ToString())
+                                                            {
+                                                                case "Cash":
+                                                                    <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                                                                    break;
+                                                                case "Card":
+                                                                    <i class="fas fa-credit-card fa-2x text-primary"></i>
+                                                                    break;
+                                                                case "Transfer":
+                                                                    <i class="fas fa-exchange-alt fa-2x text-info"></i>
+                                                                    break;
+                                                            }
+                                                        </div>
+                                                        <div class="method-details">
+                                                            <h6 class="method-name">
+                                                                @switch(method.ToString())
+                                                                {
+                                                                    case "Cash":
+                                                                        <text>💵 Efectivo</text>
+                                                                        break;
+                                                                    case "Card":
+                                                                        <text>💳 Tarjeta</text>
+                                                                        break;
+                                                                    case "Transfer":
+                                                                        <text>🏦 Transferencia</text>
+                                                                        break;
+                                                                }
+                                                            </h6>
+                                                            <small class="method-description text-muted">
+                                                                @switch(method.ToString())
+                                                                {
+                                                                    case "Cash":
+                                                                        <text>Pago inmediato en efectivo</text>
+                                                                        break;
+                                                                    case "Card":
+                                                                        <text>Tarjeta de crédito o débito</text>
+                                                                        break;
+                                                                    case "Transfer":
+                                                                        <text>Transferencia bancaria</text>
+                                                                        break;
+                                                                }
+                                                            </small>
+                                                        </div>
+                                                        <div class="method-check">
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        }
+                                    }
+                                </div>
+                                <span asp-validation-for="PaymentMethod" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Payment Details Section -->
+                            <div id="paymentDetails" style="display: none;">
+                                
+                                <!-- Cash Payment Details -->
+                                <div id="cashDetails" class="payment-detail-section" style="display: none;">
+                                    <div class="alert alert-success">
+                                        <h6><i class="fas fa-money-bill-wave me-2"></i>Pago en Efectivo</h6>
+                                        <p class="mb-0">El cliente pagará <strong>$@sale.TotalAmount.ToString("N2")</strong> en efectivo.</p>
+                                        <small class="text-muted">Asegúrate de tener cambio disponible si es necesario.</small>
+                                    </div>
+                                </div>
+
+                                <!-- Card Payment Details -->
+                                <div id="cardDetails" class="payment-detail-section" style="display: none;">
+                                    <div class="alert alert-primary">
+                                        <h6><i class="fas fa-credit-card me-2"></i>Pago con Tarjeta</h6>
+                                        <p class="mb-2">Simulando procesamiento con tarjeta por <strong>$@sale.TotalAmount.ToString("N2")</strong></p>
+                                        <div class="card-simulation">
+                                            <div class="input-group mb-2">
+                                                <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                                                <input type="text" class="form-control" placeholder="**** **** **** 1234" readonly />
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    <input type="text" class="form-control" placeholder="MM/YY" readonly />
+                                                </div>
+                                                <div class="col-6">
+                                                    <input type="text" class="form-control" placeholder="CVV" readonly />
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Datos simulados para demo</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Transfer Payment Details -->
+                                <div id="transferDetails" class="payment-detail-section" style="display: none;">
+                                    <div class="alert alert-info">
+                                        <h6><i class="fas fa-exchange-alt me-2"></i>Transferencia Bancaria</h6>
+                                        <p class="mb-2">Simulando transferencia por <strong>$@sale.TotalAmount.ToString("N2")</strong></p>
+                                        <div class="transfer-simulation">
+                                            <div class="transfer-details">
+                                                <p class="mb-1"><strong>Banco:</strong> Banco Simulado</p>
+                                                <p class="mb-1"><strong>Cuenta:</strong> ****-****-****-5678</p>
+                                                <p class="mb-1"><strong>Referencia:</strong> VENTA-@sale.Id.ToString("D4")</p>
+                                            </div>
+                                            <small class="text-muted">Datos simulados para demo</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Amount Confirmation -->
+                                <div class="amount-confirmation bg-light p-3 rounded mb-4">
+                                    <div class="row align-items-center">
+                                        <div class="col-8">
+                                            <h6 class="mb-1">Monto Total a Procesar:</h6>
+                                            <small class="text-muted">Venta #@sale.Id.ToString("D4") - @sale.Customer.Name</small>
+                                        </div>
+                                        <div class="col-4 text-end">
+                                            <h3 class="text-success mb-0">$@sale.TotalAmount.ToString("N2")</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-controller="Sales" asp-action="Details" asp-route-id="@sale.Id" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i>Volver a Venta
+                                </a>
+                                <button type="submit" class="btn btn-success btn-lg" id="processBtn" disabled>
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    <span id="processText">Seleccionar Método</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Processing Modal -->
+                <div class="modal fade" id="processingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-body text-center p-5">
+                                <div class="processing-animation mb-4">
+                                    <i class="fas fa-credit-card fa-3x text-success mb-3"></i>
+                                    <div class="spinner-border text-success" role="status">
+                                        <span class="visually-hidden">Procesando...</span>
+                                    </div>
+                                </div>
+                                <h5 class="text-success">Procesando Pago...</h5>
+                                <p class="text-muted mb-0">Por favor espera mientras procesamos tu pago de <strong>$@sale.TotalAmount.ToString("N2")</strong></p>
+                                <div class="progress mt-3">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" 
+                                         role="progressbar" style="width: 0%" id="progressBar"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Payment method selection
+        document.querySelectorAll('.payment-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                // Remove selected class from all
+                document.querySelectorAll('.payment-method-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Add selected class to current
+                this.nextElementSibling.classList.add('selected');
+                
+                // Show payment details
+                showPaymentDetails(this.value);
+                
+                // Update process button
+                updateProcessButton();
+            });
+        });
+
+        function showPaymentDetails(method) {
+            // Hide all detail sections
+            document.querySelectorAll('.payment-detail-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show main details container
+            document.getElementById('paymentDetails').style.display = 'block';
+            
+            // Show specific method details
+            switch(method) {
+                case '1': // Cash
+                    document.getElementById('cashDetails').style.display = 'block';
+                    break;
+                case '2': // Card
+                    document.getElementById('cardDetails').style.display = 'block';
+                    break;
+                case '3': // Transfer
+                    document.getElementById('transferDetails').style.display = 'block';
+                    break;
+            }
+        }
+
+        function updateProcessButton() {
+            const processBtn = document.getElementById('processBtn');
+            const processText = document.getElementById('processText');
+            const selectedMethod = document.querySelector('input[name="PaymentMethod"]:checked');
+            
+            if (selectedMethod) {
+                processBtn.disabled = false;
+                processBtn.classList.remove('btn-secondary');
+                processBtn.classList.add('btn-success');
+                
+                const methodText = selectedMethod.nextElementSibling.querySelector('.method-name').textContent;
+                processText.innerHTML = `Procesar Pago con ${methodText}`;
+            } else {
+                processBtn.disabled = true;
+                processBtn.classList.remove('btn-success');
+                processBtn.classList.add('btn-secondary');
+                processText.textContent = 'Seleccionar Método';
+            }
+        }
+
+        // Form submission with simulation
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const selectedMethod = document.querySelector('input[name="PaymentMethod"]:checked');
+            if (!selectedMethod) {
+                alert('Por favor selecciona un método de pago.');
+                return;
+            }
+            
+            // Show processing modal
+            const modal = new bootstrap.Modal(document.getElementById('processingModal'));
+            modal.show();
+            
+            // Simulate processing with progress bar
+            let progress = 0;
+            const progressBar = document.getElementById('progressBar');
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 100) progress = 100;
+                
+                progressBar.style.width = progress + '%';
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    // Wait a moment then submit
+                    setTimeout(() => {
+                        this.submit();
+                    }, 500);
+                }
+            }, 200);
+        });
+
+        // Add animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate elements on load
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.style.opacity = '0';
+                    card.style.transform = 'translateY(20px)';
+                    card.style.transition = 'all 0.6s ease';
+                    
+                    setTimeout(() => {
+                        card.style.opacity = '1';
+                        card.style.transform = 'translateY(0)';
+                    }, 100);
+                }, index * 200);
+            });
+        });
+    </script>
+
+    <style>
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .payment-method-option {
+            position: relative;
+        }
+
+        .payment-radio {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .payment-method-card {
+            display: block;
+            padding: 1.5rem;
+            border: 2px solid #dee2e6;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-method-card:hover {
+            border-color: #198754;
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .payment-method-card.selected {
+            border-color: #198754;
+            background: #d1e7dd;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        }
+
+        .method-content {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .method-icon {
+            flex-shrink: 0;
+            width: 60px;
+            text-align: center;
+        }
+
+        .method-details {
+            flex-grow: 1;
+        }
+
+        .method-name {
+            margin-bottom: 0.25rem;
+            font-weight: 600;
+        }
+
+        .method-check {
+            flex-shrink: 0;
+            color: #198754;
+            font-size: 1.2rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .payment-method-card.selected .method-check {
+            opacity: 1;
+        }
+
+        .payment-detail-section {
+            margin-top: 1rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-simulation input, .transfer-details {
+            font-family: 'Courier New', monospace;
+        }
+
+        .processing-animation {
+            position: relative;
+        }
+
+        .processing-animation .spinner-border {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .product-item:last-child {
+            border-bottom: none !important;
+        }
+
+        .sale-summary {
+            font-size: 1.1rem;
+        }
+
+        .total-section {
+            border: 2px solid #198754;
+        }
+
+        @@media (max-width: 768px) {
+            .method-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 0.5rem;
+            }
+            
+            .method-icon {
+                width: 100%;
+            }
+            
+            .payment-method-card {
+                padding: 1rem;
+            }
+        }
+    </style>
+} 

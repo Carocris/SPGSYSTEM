@@ -2,394 +2,264 @@
 
 @{
     ViewData["Title"] = ViewBag.PageTitle ?? "Cliente";
-    var isEdit = ViewBag.IsEdit ?? false;
-    var customerId = ViewBag.CustomerId;
-    var actionUrl = isEdit ? Url.Action("CreateEdit", new { id = customerId }) : Url.Action("CreateEdit");
-    var iconClass = isEdit ? "fas fa-edit" : "fas fa-user-plus";
-    var buttonClass = isEdit ? "btn-warning" : "btn-success";
-    var buttonText = isEdit ? "Actualizar Cliente" : "Guardar Cliente";
-    var headerClass = isEdit ? "bg-warning" : "bg-success";
+    var isEdit      = (bool)(ViewBag.IsEdit ?? false);
+    var customerId  = ViewBag.CustomerId as int?;
+    var actionUrl   = isEdit
+                      ? Url.Action("CreateEdit", new { id = customerId })
+                      : Url.Action("CreateEdit");
+    var iconClass   = isEdit ? "fas fa-edit"      : "fas fa-user-plus";
+    var buttonClass = isEdit ? "btn-warning"       : "btn-success";
+    var buttonText  = isEdit ? "Actualizar Cliente" : "Guardar Cliente";
+    var headerClass = isEdit ? "bg-warning"        : "bg-success";
 }
 
 <div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-        <!-- Header -->
-        <div class="d-flex align-items-center mb-4">
-            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div>
-                <h2 class="h3 @(isEdit ? "text-warning" : "text-success") mb-1">
-                    <i class="@iconClass me-2"></i>@ViewBag.PageTitle
-                </h2>
-                <p class="text-muted mb-0">
-                    @(isEdit ? "Actualiza la información del cliente" : "Agrega un nuevo cliente al sistema")
-                </p>
-            </div>
-        </div>
-
-        <!-- Alert Messages -->
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        <!-- Form Card -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header @headerClass text-white py-3">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-user me-2"></i>Información del Cliente
-                </h5>
-            </div>
-            
-            <div class="card-body p-4">
-                <form action="@actionUrl" method="post" novalidate>
-                    @Html.AntiForgeryToken()
-                    
-                    <div class="row g-3">
-                        <!-- Customer Name -->
-                        <div class="col-12">
-                            <label asp-for="Name" class="form-label fw-medium">
-                                <i class="fas fa-user @(isEdit ? "text-warning" : "text-success") me-2"></i>Nombre Completo *
-                            </label>
-                            <input asp-for="Name" class="form-control form-control-lg" 
-                                   placeholder="Ej: Juan Carlos Pérez" maxlength="100" required />
-                            <span asp-validation-for="Name" class="text-danger small"></span>
-                        </div>
-
-                        <!-- Contact Information Row -->
-                        <div class="col-md-6">
-                            <label asp-for="Phone" class="form-label fw-medium">
-                                <i class="fas fa-phone @(isEdit ? "text-warning" : "text-success") me-2"></i>Teléfono
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">
-                                    <i class="fas fa-phone-alt text-muted"></i>
-                                </span>
-                                <input asp-for="Phone" type="tel" class="form-control" 
-                                       placeholder="Ej: +1234567890" maxlength="20" />
-                            </div>
-                            <span asp-validation-for="Phone" class="text-danger small"></span>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Opcional: Incluye código de país si es necesario
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label asp-for="Email" class="form-label fw-medium">
-                                <i class="fas fa-envelope @(isEdit ? "text-warning" : "text-success") me-2"></i>Correo Electrónico
-                            </label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light">@@</span>
-                                <input asp-for="Email" type="email" class="form-control" 
-                                       placeholder="cliente@ejemplo.com" maxlength="100" />
-                            </div>
-                            <span asp-validation-for="Email" class="text-danger small"></span>
-                            <div class="form-text">
-                                <i class="fas fa-info-circle me-1"></i>
-                                Opcional: Para envío de facturas y comunicaciones
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="d-flex gap-2 justify-content-end">
-                                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                                    <i class="fas fa-times me-2"></i>Cancelar
-                                </a>
-                                @if (isEdit)
-                                {
-                                    <a asp-action="Details" asp-route-id="@customerId" class="btn btn-outline-info btn-lg">
-                                        <i class="fas fa-eye me-2"></i>Ver Detalles
-                                    </a>
-                                }
-                                <button type="submit" class="btn @buttonClass btn-lg" id="submitBtn">
-                                    <i class="@(isEdit ? "fas fa-save" : "fas fa-user-plus") me-2"></i>@buttonText
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Help Section -->
-        <div class="card mt-4 bg-light border-0">
-            <div class="card-body">
-                <h6 class="text-muted mb-3">
-                    <i class="fas fa-lightbulb me-2"></i>Consejos útiles
-                </h6>
-                <div class="row">
-                    <div class="col-md-6">
-                        <ul class="list-unstyled small text-muted mb-0">
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Solo el nombre es obligatorio
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                El teléfono puede incluir código de país
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="col-md-6">
-                        <ul class="list-unstyled small text-muted mb-0">
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Email válido para comunicaciones
-                            </li>
-                            <li class="mb-2">
-                                <i class="fas fa-check text-success me-2"></i>
-                                Información de contacto opcional pero recomendada
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        @if (isEdit)
-        {
-            <!-- Edit Mode Information -->
-            <div class="card mt-4 border-warning">
-                <div class="card-body">
-                    <h6 class="text-warning mb-3">
-                        <i class="fas fa-info-circle me-2"></i>Información sobre la edición
-                    </h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul class="list-unstyled small text-muted mb-0">
-                                <li class="mb-2">
-                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
-                                    Los cambios afectarán futuras transacciones
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-info text-info me-2"></i>
-                                    Las ventas pasadas no se modificarán
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <ul class="list-unstyled small text-muted mb-0">
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    Verifica que el email sea correcto
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    Confirma el número de teléfono
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
+  <div class="col-lg-8 col-md-10">
+    <!-- Header -->
+    <div class="d-flex align-items-center mb-4">
+      <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
+        <i class="fas fa-arrow-left"></i>
+      </a>
+      <div>
+        <h2 class="h3 @(isEdit ? "text-warning" : "text-success") mb-1">
+          <i class="@iconClass me-2"></i> @ViewData["Title"]
+        </h2>
+        <p class="text-muted mb-0">
+          @(isEdit 
+             ? "Actualiza la información del cliente" 
+             : "Agrega un nuevo cliente al sistema")
+        </p>
+      </div>
     </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    }
+
+    <!-- Form Card -->
+    <div class="card shadow-sm border-0">
+      <div class="card-header @headerClass text-white py-3">
+        <h5 class="card-title mb-0">
+          <i class="fas fa-user me-2"></i>Información del Cliente
+        </h5>
+      </div>
+      <div class="card-body p-4">
+        <form action="@actionUrl" method="post" novalidate>
+          @Html.AntiForgeryToken()
+          <div class="row g-3">
+            <!-- Name -->
+            <div class="col-12">
+              <label asp-for="Name" class="form-label fw-medium">
+                <i class="fas fa-user @(isEdit ? "text-warning" : "text-success") me-2"></i>
+                Nombre Completo *
+              </label>
+              <input asp-for="Name" 
+                     class="form-control form-control-lg" 
+                     placeholder="Ej: Juan Carlos Pérez" 
+                     maxlength="100" 
+                     required />
+              <span asp-validation-for="Name" class="text-danger small"></span>
+            </div>
+            <!-- Phone -->
+            <div class="col-md-6">
+              <label asp-for="Phone" class="form-label fw-medium">
+                <i class="fas fa-phone @(isEdit ? "text-warning" : "text-success") me-2"></i>
+                Teléfono
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">
+                  <i class="fas fa-phone-alt text-muted"></i>
+                </span>
+                <input asp-for="Phone" 
+                       type="tel" 
+                       class="form-control" 
+                       placeholder="Ej: +1234567890" 
+                       maxlength="20" />
+              </div>
+              <span asp-validation-for="Phone" class="text-danger small"></span>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Opcional: Incluye código de país si es necesario
+              </div>
+            </div>
+            <!-- Email -->
+            <div class="col-md-6">
+              <label asp-for="Email" class="form-label fw-medium">
+                <i class="fas fa-envelope @(isEdit ? "text-warning" : "text-success") me-2"></i>
+                Correo Electrónico
+              </label>
+              <div class="input-group">
+                <span class="input-group-text bg-light">@@</span>
+                <input asp-for="Email" 
+                       type="email" 
+                       class="form-control" 
+                       placeholder="cliente@ejemplo.com" 
+                       maxlength="100" />
+              </div>
+              <span asp-validation-for="Email" class="text-danger small"></span>
+              <div class="form-text">
+                <i class="fas fa-info-circle me-1"></i>
+                Opcional: Para envío de facturas y comunicaciones
+              </div>
+            </div>
+          </div>
+          <!-- Buttons -->
+          <div class="row mt-4">
+            <div class="col-12">
+              <div class="d-flex gap-2 justify-content-end">
+                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                  <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                @if (isEdit)
+                {
+                  <a asp-action="Details" 
+                     asp-route-id="@customerId" 
+                     class="btn btn-outline-info btn-lg">
+                    <i class="fas fa-eye me-2"></i>Ver Detalles
+                  </a>
+                }
+                <button type="submit" 
+                        class="btn @buttonClass btn-lg" 
+                        id="submitBtn">
+                  <i class="@(isEdit ? "fas fa-save" : "fas fa-user-plus") me-2"></i>
+                  @buttonText
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
+        // Validaciones para el formulario de clientes  
         document.addEventListener('DOMContentLoaded', function() {
-            const isEdit = @(isEdit.ToString().ToLower());
             
-            // Focus on first input
-            document.querySelector('[name="Name"]').focus();
-            if (isEdit) {
-                document.querySelector('[name="Name"]').select();
+            // Validación de email simple
+            function isValidEmail(email) {
+                return email.includes('@@') && email.includes('.');
             }
 
-            // Email validation
-            const emailInput = document.querySelector('[name="Email"]');
+            // Obtener elementos del formulario
+            const emailInput = document.getElementsByName('Email')[0];
+            const phoneInput = document.getElementsByName('Phone')[0];
+            const nameInput = document.getElementsByName('Name')[0];
+            
+            // Validación de email
             if (emailInput) {
                 emailInput.addEventListener('blur', function() {
-                    const email = this.value.trim();
-                    if (email && !isValidEmail(email)) {
-                        this.setCustomValidity('Por favor ingresa un email válido');
+                    if (this.value && !isValidEmail(this.value)) {
+                        this.setCustomValidity('Por favor ingresa un email válido.');
                         this.classList.add('is-invalid');
                     } else {
                         this.setCustomValidity('');
                         this.classList.remove('is-invalid');
+                        if (this.value) this.classList.add('is-valid');
                     }
+                });
+                
+                emailInput.addEventListener('input', function() {
+                    this.classList.remove('is-invalid', 'is-valid');
+                    this.setCustomValidity('');
                 });
             }
 
-            // Phone formatting
-            const phoneInput = document.querySelector('[name="Phone"]');
+            // Validación de teléfono
             if (phoneInput) {
                 phoneInput.addEventListener('input', function() {
-                    // Allow only numbers, spaces, +, -, (, )
-                    this.value = this.value.replace(/[^0-9\s\+\-\(\)]/g, '');
+                    // Solo permitir números, espacios, guiones y paréntesis
+                    let value = this.value;
+                    value = value.replace(/[^0-9+\-\s()]/g, '');
+                    this.value = value;
                 });
-            }
-
-            // Character counter for name
-            const nameInput = document.querySelector('[name="Name"]');
-            const nameLabel = document.querySelector('label[for="Name"]');
-            
-            nameInput.addEventListener('input', function() {
-                const remaining = 100 - this.value.length;
-                const counterElement = nameLabel.querySelector('.char-counter');
                 
-                if (counterElement) {
-                    counterElement.textContent = `(${remaining} caracteres restantes)`;
-                } else if (remaining <= 20) {
-                    const counter = document.createElement('small');
-                    counter.className = 'char-counter text-muted ms-2';
-                    counter.textContent = `(${remaining} caracteres restantes)`;
-                    nameLabel.appendChild(counter);
-                }
-            });
-
-            // Form change detection for edit mode
-            if (isEdit) {
-                let hasChanges = false;
-                const formElements = document.querySelectorAll('input, textarea, select');
-                const originalValues = {};
-                
-                // Store original values
-                formElements.forEach(element => {
-                    originalValues[element.name] = element.value;
-                });
-
-                // Detect changes
-                formElements.forEach(element => {
-                    element.addEventListener('input', function() {
-                        hasChanges = Object.keys(originalValues).some(key => {
-                            const element = document.querySelector(`[name="${key}"]`);
-                            return element && originalValues[key] !== element.value;
-                        });
-
-                        const submitBtn = document.getElementById('submitBtn');
-                        if (hasChanges) {
-                            submitBtn.classList.remove('btn-warning');
-                            submitBtn.classList.add('btn-success');
-                            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Cambios';
-                        } else {
-                            submitBtn.classList.remove('btn-success');
-                            submitBtn.classList.add('btn-warning');
-                            submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Cliente';
-                        }
-                    });
-                });
-
-                // Warn about unsaved changes
-                window.addEventListener('beforeunload', function(e) {
-                    if (hasChanges) {
-                        e.preventDefault();
-                        e.returnValue = '';
+                phoneInput.addEventListener('blur', function() {
+                    if (this.value && this.value.length < 10) {
+                        this.setCustomValidity('El teléfono debe tener al menos 10 dígitos.');
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                        if (this.value) this.classList.add('is-valid');
                     }
                 });
+            }
 
-                document.querySelector('form').addEventListener('submit', function() {
-                    hasChanges = false;
+            // Validación de nombre
+            if (nameInput) {
+                nameInput.addEventListener('input', function() {
+                    // Capitalizar primera letra
+                    let words = this.value.split(' ');
+                    for (let i = 0; i < words.length; i++) {
+                        if (words[i].length > 0) {
+                            words[i] = words[i][0].toUpperCase() + words[i].substr(1).toLowerCase();
+                        }
+                    }
+                    this.value = words.join(' ');
+                });
+
+                nameInput.addEventListener('blur', function() {
+                    if (!this.value.trim()) {
+                        this.setCustomValidity('El nombre es obligatorio.');
+                        this.classList.add('is-invalid');
+                    } else if (this.value.trim().length < 2) {
+                        this.setCustomValidity('El nombre debe tener al menos 2 caracteres.');
+                        this.classList.add('is-invalid');
+                    } else {
+                        this.setCustomValidity('');
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
                 });
             }
 
-            // Form validation enhancement
-            const form = document.querySelector('form');
-            form.addEventListener('submit', function(e) {
-                const nameValue = nameInput.value.trim();
-                if (!nameValue) {
-                    e.preventDefault();
-                    nameInput.focus();
-                    showAlert('El nombre del cliente es obligatorio.', 'warning');
-                    return;
-                }
-
-                const emailValue = emailInput.value.trim();
-                if (emailValue && !isValidEmail(emailValue)) {
-                    e.preventDefault();
-                    emailInput.focus();
-                    showAlert('Por favor ingresa un email válido.', 'warning');
-                    return;
-                }
+            // Limpiar errores al enfocar
+            const allInputs = document.querySelectorAll('input');
+            allInputs.forEach(function(input) {
+                input.addEventListener('focus', function() {
+                    this.classList.remove('is-invalid');
+                });
             });
         });
-
-        function isValidEmail(email) {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
-        }
-
-        function showAlert(message, type = 'info') {
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-            alertDiv.innerHTML = `
-                <i class="fas fa-info-circle me-2"></i>${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            `;
-            
-            const container = document.querySelector('.col-lg-8');
-            const firstCard = container.querySelector('.card');
-            container.insertBefore(alertDiv, firstCard);
-            
-            setTimeout(() => {
-                alertDiv.remove();
-            }, 5000);
-        }
     </script>
 
     <style>
-        .form-control:focus {
-            border-color: @(isEdit ? "#ffc107" : "#198754");
-            box-shadow: 0 0 0 0.2rem @(isEdit ? "rgba(255, 193, 7, 0.15)" : "rgba(25, 135, 84, 0.15)");
-        }
-
-        .card {
-            transition: box-shadow 0.3s ease;
-        }
-
-        .input-group-text {
-            border-color: #dee2e6;
-        }
-
-        .btn-lg {
-            padding: 0.75rem 1.5rem;
-            font-size: 1.1rem;
+        /* Estilos para validación visual */
+        .is-valid {
+            border-color: #198754 !important;
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
         }
 
         .is-invalid {
-            border-color: #dc3545;
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
         }
 
-        @media (max-width: 768px) {
-            .d-flex.gap-2 {
-                flex-direction: column;
-            }
-            
-            .btn-lg {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
         }
 
-        /* Animation for changes */
-        .btn-success {
-            animation: pulse 2s infinite;
-        }
-
-        @@keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+        /* Animación suave para cambios de estado */
+        .form-control {
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
     </style>
-} 
+}

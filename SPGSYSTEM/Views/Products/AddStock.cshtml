@@ -1,0 +1,358 @@
+@model Application.ViewModels.Product.AddStockViewModel
+
+@{
+    ViewData["Title"] = "Agregar Stock";
+    var product = ViewBag.Product as Database.Entities.Product;
+    var currentStock = ViewBag.CurrentStock as int? ?? 0;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8 col-md-10">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary me-3" title="Volver a detalles">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h2 class="h3 text-success mb-1">
+                    <i class="fas fa-plus-circle me-2"></i>Agregar Stock
+                </h2>
+                <p class="text-muted mb-0">Incrementa el inventario de "@product.Name"</p>
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Product Information -->
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-box me-2"></i>Información del Producto
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="product-info">
+                            <div class="text-center mb-4">
+                                <div class="product-icon-large mb-3">
+                                    <i class="fas fa-box fa-3x text-primary"></i>
+                                </div>
+                                <h4 class="mb-2">@product.Name</h4>
+                                @if (!string.IsNullOrEmpty(product.Description))
+                                {
+                                    <p class="text-muted">@product.Description</p>
+                                }
+                            </div>
+
+                            <div class="product-details">
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted">Precio Unitario:</span>
+                                    <span class="fw-bold text-success">$@product.Price.ToString("N2")</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                    <span class="text-muted">Stock Actual:</span>
+                                    <span class="fw-bold text-info">@currentStock unidades</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center py-2">
+                                    <span class="text-muted">Estado:</span>
+                                    <span class="badge @(currentStock > 0 ? "bg-success" : "bg-warning")">
+                                        @(currentStock > 0 ? "En Stock" : "Sin Stock")
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Stock Form -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white py-3">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-plus me-2"></i>Agregar Stock
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form asp-action="AddStock" method="post" id="addStockForm" novalidate>
+                            @Html.AntiForgeryToken()
+                            <input asp-for="ProductId" type="hidden" />
+
+                            <!-- Quantity to Add -->
+                            <div class="mb-4">
+                                <label asp-for="QuantityToAdd" class="form-label fw-medium h6">
+                                    <i class="fas fa-plus-circle text-success me-2"></i>Cantidad a Agregar
+                                </label>
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-success text-white">
+                                        <i class="fas fa-boxes"></i>
+                                    </span>
+                                    <input asp-for="QuantityToAdd" type="number" min="1" 
+                                           class="form-control form-control-lg" placeholder="0" 
+                                           id="quantityInput" />
+                                    <span class="input-group-text">unidades</span>
+                                </div>
+                                <span asp-validation-for="QuantityToAdd" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Reason (Optional) -->
+                            <div class="mb-4">
+                                <label asp-for="Reason" class="form-label fw-medium">
+                                    <i class="fas fa-comment text-primary me-2"></i>Motivo (Opcional)
+                                </label>
+                                <select asp-for="Reason" class="form-select" id="reasonSelect">
+                                    <option value="">-- Selecciona un motivo --</option>
+                                    <option value="Compra de inventario">📦 Compra de inventario</option>
+                                    <option value="Devolución de cliente">↩️ Devolución de cliente</option>
+                                    <option value="Ajuste de inventario">⚖️ Ajuste de inventario</option>
+                                    <option value="Corrección de error">🔧 Corrección de error</option>
+                                    <option value="Restock programado">📅 Restock programado</option>
+                                    <option value="Otro">📝 Otro motivo</option>
+                                </select>
+                                <div class="mt-2" id="customReasonDiv" style="display: none;">
+                                    <input type="text" class="form-control" id="customReasonInput" 
+                                           placeholder="Especifica el motivo..." maxlength="200" />
+                                </div>
+                                <span asp-validation-for="Reason" class="text-danger small"></span>
+                            </div>
+
+                            <!-- Stock Calculation Preview -->
+                            <div class="alert alert-info" id="stockPreview" style="display: none;">
+                                <h6 class="alert-heading">
+                                    <i class="fas fa-calculator me-2"></i>Vista Previa del Cambio
+                                </h6>
+                                <div class="calculation-display">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Stock actual:</span>
+                                        <span class="fw-medium">@currentStock unidades</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Cantidad a agregar:</span>
+                                        <span class="fw-medium text-success" id="addingQuantity">0 unidades</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="fw-bold">Nuevo stock total:</span>
+                                        <span class="fw-bold text-success fs-5" id="newStockTotal">@currentStock unidades</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex justify-content-between align-items-center">
+                                <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fas fa-arrow-left me-2"></i>Volver
+                                </a>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="CreateEdit" asp-route-id="@product.Id" class="btn btn-outline-warning btn-lg">
+                                        <i class="fas fa-edit me-2"></i>Editar Producto
+                                    </a>
+                                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                                        <i class="fas fa-plus me-2"></i>
+                                        <span id="submitText">Agregar Stock</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Quick Add Buttons -->
+                <div class="card shadow-sm border-0 mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0 text-muted">
+                            <i class="fas fa-bolt me-2"></i>Cantidades Rápidas
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="1">+1</button>
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="5">+5</button>
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="10">+10</button>
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="25">+25</button>
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="50">+50</button>
+                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="100">+100</button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">Haz clic en cualquier botón para establecer esa cantidad rápidamente</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        const currentStock = @currentStock;
+
+        // Quantity input change
+        document.getElementById('quantityInput').addEventListener('input', function() {
+            updateStockPreview();
+            updateSubmitButton();
+        });
+
+        // Reason select change
+        document.getElementById('reasonSelect').addEventListener('change', function() {
+            const customReasonDiv = document.getElementById('customReasonDiv');
+            const customReasonInput = document.getElementById('customReasonInput');
+            const reasonInput = document.querySelector('[name="Reason"]');
+            
+            if (this.value === 'Otro') {
+                customReasonDiv.style.display = 'block';
+                customReasonInput.addEventListener('input', function() {
+                    reasonInput.value = this.value;
+                });
+            } else {
+                customReasonDiv.style.display = 'none';
+                reasonInput.value = this.value;
+            }
+        });
+
+        // Quick add buttons
+        document.querySelectorAll('.quick-add').forEach(button => {
+            button.addEventListener('click', function() {
+                const quantity = parseInt(this.dataset.quantity);
+                document.getElementById('quantityInput').value = quantity;
+                updateStockPreview();
+                updateSubmitButton();
+                
+                // Visual feedback
+                this.classList.add('btn-success');
+                this.classList.remove('btn-outline-success');
+                setTimeout(() => {
+                    this.classList.remove('btn-success');
+                    this.classList.add('btn-outline-success');
+                }, 200);
+            });
+        });
+
+        function updateStockPreview() {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
+            const stockPreview = document.getElementById('stockPreview');
+            const addingQuantity = document.getElementById('addingQuantity');
+            const newStockTotal = document.getElementById('newStockTotal');
+            
+            if (quantity > 0) {
+                addingQuantity.textContent = `+${quantity} unidades`;
+                newStockTotal.textContent = `${currentStock + quantity} unidades`;
+                stockPreview.style.display = 'block';
+            } else {
+                stockPreview.style.display = 'none';
+            }
+        }
+
+        function updateSubmitButton() {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 0;
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            
+            if (quantity > 0) {
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-success');
+                submitText.textContent = `Agregar ${quantity} unidades`;
+            } else {
+                submitBtn.disabled = true;
+                submitBtn.classList.remove('btn-success');
+                submitBtn.classList.add('btn-secondary');
+                submitText.textContent = 'Agregar Stock';
+            }
+        }
+
+        // Form validation
+        document.getElementById('addStockForm').addEventListener('submit', function(e) {
+            const quantity = parseInt(document.getElementById('quantityInput').value);
+            
+            if (!quantity || quantity <= 0) {
+                e.preventDefault();
+                alert('Debe ingresar una cantidad válida mayor a 0.');
+                return false;
+            }
+            
+            if (quantity > 10000) {
+                e.preventDefault();
+                if (!confirm(`¿Está seguro de agregar ${quantity} unidades? Esta es una cantidad muy grande.`)) {
+                    return false;
+                }
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateSubmitButton();
+        });
+    </script>
+
+    <style>
+        .product-icon-large {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(var(--bs-primary-rgb), 0.1);
+            margin: 0 auto;
+        }
+
+        .calculation-display {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .quick-add {
+            min-width: 60px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .quick-add:hover {
+            transform: scale(1.05);
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bs-success);
+            box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25);
+        }
+
+        .input-group-lg .input-group-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        @@media (max-width: 768px) {
+            .d-flex.justify-content-between {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .d-flex.gap-2 {
+                justify-content: center;
+            }
+
+            .quick-add {
+                flex: 1;
+            }
+        }
+    </style>
+} 

@@ -21,6 +21,8 @@ namespace Application
             // services
             services.AddTransient<ICustomerService, CustomerService>();
             services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<ICategoryService, CategoryService>();
+            services.AddTransient<ISupplierService, SupplierService>();
             services.AddTransient<ISaleService, SaleService>();
             services.AddTransient<ISaleDetailService, SaleDetailService>();
             services.AddTransient<IPaymentService, PaymentService>();
@@ -31,6 +33,8 @@ namespace Application
             // Specific repository registrations
             services.AddTransient<ICustomerRepository, CustomerRepository>();
             services.AddTransient<IProductRepository, ProductRepository>();
+            services.AddTransient<ICategoryRepository, CategoryRepository>();
+            services.AddTransient<ISupplierRepository, SupplierRepository>();
             services.AddTransient<ISaleRepository, SaleRepository>();
             services.AddTransient<ISaleDetailRepository, SaleDetailRepository>();
             services.AddTransient<IPaymentRepository, PaymentRepository>();

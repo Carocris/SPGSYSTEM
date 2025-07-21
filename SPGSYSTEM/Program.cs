@@ -15,7 +15,7 @@ builder.Services.AddControllersWithViews();
 // 2) Registrar DbContext y repositorios (Database/ServiceRegistration)
 builder.Services.AddDatabaseInfrastructure(builder.Configuration);
 
-// 3) Registrar servicios de aplicación (Application/ServiceRegistration)
+// 3) Registrar servicios de aplicaciï¿½n (Application/ServiceRegistration)
 builder.Services.AddApplicationLayer();
 
 builder.Services.AddAutoMapper(typeof(GeneralProfile));
@@ -23,7 +23,7 @@ builder.Services.AddAutoMapper(typeof(GeneralProfile));
 
 var app = builder.Build();
 
-// Configuración del pipeline HTTP
+// Configuraciï¿½n del pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -35,7 +35,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Si luego necesitas autenticación/autorización:
+// Si luego necesitas autenticaciï¿½n/autorizaciï¿½n:
 // app.UseAuthentication();
 app.UseAuthorization();
 

@@ -56,6 +56,8 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Customers/CreateEdit (para crear)
+        [HttpGet]
+        [Route("Customers/CreateEdit")]
         public IActionResult CreateEdit()
         {
             ViewBag.IsEdit = false;
@@ -64,6 +66,8 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Customers/CreateEdit/5 (para editar)
+        [HttpGet]
+        [Route("Customers/CreateEdit/{id:int}")]
         public async Task<IActionResult> CreateEdit(int id)
         {
             try
@@ -90,6 +94,7 @@ namespace SPGSYSTEM.Controllers
 
         // POST: Customers/CreateEdit (crear)
         [HttpPost]
+        [Route("Customers/CreateEdit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEdit(CustomerSaveViewModel viewModel)
         {
@@ -103,7 +108,7 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var customer = _mapper.Map<Customer>(viewModel);
-                await _customerService.AddAsync(customer);
+                await _customerService.CreateAsync(customer);
                 
                 TempData["Success"] = $"Cliente '{customer.Name}' creado exitosamente.";
                 return RedirectToAction(nameof(Index));
@@ -119,6 +124,7 @@ namespace SPGSYSTEM.Controllers
 
         // POST: Customers/CreateEdit/5 (editar)
         [HttpPost]
+        [Route("Customers/CreateEdit/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEdit(int id, CustomerSaveViewModel viewModel)
         {
@@ -175,7 +181,7 @@ namespace SPGSYSTEM.Controllers
                 // Esto requeriría agregar un método en el service, por ahora lo omitimos
                 // pero es una buena práctica verificar integridad referencial
 
-                await _customerService.DeleteAsync(customer);
+                await _customerService.DeleteAsync(customer.Id);
                 
                 TempData["Success"] = $"Cliente '{customer.Name}' eliminado exitosamente.";
             }

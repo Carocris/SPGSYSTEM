@@ -1,0 +1,250 @@
+@model List<Application.ViewModels.Supplier.SupplierViewModel>
+@{
+    ViewData["Title"] = "Gestión de Proveedores";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-truck me-2"></i>
+                            Gestión de Proveedores
+                        </h3>
+                        <a href="@Url.Action("CreateEdit")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Nuevo Proveedor
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="statusFilter" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="true">Activos</option>
+                                <option value="false">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" id="cityFilter" class="form-control" placeholder="Filtrar por ciudad...">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="clearFilters" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times me-2"></i>Limpiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tabla de proveedores -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Contacto</th>
+                                    <th>Teléfono</th>
+                                    <th>Email</th>
+                                    <th>Ciudad</th>
+                                    <th>Estado</th>
+                                    <th>Productos</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="suppliersTableBody">
+                                @foreach (var supplier in Model)
+                                {
+                                    <tr data-name="@supplier.Name.ToLower()" 
+                                        data-status="@supplier.IsActive.ToString().ToLower()"
+                                        data-city="@(supplier.City?.ToLower() ?? "")">
+                                        <td>
+                                            <strong>@supplier.Name</strong>
+                                            @if (!string.IsNullOrWhiteSpace(supplier.TaxId))
+                                            {
+                                                <br><small class="text-muted">ID Fiscal: @supplier.TaxId</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @(string.IsNullOrWhiteSpace(supplier.ContactPerson) ? "Sin contacto" : supplier.ContactPerson)
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(supplier.Phone))
+                                            {
+                                                <a href="tel:@supplier.Phone" class="text-decoration-none">
+                                                    <i class="fas fa-phone me-1"></i>@supplier.Phone
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Sin teléfono</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrWhiteSpace(supplier.Email))
+                                            {
+                                                <a href="mailto:@supplier.Email" class="text-decoration-none">
+                                                    <i class="fas fa-envelope me-1"></i>@supplier.Email
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">Sin email</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @(string.IsNullOrWhiteSpace(supplier.City) ? "Sin ciudad" : supplier.City)
+                                            @if (!string.IsNullOrWhiteSpace(supplier.Country))
+                                            {
+                                                <br><small class="text-muted">@supplier.Country</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (supplier.IsActive)
+                                            {
+                                                <span class="badge bg-success">Activo</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-info">@supplier.ProductCount productos</span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Details", new { id = supplier.Id })" 
+                                                   class="btn btn-outline-info btn-sm" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("CreateEdit", new { id = supplier.Id })" 
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-btn" 
+                                                        data-id="@supplier.Id" 
+                                                        data-name="@supplier.Name"
+                                                        data-products="@supplier.ProductCount"
+                                                        title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No hay proveedores registrados</h5>
+                            <p class="text-muted">Haz clic en "Nuevo Proveedor" para agregar el primer proveedor.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="deleteMessage"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Filtros en tiempo real
+            $('#searchInput, #cityFilter').on('keyup', function() {
+                filterTable();
+            });
+
+            $('#statusFilter').on('change', function() {
+                filterTable();
+            });
+
+            $('#clearFilters').on('click', function() {
+                $('#searchInput, #cityFilter').val('');
+                $('#statusFilter').val('');
+                filterTable();
+            });
+
+            function filterTable() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                const statusFilter = $('#statusFilter').val();
+                const cityFilter = $('#cityFilter').val().toLowerCase();
+
+                $('#suppliersTableBody tr').each(function() {
+                    const $row = $(this);
+                    const name = $row.data('name');
+                    const status = $row.data('status').toString();
+                    const city = $row.data('city');
+
+                    let showRow = true;
+
+                    if (searchText && !name.includes(searchText)) showRow = false;
+                    if (statusFilter && status !== statusFilter) showRow = false;
+                    if (cityFilter && !city.includes(cityFilter)) showRow = false;
+
+                    $row.toggle(showRow);
+                });
+            }
+
+            // Modal de eliminación
+            $('.delete-btn').on('click', function() {
+                const supplierId = $(this).data('id');
+                const supplierName = $(this).data('name');
+                const productCount = $(this).data('products');
+
+                let message;
+                if (productCount > 0) {
+                    message = `No se puede eliminar el proveedor "<strong>${supplierName}</strong>" porque tiene <strong>${productCount} producto(s)</strong> asociado(s).`;
+                    $('#deleteForm button[type="submit"]').hide();
+                } else {
+                    message = `¿Está seguro que desea eliminar el proveedor "<strong>${supplierName}</strong>"?`;
+                    $('#deleteForm button[type="submit"]').show();
+                    $('#deleteForm').attr('action', '@Url.Action("Delete")/' + supplierId);
+                }
+
+                $('#deleteMessage').html(message);
+                $('#deleteModal').modal('show');
+            });
+        });
+    </script>
+} 

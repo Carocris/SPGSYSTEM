@@ -184,8 +184,11 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
                                 <i class="fas fa-edit me-2"></i>Editar Producto
+                            </a>
+                            <a asp-action="AddStock" asp-route-id="@Model.Id" class="btn btn-outline-success">
+                                <i class="fas fa-plus me-2"></i>Agregar Stock
                             </a>
                             @if (Model.Stock <= 5)
                             {
@@ -307,7 +310,7 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        @media print {
+        @@media print {
             .btn, .modal, .alert {
                 display: none !important;
             }
@@ -318,7 +321,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .d-flex.gap-2 {
                 flex-direction: column;
             }
