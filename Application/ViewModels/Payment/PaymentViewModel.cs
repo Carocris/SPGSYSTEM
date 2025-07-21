@@ -29,6 +29,8 @@ namespace Application.ViewModels.Payment
         public string? TransferReference { get; set; }
         public string? BankAccount { get; set; }
         public string? TransferReceiptPath { get; set; }
+        public string PaymentStatus { get; set; }
+
 
         // Helper properties
         public string MaskedCardNumber 

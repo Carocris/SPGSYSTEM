@@ -168,7 +168,7 @@ namespace SPGSYSTEM.Controllers
                         await _saleService.UpdateAsync(sale);
                     }
 
-                    await _saleDetailService.AddAsync(saleDetail);
+                    await _saleDetailService.CreateAsync(saleDetail);
                     TempData["Success"] = "Detalle de venta creado exitosamente.";
                     return RedirectToAction(nameof(Index));
                 }

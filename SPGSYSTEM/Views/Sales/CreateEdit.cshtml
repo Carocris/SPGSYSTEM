@@ -121,7 +121,7 @@
                                         {
                                             @foreach (var method in paymentMethods)
                                             {
-                                                <option value="@method" selected="@(Model?.PaymentMethod == method)">
+                                                <option value="@method" selected="@(Model?.PaymentMethod == method ? "selected" : null)">
                                                     @switch(method.ToString())
                                                     {
                                                         case "Cash":

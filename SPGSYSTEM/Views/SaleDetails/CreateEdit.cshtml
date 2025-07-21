@@ -68,25 +68,47 @@
                             <label asp-for="SaleId" class="form-label fw-medium">
                                 <i class="fas fa-receipt text-primary me-2"></i>Venta
                             </label>
-                            <select asp-for="SaleId" class="form-select form-select-lg" required @(isEdit ? "disabled" : "")>
-                                <option value="">-- Selecciona una venta --</option>
-                                @if (sales != null)
-                                {
-                                    @foreach (var sale in sales)
-                                    {
-                                        <option value="@sale.Id" selected="@(Model?.SaleId == sale.Id)">
-                                            Venta #@sale.Id.ToString("D4") - @sale.Customer.Name (@sale.SaleDate.ToString("dd/MM/yyyy"))
-                                        </option>
-                                    }
-                                }
-                            </select>
+
                             @if (isEdit)
                             {
+                                <select asp-for="SaleId"
+                                        class="form-select form-select-lg"
+                                        disabled>
+                                    <option value="">-- Selecciona una venta --</option>
+                                    @foreach (var sale in sales ?? Enumerable.Empty<Database.Entities.Sale>())
+                                    {
+                                        <option value="@sale.Id"
+                                                selected="@(Model?.SaleId == sale.Id)">
+                                            Venta #@sale.Id.ToString("D4") -
+                                            @sale.Customer.Name (@sale.SaleDate:dd/MM/yyyy)
+                                        </option>
+                                    }
+                                </select>
                                 <input type="hidden" asp-for="SaleId" />
-                                <small class="text-muted">La venta no puede modificarse en un detalle existente</small>
+                                <small class="text-muted">
+                                    La venta no puede modificarse en un detalle existente
+                                </small>
                             }
+                            else
+                            {
+                                <select asp-for="SaleId"
+                                        class="form-select form-select-lg"
+                                        required>
+                                    <option value="">-- Selecciona una venta --</option>
+                                    @foreach (var sale in sales ?? Enumerable.Empty<Database.Entities.Sale>())
+                                    {
+                                        <option value="@sale.Id"
+                                                selected="@(Model?.SaleId == sale.Id)">
+                                            Venta #@sale.Id.ToString("D4") -
+                                            @sale.Customer.Name (@sale.SaleDate:dd/MM/yyyy)
+                                        </option>
+                                    }
+                                </select>
+                            }
+
                             <span asp-validation-for="SaleId" class="text-danger small"></span>
                         </div>
+
 
                         <!-- Product Selection -->
                         <div class="col-md-8">
@@ -99,7 +121,7 @@
                                 {
                                     @foreach (var product in products)
                                     {
-                                        <option value="@product.Id" data-price="@product.Price" data-stock="@product.Stock" selected="@(Model?.ProductId == product.Id)">
+                                        <option value="@product.Id" data-price="@product.Price" data-stock="@product.Stock" selected="@(Model?.ProductId == product.Id ? "selected" : null)">
                                             @product.Name - $@product.Price.ToString("N2") (Stock: @product.Stock)
                                         </option>
                                     }
@@ -393,7 +415,7 @@
             border-color: #dee2e6;
         }
 
-        @media (max-width: 768px) {
+        @@media (max-width: 768px) {
             .d-flex.justify-content-between {
                 flex-direction: column;
                 gap: 1rem;

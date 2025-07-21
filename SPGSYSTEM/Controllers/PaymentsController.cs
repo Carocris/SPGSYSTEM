@@ -184,7 +184,7 @@ namespace SPGSYSTEM.Controllers
                         PaymentDate = DateTime.Now
                     };
 
-                    await _paymentService.AddAsync(payment);
+                    await _paymentService.CreateAsync(payment);
 
                     // Process stock updates for the sale
                     foreach (var detail in sale.Details)
@@ -335,7 +335,7 @@ namespace SPGSYSTEM.Controllers
                         PaymentDate = DateTime.Now
                     };
 
-                    await _paymentService.AddAsync(payment);
+                    await _paymentService.CreateAsync(payment);
 
                     // Update product stock
                     foreach (var detail in sale.Details)

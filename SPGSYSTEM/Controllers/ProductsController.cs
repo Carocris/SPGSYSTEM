@@ -154,7 +154,6 @@ namespace SPGSYSTEM.Controllers
                 {
                     > 0 => $" Stock incrementado en {stockChange} unidades (ahora: {existingProduct.Stock}).",
                     < 0 => $" Stock reducido en {Math.Abs(stockChange)} unidades (ahora: {existingProduct.Stock}).",
-                    0 => "",
                     _ => ""
                 };
                 
@@ -282,7 +281,7 @@ namespace SPGSYSTEM.Controllers
                 var filteredProducts = products
                     .Where(p => p.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
                     .Take(10)
-                    .Select(p => new { id = p.Id, name = p.Name, price = p.Price, stock = p.Stock })
+                    .Select(p => new { id = p.Id, name = p.Name, price = p.SalePrice, stock = p.Stock })
                     .ToList();
 
                 return Json(filteredProducts);
