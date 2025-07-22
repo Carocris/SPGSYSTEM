@@ -55,16 +55,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Categories/CreateEdit
-        public IActionResult CreateEdit()
+        // GET: Categories/Create
+        public IActionResult Create()
         {
             ViewBag.IsEdit = false;
             ViewBag.PageTitle = "Nueva Categoría";
-            return View(new CategorySaveViewModel());
+            return View("CreateEdit", new CategorySaveViewModel());
         }
 
-        // GET: Categories/CreateEdit/5
-        public async Task<IActionResult> CreateEdit(int id)
+        // GET: Categories/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Categoría";
                 ViewBag.CategoryId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
             catch (Exception ex)
             {
