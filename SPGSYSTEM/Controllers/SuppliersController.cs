@@ -55,16 +55,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Suppliers/CreateEdit
-        public IActionResult CreateEdit()
+        // GET: Suppliers/Create
+        public IActionResult Create()
         {
             ViewBag.IsEdit = false;
             ViewBag.PageTitle = "Nuevo Proveedor";
-            return View(new SupplierSaveViewModel());
+            return View("CreateEdit", new SupplierSaveViewModel());
         }
 
-        // GET: Suppliers/CreateEdit/5
-        public async Task<IActionResult> CreateEdit(int id)
+        // GET: Suppliers/Edit/5
+        public async Task<IActionResult> Edit(int id)
         {
             try
             {
@@ -79,7 +79,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Proveedor";
                 ViewBag.SupplierId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
             catch (Exception ex)
             {
@@ -88,16 +88,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Suppliers/CreateEdit
+        // POST: Suppliers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(SupplierSaveViewModel viewModel)
+        public async Task<IActionResult> Create(SupplierSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Proveedor";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -108,7 +108,7 @@ namespace SPGSYSTEM.Controllers
                     ModelState.AddModelError("Name", "Ya existe un proveedor con este nombre.");
                     ViewBag.IsEdit = false;
                     ViewBag.PageTitle = "Nuevo Proveedor";
-                    return View(viewModel);
+                    return View("CreateEdit", viewModel);
                 }
 
                 var supplier = _mapper.Map<Supplier>(viewModel);
@@ -122,21 +122,21 @@ namespace SPGSYSTEM.Controllers
                 TempData["Error"] = "Error al crear el proveedor: " + ex.Message;
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Proveedor";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 
-        // POST: Suppliers/CreateEdit/5
+        // POST: Suppliers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, SupplierSaveViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, SupplierSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Proveedor";
                 ViewBag.SupplierId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -155,7 +155,7 @@ namespace SPGSYSTEM.Controllers
                     ViewBag.IsEdit = true;
                     ViewBag.PageTitle = "Editar Proveedor";
                     ViewBag.SupplierId = id;
-                    return View(viewModel);
+                    return View("CreateEdit", viewModel);
                 }
 
                 // Mapear los cambios
@@ -171,7 +171,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Proveedor";
                 ViewBag.SupplierId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 

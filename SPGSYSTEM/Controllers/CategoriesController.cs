@@ -88,16 +88,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Categories/CreateEdit
+        // POST: Categories/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(CategorySaveViewModel viewModel)
+        public async Task<IActionResult> Create(CategorySaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nueva Categoría";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -108,7 +108,7 @@ namespace SPGSYSTEM.Controllers
                     ModelState.AddModelError("Name", "Ya existe una categoría con este nombre.");
                     ViewBag.IsEdit = false;
                     ViewBag.PageTitle = "Nueva Categoría";
-                    return View(viewModel);
+                    return View("CreateEdit", viewModel);
                 }
 
                 var category = _mapper.Map<Category>(viewModel);
@@ -122,21 +122,21 @@ namespace SPGSYSTEM.Controllers
                 TempData["Error"] = "Error al crear la categoría: " + ex.Message;
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nueva Categoría";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 
-        // POST: Categories/CreateEdit/5
+        // POST: Categories/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, CategorySaveViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, CategorySaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Categoría";
                 ViewBag.CategoryId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -155,7 +155,7 @@ namespace SPGSYSTEM.Controllers
                     ViewBag.IsEdit = true;
                     ViewBag.PageTitle = "Editar Categoría";
                     ViewBag.CategoryId = id;
-                    return View(viewModel);
+                    return View("CreateEdit", viewModel);
                 }
 
                 // Mapear los cambios
@@ -171,7 +171,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Categoría";
                 ViewBag.CategoryId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 

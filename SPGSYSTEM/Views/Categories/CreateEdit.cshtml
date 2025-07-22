@@ -30,7 +30,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="@(isEdit ? Url.Action("CreateEdit", new { id = categoryId }) : Url.Action("CreateEdit"))">
+                    <form method="post" action="@(isEdit ? Url.Action("Edit", new { id = categoryId }) : Url.Action("Create"))">
                         @Html.AntiForgeryToken()
                         
                         <div class="row">

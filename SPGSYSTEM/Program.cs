@@ -15,7 +15,7 @@ builder.Services.AddControllersWithViews();
 // 2) Registrar DbContext y repositorios (Database/ServiceRegistration)
 builder.Services.AddDatabaseInfrastructure(builder.Configuration);
 
-// 3) Registrar servicios de aplicaci�n (Application/ServiceRegistration)
+// 3) Registrar servicios de aplicación (Application/ServiceRegistration)
 builder.Services.AddApplicationLayer();
 
 builder.Services.AddAutoMapper(typeof(GeneralProfile));
@@ -23,7 +23,7 @@ builder.Services.AddAutoMapper(typeof(GeneralProfile));
 
 var app = builder.Build();
 
-// Configuraci�n del pipeline HTTP
+// Configuración del pipeline HTTP
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -35,14 +35,27 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Si luego necesitas autenticaci�n/autorizaci�n:
+// Si luego necesitas autenticación/autorización:
 // app.UseAuthentication();
 app.UseAuthorization();
 
-// Ruta por defecto
+// Configuración de rutas más específica
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
+);
+
+// Rutas específicas para evitar ambigüedad
+app.MapControllerRoute(
+    name: "suppliers",
+    pattern: "Suppliers/{action=Index}/{id?}",
+    defaults: new { controller = "Suppliers" }
+);
+
+app.MapControllerRoute(
+    name: "categories",
+    pattern: "Categories/{action=Index}/{id?}",
+    defaults: new { controller = "Categories" }
 );
 
 app.Run();

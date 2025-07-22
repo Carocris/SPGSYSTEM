@@ -5,8 +5,8 @@
     var isEdit      = (bool)(ViewBag.IsEdit ?? false);
     var customerId  = ViewBag.CustomerId as int?;
     var actionUrl   = isEdit
-                      ? Url.Action("CreateEdit", new { id = customerId })
-                      : Url.Action("CreateEdit");
+                      ? Url.Action("Edit", new { id = customerId })
+                      : Url.Action("Create");
     var iconClass   = isEdit ? "fas fa-edit"      : "fas fa-user-plus";
     var buttonClass = isEdit ? "btn-warning"       : "btn-success";
     var buttonText  = isEdit ? "Actualizar Cliente" : "Guardar Cliente";

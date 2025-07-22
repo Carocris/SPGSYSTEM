@@ -30,7 +30,7 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="@(isEdit ? Url.Action("CreateEdit", new { id = supplierId }) : Url.Action("CreateEdit"))">
+                    <form method="post" action="@(isEdit ? Url.Action("Edit", new { id = supplierId }) : Url.Action("Create"))">
                         @Html.AntiForgeryToken()
                         
                         <div class="row">
@@ -74,7 +74,7 @@
                                                 <div class="mb-3">
                                                     <label asp-for="TaxId" class="form-label">
                                                         <i class="fas fa-id-card me-1"></i>
-                                                        ID Fiscal / RUC
+                                                        ID Fiscal / RUC / RNC
                                                     </label>
                                                     <input asp-for="TaxId" class="form-control" placeholder="Identificación fiscal">
                                                     <span asp-validation-for="TaxId" class="text-danger"></span>

@@ -10,6 +10,11 @@ namespace Database.Entities
 {
     public class Product
     {
+        public Product()
+        {
+            SaleDetails = new List<SaleDetail>();
+        }
+
         public int Id { get; set; }
 
         [Required]

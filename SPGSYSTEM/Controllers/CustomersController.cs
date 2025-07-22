@@ -55,9 +55,7 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Customers/CreateEdit (para crear)
-        [HttpGet]
-        [Route("Customers/CreateEdit")]
+        // GET: Customers/CreateEdit
         public IActionResult CreateEdit()
         {
             ViewBag.IsEdit = false;
@@ -65,9 +63,7 @@ namespace SPGSYSTEM.Controllers
             return View(new CustomerSaveViewModel());
         }
 
-        // GET: Customers/CreateEdit/5 (para editar)
-        [HttpGet]
-        [Route("Customers/CreateEdit/{id:int}")]
+        // GET: Customers/CreateEdit/5
         public async Task<IActionResult> CreateEdit(int id)
         {
             try
@@ -92,17 +88,16 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Customers/CreateEdit (crear)
+        // POST: Customers/Create
         [HttpPost]
-        [Route("Customers/CreateEdit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(CustomerSaveViewModel viewModel)
+        public async Task<IActionResult> Create(CustomerSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Cliente";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -118,22 +113,21 @@ namespace SPGSYSTEM.Controllers
                 TempData["Error"] = "Error al crear el cliente: " + ex.Message;
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Cliente";
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 
-        // POST: Customers/CreateEdit/5 (editar)
+        // POST: Customers/Edit/5
         [HttpPost]
-        [Route("Customers/CreateEdit/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, CustomerSaveViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, CustomerSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
             {
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Cliente";
                 ViewBag.CustomerId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
 
             try
@@ -145,9 +139,8 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Mapear los cambios al cliente existente
+                // Mapear los cambios
                 _mapper.Map(viewModel, existingCustomer);
-                
                 await _customerService.UpdateAsync(existingCustomer);
                 
                 TempData["Success"] = $"Cliente '{existingCustomer.Name}' actualizado exitosamente.";
@@ -159,7 +152,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Cliente";
                 ViewBag.CustomerId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
         }
 
@@ -178,11 +171,13 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 // Verificar si el cliente tiene ventas asociadas
-                // Esto requeriría agregar un método en el service, por ahora lo omitimos
-                // pero es una buena práctica verificar integridad referencial
+                if (customer.Sales?.Any() == true)
+                {
+                    TempData["Error"] = $"No se puede eliminar el cliente '{customer.Name}' porque tiene ventas asociadas.";
+                    return RedirectToAction(nameof(Index));
+                }
 
-                await _customerService.DeleteAsync(customer.Id);
-                
+                await _customerService.DeleteAsync(id);
                 TempData["Success"] = $"Cliente '{customer.Name}' eliminado exitosamente.";
             }
             catch (Exception ex)

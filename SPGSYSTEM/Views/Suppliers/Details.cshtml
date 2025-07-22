@@ -28,7 +28,7 @@
                             @Model.Name
                         </h3>
                         <div class="btn-group">
-                            <a href="@Url.Action("CreateEdit", new { id = Model.Id })" class="btn btn-warning">
+                            <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-warning">
                                 <i class="fas fa-edit me-2"></i>Editar
                             </a>
                             <a href="@Url.Action("Index")" class="btn btn-secondary">
@@ -56,8 +56,8 @@
                                     <td>@(string.IsNullOrWhiteSpace(Model.ContactPerson) ? "Sin contacto" : Model.ContactPerson)</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>ID Fiscal:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.TaxId) ? "Sin ID fiscal" : Model.TaxId)</td>
+                                                                    <td><strong>ID Fiscal / RUC / RNC:</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(Model.TaxId) ? "Sin ID fiscal" : Model.TaxId)</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Estado:</strong></td>
@@ -181,7 +181,7 @@
                         <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay productos de este proveedor</h5>
                         <p class="text-muted">Puedes agregar productos y asignar este proveedor desde el módulo de productos.</p>
-                        <a href="@Url.Action("CreateEdit", "Products")" class="btn btn-primary">
+                        <a href="@Url.Action("Create", "Products")" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Agregar Producto
                         </a>
                     </div>

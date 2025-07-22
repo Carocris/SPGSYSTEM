@@ -9,6 +9,11 @@ namespace Database.Entities
 {
     public class Category
     {
+        public Category()
+        {
+            Products = new List<Product>();
+        }
+
         public int Id { get; set; }
 
         [Required]
