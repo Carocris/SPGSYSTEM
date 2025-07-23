@@ -12,6 +12,7 @@ namespace Database.Contexts
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
+        public DbSet<SupplierPrice> SupplierPrices { get; set; }
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleDetail> SaleDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -26,6 +27,7 @@ namespace Database.Contexts
             modelBuilder.Entity<Sale>().HasKey(s => s.Id);
             modelBuilder.Entity<SaleDetail>().HasKey(sd => sd.Id);
             modelBuilder.Entity<Payment>().HasKey(p => p.Id);
+            modelBuilder.Entity<SupplierPrice>().HasKey(sp => sp.Id);
             #endregion
 
             #region Relationships
@@ -70,6 +72,20 @@ namespace Database.Contexts
                 .WithMany(s => s.Products)
                 .HasForeignKey(p => p.SupplierId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // SupplierPrice -> Supplier
+            modelBuilder.Entity<SupplierPrice>()
+                .HasOne(sp => sp.Supplier)
+                .WithMany(s => s.SupplierPrices)
+                .HasForeignKey(sp => sp.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SupplierPrice -> Product
+            modelBuilder.Entity<SupplierPrice>()
+                .HasOne(sp => sp.Product)
+                .WithMany(p => p.SupplierPrices)
+                .HasForeignKey(sp => sp.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
             #region Property configurations
@@ -206,6 +222,23 @@ namespace Database.Contexts
             modelBuilder.Entity<Payment>()
                 .Property(p => p.TransferReceiptPath)
                 .HasMaxLength(255);
+
+            // SupplierPrice
+            modelBuilder.Entity<SupplierPrice>()
+                .Property(sp => sp.Price)
+                .HasColumnType("decimal(10,2)")
+                .IsRequired();
+            modelBuilder.Entity<SupplierPrice>()
+                .Property(sp => sp.Currency)
+                .HasMaxLength(20);
+            modelBuilder.Entity<SupplierPrice>()
+                .Property(sp => sp.Notes)
+                .HasMaxLength(500);
+
+            // Unique constraint for SupplierPrice (one price per supplier-product combination)
+            modelBuilder.Entity<SupplierPrice>()
+                .HasIndex(sp => new { sp.SupplierId, sp.ProductId })
+                .IsUnique();
             #endregion
         }
     }

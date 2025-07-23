@@ -120,6 +120,14 @@
                                         </td>
                                         <td>
                                             <span class="badge bg-info">@supplier.ProductCount productos</span>
+                                            @if (supplier.ProductCount > 0)
+                                            {
+                                                <br>
+                                                <a href="@Url.Action("SupplierProducts", new { id = supplier.Id })" 
+                                                   class="btn btn-sm btn-outline-primary mt-1">
+                                                    <i class="fas fa-box me-1"></i>Ver Productos
+                                                </a>
+                                            }
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">

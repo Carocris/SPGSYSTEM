@@ -26,7 +26,17 @@ namespace Database.Repositories
         public async Task<IReadOnlyList<Supplier>> GetActiveAsync()
         {
             return await _db.Suppliers
+                            .Include(s => s.Products)
                             .Where(s => s.IsActive)
+                            .OrderBy(s => s.Name)
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
+
+        public async Task<IReadOnlyList<Supplier>> GetAllWithProductsAsync()
+        {
+            return await _db.Suppliers
+                            .Include(s => s.Products)
                             .OrderBy(s => s.Name)
                             .AsNoTracking()
                             .ToListAsync();

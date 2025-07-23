@@ -12,6 +12,7 @@ namespace Application.Interfaces.Services
     {
         Task<Category> GetWithProductsAsync(int id);
         Task<IReadOnlyList<Category>> GetActiveAsync();
+        Task<IReadOnlyList<Category>> GetAllWithProductsAsync();
         Task<bool> ExistsAsync(string name, int? excludeId = null);
     }
 } 

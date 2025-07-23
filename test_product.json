@@ -1,0 +1,13 @@
+{
+  "Code": "TEST001",
+  "Name": "Producto de Prueba",
+  "Description": "Descripción del producto de prueba",
+  "CategoryId": null,
+  "SupplierId": null,
+  "PurchasePrice": 10.00,
+  "SalePrice": 15.00,
+  "UnitOfMeasure": "pz",
+  "Stock": 100,
+  "MinimumStock": 10,
+  "IsActive": true
+} 

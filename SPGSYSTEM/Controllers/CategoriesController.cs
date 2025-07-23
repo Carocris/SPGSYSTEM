@@ -22,7 +22,7 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var categories = await _categoryService.GetAllAsync();
+                var categories = await _categoryService.GetAllWithProductsAsync();
                 var viewModels = _mapper.Map<List<CategoryViewModel>>(categories);
                 return View(viewModels);
             }

@@ -1,5 +1,6 @@
 using Application.Interfaces.Services;
 using Application.ViewModels.Supplier;
+using Application.ViewModels.SupplierPrice;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -9,11 +10,13 @@ namespace SPGSYSTEM.Controllers
     public class SuppliersController : Controller
     {
         private readonly ISupplierService _supplierService;
+        private readonly ISupplierPriceService _supplierPriceService;
         private readonly IMapper _mapper;
 
-        public SuppliersController(ISupplierService supplierService, IMapper mapper)
+        public SuppliersController(ISupplierService supplierService, ISupplierPriceService supplierPriceService, IMapper mapper)
         {
             _supplierService = supplierService;
+            _supplierPriceService = supplierPriceService;
             _mapper = mapper;
         }
 
@@ -22,7 +25,7 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var suppliers = await _supplierService.GetAllAsync();
+                var suppliers = await _supplierService.GetAllWithProductsAsync();
                 var viewModels = _mapper.Map<List<SupplierViewModel>>(suppliers);
                 return View(viewModels);
             }
@@ -220,6 +223,36 @@ namespace SPGSYSTEM.Controllers
             catch
             {
                 return Json(new List<object>());
+            }
+        }
+
+        // GET: Suppliers/SupplierProducts/5
+        public async Task<IActionResult> SupplierProducts(int id)
+        {
+            try
+            {
+                var supplier = await _supplierService.GetByIdAsync(id);
+                if (supplier == null)
+                {
+                    TempData["Error"] = "Proveedor no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var supplierPrices = await _supplierPriceService.GetBySupplierAsync(id);
+                var viewModels = _mapper.Map<List<SupplierPriceViewModel>>(supplierPrices);
+                
+                var supplierViewModel = _mapper.Map<SupplierViewModel>(supplier);
+                
+                ViewBag.SupplierPrices = viewModels;
+                ViewBag.AveragePrice = viewModels.Any() ? viewModels.Average(sp => sp.Price) : 0;
+                ViewBag.HighestPrice = viewModels.Any() ? viewModels.Max(sp => sp.Price) : 0;
+                
+                return View(supplierViewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar los productos del proveedor: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

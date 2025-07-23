@@ -13,6 +13,7 @@ namespace Database.Entities
         public Product()
         {
             SaleDetails = new List<SaleDetail>();
+            SupplierPrices = new List<SupplierPrice>();
         }
 
         public int Id { get; set; }
@@ -61,6 +62,9 @@ namespace Database.Entities
 
         // Navigation: One product can appear in many sale details
         public ICollection<SaleDetail> SaleDetails { get; set; }
+
+        // Navigation: One product can have many supplier prices
+        public ICollection<SupplierPrice> SupplierPrices { get; set; } = new List<SupplierPrice>();
 
         // Propiedades calculadas
         [NotMapped]

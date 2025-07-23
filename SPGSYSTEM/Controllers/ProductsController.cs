@@ -7,18 +7,47 @@ using Application.ViewModels.Product;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace SPGSYSTEM.Controllers
 {
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
+        private readonly ISupplierService _supplierService;
         private readonly IMapper _mapper;
 
-        public ProductsController(IProductService productService, IMapper mapper)
+        public ProductsController(IProductService productService, ICategoryService categoryService, ISupplierService supplierService, IMapper mapper)
         {
             _productService = productService;
+            _categoryService = categoryService;
+            _supplierService = supplierService;
             _mapper = mapper;
+        }
+
+        private async Task LoadViewBagDataAsync()
+        {
+            try
+            {
+                var categories = await _categoryService.GetActiveAsync();
+                var suppliers = await _supplierService.GetActiveAsync();
+
+                ViewBag.Categories = categories.Select(c => new SelectListItem 
+                { 
+                    Value = c.Id.ToString(), 
+                    Text = c.Name 
+                }).ToList();
+                ViewBag.Suppliers = suppliers.Select(s => new SelectListItem 
+                { 
+                    Value = s.Id.ToString(), 
+                    Text = s.Name 
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error cargando datos del ViewBag: {ex.Message}");
+            }
         }
 
         // GET: /Products
@@ -61,11 +90,20 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/Create
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewBag.IsEdit = false;
-            ViewBag.PageTitle = "Nuevo Producto";
-            return View("CreateEdit", new ProductSaveViewModel());
+            try
+            {
+                await LoadViewBagDataAsync();
+                ViewBag.IsEdit = false;
+                ViewBag.PageTitle = "Nuevo Producto";
+                return View("CreateEdit", new ProductSaveViewModel());
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar los datos: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         // POST: /Products/Create
@@ -75,6 +113,7 @@ namespace SPGSYSTEM.Controllers
         {
             if (!ModelState.IsValid)
             {
+                await LoadViewBagDataAsync();
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
                 return View("CreateEdit", vm);
@@ -83,6 +122,17 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var product = _mapper.Map<Product>(vm);
+                
+                // Asegurar que las relaciones estén limpias y las propiedades de navegación sean null
+                product.Category = null;
+                product.Supplier = null;
+                product.SaleDetails = null;
+                product.SupplierPrices = null;
+                
+                // Log para depuración
+                Console.WriteLine($"Creando producto: {product.Name}, Código: {product.Code}");
+                Console.WriteLine($"CategoryId: {product.CategoryId}, SupplierId: {product.SupplierId}");
+                
                 await _productService.CreateAsync(product);
 
                 TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
@@ -90,7 +140,19 @@ namespace SPGSYSTEM.Controllers
             }
             catch (Exception ex)
             {
+                // Log detallado del error
+                Console.WriteLine($"Error al crear producto: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner StackTrace: {ex.InnerException.StackTrace}");
+                }
+                
                 TempData["Error"] = "Error al crear el producto: " + ex.Message;
+                
+                await LoadViewBagDataAsync();
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
                 return View("CreateEdit", vm);
@@ -109,11 +171,13 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var vm = _mapper.Map<ProductSaveViewModel>(product);
+                await LoadViewBagDataAsync();
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
                 ViewBag.OriginalStock = product.Stock;
+                
+                var vm = _mapper.Map<ProductSaveViewModel>(product);
                 return View("CreateEdit", vm);
             }
             catch (Exception ex)
@@ -132,6 +196,7 @@ namespace SPGSYSTEM.Controllers
         {
             if (!ModelState.IsValid)
             {
+                await LoadViewBagDataAsync();
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
@@ -164,6 +229,8 @@ namespace SPGSYSTEM.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al actualizar el producto: " + ex.Message;
+                
+                await LoadViewBagDataAsync();
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;

@@ -55,16 +55,18 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Customers/CreateEdit
-        public IActionResult CreateEdit()
+        // GET: Customers/Create
+        [HttpGet]
+        public IActionResult Create()
         {
             ViewBag.IsEdit = false;
             ViewBag.PageTitle = "Nuevo Cliente";
-            return View(new CustomerSaveViewModel());
+            return View("CreateEdit", new CustomerSaveViewModel());
         }
 
-        // GET: Customers/CreateEdit/5
-        public async Task<IActionResult> CreateEdit(int id)
+        // GET: Customers/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
             try
             {
@@ -79,7 +81,7 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Cliente";
                 ViewBag.CustomerId = id;
-                return View(viewModel);
+                return View("CreateEdit", viewModel);
             }
             catch (Exception ex)
             {
@@ -103,6 +105,10 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var customer = _mapper.Map<Customer>(viewModel);
+                
+                // Asegurar que las relaciones estén limpias
+                customer.Sales = null;
+                
                 await _customerService.CreateAsync(customer);
                 
                 TempData["Success"] = $"Cliente '{customer.Name}' creado exitosamente.";

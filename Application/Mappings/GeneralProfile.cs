@@ -12,6 +12,7 @@ using Application.ViewModels.Sale;
 using Application.ViewModels.Payment;
 using Application.ViewModels.Category;
 using Application.ViewModels.Supplier;
+using Application.ViewModels.SupplierPrice;
 
 namespace Application.Mappings
 {
@@ -22,9 +23,12 @@ namespace Application.Mappings
 
             // Customer
             CreateMap<Customer, CustomerViewModel>()
-                .ReverseMap();  
+                .ReverseMap()
+                .ForMember(dest => dest.Sales, opt => opt.Ignore());
 
             CreateMap<CustomerSaveViewModel, Customer>()
+                .ForMember(dest => dest.Sales, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ReverseMap();
 
             // Category
@@ -64,6 +68,12 @@ namespace Application.Mappings
 
             CreateMap<ProductSaveViewModel, Product>()
                 .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => DateTime.Now))
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.Supplier, opt => opt.Ignore())
+                .ForMember(dest => dest.SaleDetails, opt => opt.Ignore())
+                .ForMember(dest => dest.SupplierPrices, opt => opt.Ignore())
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore())
                 .ReverseMap()
                 .ForMember(dest => dest.Price, opt => opt.Ignore()); // Evitar conflicto con SalePrice
 
@@ -115,6 +125,25 @@ namespace Application.Mappings
             CreateMap<PaymentSaveViewModel, Payment>()
                 .ForMember(dest => dest.PaymentDate, opt => opt.Ignore())
                 .ForMember(dest => dest.Sale, opt => opt.Ignore());
+
+            // SupplierPrice
+            CreateMap<SupplierPrice, SupplierPriceViewModel>()
+                .ForMember(dest => dest.SupplierName, 
+                           opt => opt.MapFrom(src => src.Supplier != null ? src.Supplier.Name : null))
+                .ForMember(dest => dest.ProductName, 
+                           opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : null))
+                .ForMember(dest => dest.ProductCode, 
+                           opt => opt.MapFrom(src => src.Product != null ? src.Product.Code : null))
+                .ReverseMap()
+                .ForMember(dest => dest.Supplier, opt => opt.Ignore())
+                .ForMember(dest => dest.Product, opt => opt.Ignore());
+
+            CreateMap<SupplierPriceSaveViewModel, SupplierPrice>()
+                .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => DateTime.Now))
+                .ReverseMap()
+                .ForMember(dest => dest.SupplierName, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductName, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductCode, opt => opt.Ignore());
 
         }
     }

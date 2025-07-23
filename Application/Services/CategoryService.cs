@@ -28,6 +28,11 @@ namespace Application.Services
             return await _categoryRepository.GetActiveAsync();
         }
 
+        public async Task<IReadOnlyList<Category>> GetAllWithProductsAsync()
+        {
+            return await _categoryRepository.GetAllWithProductsAsync();
+        }
+
         public async Task<bool> ExistsAsync(string name, int? excludeId = null)
         {
             return await _categoryRepository.ExistsAsync(name, excludeId);
