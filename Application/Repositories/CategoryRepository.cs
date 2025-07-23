@@ -19,6 +19,7 @@ namespace Database.Repositories
         {
             return await _db.Categories
                             .Include(c => c.Products)
+                                .ThenInclude(p => p.Supplier)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(c => c.Id == id);
         }
@@ -27,6 +28,7 @@ namespace Database.Repositories
         {
             return await _db.Categories
                             .Include(c => c.Products)
+                                .ThenInclude(p => p.Supplier)
                             .Where(c => c.IsActive)
                             .OrderBy(c => c.Name)
                             .AsNoTracking()
@@ -37,6 +39,7 @@ namespace Database.Repositories
         {
             return await _db.Categories
                             .Include(c => c.Products)
+                                .ThenInclude(p => p.Supplier)
                             .OrderBy(c => c.Name)
                             .AsNoTracking()
                             .ToListAsync();
