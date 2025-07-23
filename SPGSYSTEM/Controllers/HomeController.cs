@@ -50,8 +50,8 @@ namespace SPGSYSTEM.Controllers
                 var suppliers = await _supplierService.GetAllAsync();
                 var customers = await _customerService.GetAllAsync();
                 
-                // Cargar ventas
-                var sales = await _saleService.GetAllAsync();
+                // Cargar ventas con detalles
+                var sales = await _saleService.GetAllWithDetailsAsync();
                 
                 // Estadísticas básicas
                 dashboard.TotalProducts = products.Count();
@@ -91,12 +91,7 @@ namespace SPGSYSTEM.Controllers
                     .ToList();
                 dashboard.RecentSales = _mapper.Map<List<SaleViewModel>>(recentSales);
                 
-                // Mapear TotalItems para las ventas
-                foreach (var saleViewModel in dashboard.RecentSales)
-                {
-                    var originalSale = recentSales.FirstOrDefault(s => s.Id == saleViewModel.Id);
-                    saleViewModel.TotalItems = originalSale?.Details?.Sum(d => d.Quantity) ?? 0;
-                }
+                // TotalItems se mapea automáticamente desde los detalles de la venta
                 
                 // Estadísticas por categoría
                 dashboard.CategoryStats = categories.Select(c => new CategoryStatsViewModel

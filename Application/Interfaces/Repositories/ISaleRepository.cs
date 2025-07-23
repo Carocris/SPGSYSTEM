@@ -10,6 +10,6 @@ namespace Application.Interfaces.Repositories
     public interface ISaleRepository : IGenericRepository<Sale>
     {
         Task<Sale> GetFullSaleAsync(int id);
-
+        Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync();
     }
 }

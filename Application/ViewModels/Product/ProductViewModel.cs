@@ -25,7 +25,7 @@ namespace Application.ViewModels.Product
         public decimal PurchasePrice { get; set; }
         public decimal SalePrice { get; set; }
         
-        public string? UnitOfMeasure { get; set; }
+
         public int Stock { get; set; }
         public int MinimumStock { get; set; }
         public bool IsActive { get; set; }

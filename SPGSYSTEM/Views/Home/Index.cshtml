@@ -7,15 +7,15 @@
 <!-- Dashboard Header -->
 <div class="row mb-4">
     <div class="col-12">
-        <div class="bg-primary text-white p-4 rounded">
-            <div class="d-flex justify-content-between align-items-center">
+        <div class="bg-primary text-white p-3 p-md-4 rounded">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
                 <div>
-                    <h1 class="h2 text-white mb-2">
-                        <i class="fas fa-tachometer-alt me-3"></i>Dashboard Principal
+                    <h1 class="h2 h3-md text-white mb-2">
+                        <i class="fas fa-tachometer-alt me-2 me-md-3"></i>Dashboard Principal
                     </h1>
-                    <p class="mb-0 opacity-75">Resumen completo de tu sistema de gestión</p>
+                    <p class="mb-0 opacity-75 small">Resumen completo de tu sistema de gestión</p>
                 </div>
-                <div class="text-end">
+                <div class="text-start text-md-end mt-2 mt-md-0">
                     <small><i class="fas fa-clock me-2"></i>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</small>
                 </div>
             </div>
@@ -24,11 +24,11 @@
 </div>
 
 <!-- Estadísticas Principales -->
-<div class="row g-4 mb-4">
+<div class="row g-3 g-md-4 mb-4">
     <!-- Total Productos -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-6 col-lg-3">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
                 <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                     <i class="fas fa-cube fa-lg"></i>
                 </div>
@@ -39,9 +39,9 @@
     </div>
 
     <!-- Valor Inventario -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-6 col-lg-3">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
                 <div class="rounded-circle bg-success text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                     <i class="fas fa-dollar-sign fa-lg"></i>
                 </div>
@@ -52,9 +52,9 @@
     </div>
 
     <!-- Ventas Hoy -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-6 col-lg-3">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
                 <div class="rounded-circle bg-info text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                     <i class="fas fa-shopping-cart fa-lg"></i>
                 </div>
@@ -66,9 +66,9 @@
     </div>
 
     <!-- Stock Crítico -->
-    <div class="col-xl-3 col-md-6">
+    <div class="col-6 col-lg-3">
         <div class="card border-0 shadow-sm h-100">
-            <div class="card-body text-center">
+            <div class="card-body text-center p-3">
                 <div class="rounded-circle @(Model.ProductsLowStock > 0 ? "bg-warning" : "bg-success") text-white d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
                     <i class="fas fa-@(Model.ProductsLowStock > 0 ? "exclamation-triangle" : "check-circle") fa-lg"></i>
                 </div>
@@ -81,39 +81,39 @@
 </div>
 
 <!-- Estadísticas Adicionales -->
-<div class="row g-4 mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white">
-            <div class="card-body text-center">
+<div class="row g-3 g-md-4 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card bg-primary text-white h-100">
+            <div class="card-body text-center p-3">
                 <i class="fas fa-tags fa-2x mb-2"></i>
-                <h4>@Model.TotalCategories</h4>
+                <h4 class="mb-1">@Model.TotalCategories</h4>
                 <p class="mb-0">Categorías</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-white">
-            <div class="card-body text-center">
+    <div class="col-6 col-md-3">
+        <div class="card bg-warning text-white h-100">
+            <div class="card-body text-center p-3">
                 <i class="fas fa-truck fa-2x mb-2"></i>
-                <h4>@Model.TotalSuppliers</h4>
+                <h4 class="mb-1">@Model.TotalSuppliers</h4>
                 <p class="mb-0">Proveedores</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-info text-white">
-            <div class="card-body text-center">
+    <div class="col-6 col-md-3">
+        <div class="card bg-info text-white h-100">
+            <div class="card-body text-center p-3">
                 <i class="fas fa-users fa-2x mb-2"></i>
-                <h4>@Model.TotalCustomers</h4>
+                <h4 class="mb-1">@Model.TotalCustomers</h4>
                 <p class="mb-0">Clientes</p>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white">
-            <div class="card-body text-center">
+    <div class="col-6 col-md-3">
+        <div class="card bg-success text-white h-100">
+            <div class="card-body text-center p-3">
                 <i class="fas fa-calendar-month fa-2x mb-2"></i>
-                <h4>@Model.TotalSalesThisMonth</h4>
+                <h4 class="mb-1">@Model.TotalSalesThisMonth</h4>
                 <p class="mb-0">Ventas del Mes</p>
                 <small>$@Model.RevenueThisMonth.ToString("N2")</small>
             </div>
@@ -122,45 +122,45 @@
 </div>
 
 <!-- Gráficos -->
-<div class="row g-4 mb-4">
+<div class="row g-3 g-md-4 mb-4">
     <!-- Gráfico de Ventas -->
-    <div class="col-lg-8">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-chart-line me-2 text-primary"></i>Tendencia de Ventas (Últimos 6 meses)
-                </h5>
+                </h6>
             </div>
             <div class="card-body">
-                <canvas id="salesTrendChart" style="height: 300px;"></canvas>
+                <canvas id="salesTrendChart" style="height: 250px;"></canvas>
             </div>
         </div>
     </div>
 
     <!-- Distribución por Categorías -->
-    <div class="col-lg-4">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-chart-pie me-2 text-success"></i>Productos por Categoría
-                </h5>
+                </h6>
             </div>
             <div class="card-body">
-                <canvas id="categoryDistributionChart" style="height: 300px;"></canvas>
+                <canvas id="categoryDistributionChart" style="height: 250px;"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Tablas -->
-<div class="row g-4 mb-4">
+<div class="row g-3 g-md-4 mb-4">
     <!-- Productos con Stock Bajo -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Stock Crítico
-                </h5>
+                </h6>
                 <a href="@Url.Action("Index", "Products")" class="btn btn-sm btn-outline-primary">Ver todos</a>
             </div>
             <div class="card-body p-0">
@@ -181,21 +181,17 @@
                                 {
                                     <tr>
                                         <td>
-                                            <strong>@product.Name</strong>
+                                            <strong class="small">@product.Name</strong>
                                             @if (!string.IsNullOrEmpty(product.CategoryName))
                                             {
                                                 <br><small class="text-muted">@product.CategoryName</small>
                                             }
                                         </td>
                                         <td>
-                                            <span class="fw-bold">@product.Stock</span>
-                                            @if (!string.IsNullOrEmpty(product.UnitOfMeasure))
-                                            {
-                                                <small class="text-muted"> @product.UnitOfMeasure</small>
-                                            }
+                                            <span class="fw-bold small">@product.Stock</span>
                                         </td>
                                         <td>
-                                            <span class="badge bg-@(product.Stock <= 0 ? "danger" : "warning")">
+                                            <span class="badge bg-@(product.Stock <= 0 ? "danger" : "warning") small">
                                                 @(product.Stock <= 0 ? "Sin stock" : "Stock bajo")
                                             </span>
                                         </td>
@@ -214,9 +210,9 @@
                 else
                 {
                     <div class="text-center py-4">
-                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <i class="fas fa-check-circle fa-2x text-success mb-3"></i>
                         <h6>¡Excelente!</h6>
-                        <p class="text-muted">No hay productos con stock crítico</p>
+                        <p class="text-muted small">No hay productos con stock crítico</p>
                     </div>
                 }
             </div>
@@ -224,12 +220,12 @@
     </div>
 
     <!-- Ventas Recientes -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-receipt me-2 text-info"></i>Actividad Reciente
-                </h5>
+                </h6>
                 <a href="@Url.Action("Index", "Sales")" class="btn btn-sm btn-outline-primary">Ver todas</a>
             </div>
             <div class="card-body">
@@ -239,7 +235,7 @@
                     {
                         <div class="d-flex justify-content-between align-items-center mb-3 pb-3 @(sale != Model.RecentSales.Last() ? "border-bottom" : "")">
                             <div>
-                                <h6 class="mb-1">@sale.CustomerName</h6>
+                                <h6 class="mb-1 small">@sale.CustomerName</h6>
                                 <small class="text-muted">
                                     <i class="fas fa-calendar me-1"></i>@sale.SaleDate.ToString("dd/MM/yyyy HH:mm")
                                     <span class="mx-2">•</span>
@@ -247,7 +243,7 @@
                                 </small>
                             </div>
                             <div class="text-end">
-                                <h6 class="text-success mb-0">$@sale.Total.ToString("N2")</h6>
+                                <h6 class="text-success mb-0 small">$@sale.Total.ToString("N2")</h6>
                                 <small class="text-muted">@sale.PaymentMethod</small>
                             </div>
                         </div>
@@ -256,9 +252,9 @@
                 else
                 {
                     <div class="text-center py-4">
-                        <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                        <i class="fas fa-receipt fa-2x text-muted mb-3"></i>
                         <h6>Sin ventas recientes</h6>
-                        <p class="text-muted">Las ventas aparecerán aquí</p>
+                        <p class="text-muted small">Las ventas aparecerán aquí</p>
                     </div>
                 }
             </div>
@@ -267,14 +263,14 @@
 </div>
 
 <!-- Productos Más Vendidos y Acciones Rápidas -->
-<div class="row g-4 mb-4">
+<div class="row g-3 g-md-4 mb-4">
     <!-- Top Productos -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-trophy me-2 text-warning"></i>Productos Más Vendidos
-                </h5>
+                </h6>
             </div>
             <div class="card-body">
                 @if (Model.TopProducts.Any())
@@ -283,11 +279,11 @@
                     {
                         <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-light rounded">
                             <div>
-                                <h6 class="mb-1">@product.ProductName</h6>
+                                <h6 class="mb-1 small">@product.ProductName</h6>
                                 <small class="text-muted">@product.QuantitySold unidades vendidas</small>
                             </div>
                             <div class="text-end">
-                                <h6 class="text-primary mb-0">$@product.Revenue.ToString("N2")</h6>
+                                <h6 class="text-primary mb-0 small">$@product.Revenue.ToString("N2")</h6>
                                 <small class="text-muted">en ventas</small>
                             </div>
                         </div>
@@ -296,9 +292,9 @@
                 else
                 {
                     <div class="text-center py-4">
-                        <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                        <i class="fas fa-chart-bar fa-2x text-muted mb-3"></i>
                         <h6>Sin datos de ventas</h6>
-                        <p class="text-muted">Los productos más vendidos aparecerán aquí</p>
+                        <p class="text-muted small">Los productos más vendidos aparecerán aquí</p>
                     </div>
                 }
             </div>
@@ -306,49 +302,49 @@
     </div>
 
     <!-- Acciones Rápidas -->
-    <div class="col-lg-6">
-        <div class="card shadow-sm">
+    <div class="col-12 col-lg-6">
+        <div class="card shadow-sm h-100">
             <div class="card-header bg-white">
-                <h5 class="card-title mb-0">
+                <h6 class="card-title mb-0">
                     <i class="fas fa-bolt me-2 text-success"></i>Acciones Rápidas
-                </h5>
+                </h6>
             </div>
-            <div class="card-body">
-                <div class="row g-3">
+            <div class="card-body pt-4">
+                <div class="row g-3 gy-4">
                     <div class="col-6">
-                        <a href="@Url.Action("Create", "Products")" class="btn btn-outline-primary w-100 py-3">
-                            <i class="fas fa-plus fa-lg mb-2 d-block"></i>
-                            <small>Producto</small>
+                        <a href="@Url.Action("Create", "Products")" class="btn btn-outline-primary w-100 py-4">
+                            <i class="fas fa-plus fa-lg mb-3 d-block"></i>
+                            <strong>Producto</strong>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="@Url.Action("CreateEdit", "Sales")" class="btn btn-outline-success w-100 py-3">
-                            <i class="fas fa-cash-register fa-lg mb-2 d-block"></i>
-                            <small>Venta</small>
-                        </a>
-                    </div>
-                    <div class="col-6">am
-                        <a href="@Url.Action("CreateEdit", "Categories")" class="btn btn-outline-info w-100 py-3">
-                            <i class="fas fa-tags fa-lg mb-2 d-block"></i>
-                            <small>Categoría</small>
+                        <a href="@Url.Action("CreateEdit", "Sales")" class="btn btn-outline-success w-100 py-4">
+                            <i class="fas fa-cash-register fa-lg mb-3 d-block"></i>
+                            <strong>Venta</strong>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="@Url.Action("CreateEdit", "Suppliers")" class="btn btn-outline-warning w-100 py-3">
-                            <i class="fas fa-truck fa-lg mb-2 d-block"></i>
-                            <small>Proveedor</small>
+                        <a href="@Url.Action("CreateEdit", "Categories")" class="btn btn-outline-info w-100 py-4">
+                            <i class="fas fa-tags fa-lg mb-3 d-block"></i>
+                            <strong>Categoría</strong>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="@Url.Action("Create", "Customers")" class="btn btn-outline-secondary w-100 py-3">
-                            <i class="fas fa-user-plus fa-lg mb-2 d-block"></i>
-                            <small>Cliente</small>
+                        <a href="@Url.Action("CreateEdit", "Suppliers")" class="btn btn-outline-warning w-100 py-4">
+                            <i class="fas fa-truck fa-lg mb-3 d-block"></i>
+                            <strong>Proveedor</strong>
                         </a>
                     </div>
                     <div class="col-6">
-                        <a href="@Url.Action("Index", "Products")" class="btn btn-outline-dark w-100 py-3">
-                            <i class="fas fa-boxes fa-lg mb-2 d-block"></i>
-                            <small>Inventario</small>
+                        <a href="@Url.Action("Create", "Customers")" class="btn btn-outline-secondary w-100 py-4">
+                            <i class="fas fa-user-plus fa-lg mb-3 d-block"></i>
+                            <strong>Cliente</strong>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="@Url.Action("Index", "Products")" class="btn btn-outline-dark w-100 py-4">
+                            <i class="fas fa-boxes fa-lg mb-3 d-block"></i>
+                            <strong>Inventario</strong>
                         </a>
                     </div>
                 </div>

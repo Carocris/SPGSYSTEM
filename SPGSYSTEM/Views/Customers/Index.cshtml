@@ -85,13 +85,27 @@
                         <table class="table table-hover mb-0" id="customersTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th><i class="fas fa-hashtag me-1"></i>ID</th>
-                                    <th><i class="fas fa-user me-1"></i>Nombre</th>
-                                    <th><i class="fas fa-envelope me-1"></i>Email</th>
-                                    <th><i class="fas fa-phone me-1"></i>Teléfono</th>
-                                    <th><i class="fas fa-calendar me-1"></i>Fecha Registro</th>
-                                    <th><i class="fas fa-info-circle me-1"></i>Estado</th>
-                                    <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                                    <th class="border-0">
+                                        <i class="fas fa-hashtag me-2"></i>ID
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-user me-2"></i>Nombre
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-envelope me-2"></i>Email
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-phone me-2"></i>Teléfono
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-calendar me-2"></i>Fecha Registro
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-info-circle me-2"></i>Estado
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-cogs me-2"></i>Acciones
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,20 +118,20 @@
                                         data-has-email="@(!string.IsNullOrEmpty(customer.Email) ? "true" : "false")"
                                         data-has-phone="@(!string.IsNullOrEmpty(customer.Phone) ? "true" : "false")"
                                         data-is-complete="@((!string.IsNullOrEmpty(customer.Email) && !string.IsNullOrEmpty(customer.Phone)) ? "true" : "false")">
-                                        <td>
+                                        <td class="align-middle">
                                             <span class="badge bg-secondary">#@customer.Id.ToString("D4")</span>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-circle me-2">
+                                                <div class="avatar-circle bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <i class="fas fa-user"></i>
                                                 </div>
                                                 <div>
-                                                    <strong>@customer.Name</strong>
+                                                    <strong class="text-primary">@customer.Name</strong>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             @if (!string.IsNullOrEmpty(customer.Email))
                                             {
                                                 <div class="d-flex align-items-center">
@@ -130,7 +144,7 @@
                                                 <span class="text-muted fst-italic">No especificado</span>
                                             }
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             @if (!string.IsNullOrEmpty(customer.Phone))
                                             {
                                                 <div class="d-flex align-items-center">
@@ -143,10 +157,10 @@
                                                 <span class="text-muted fst-italic">No especificado</span>
                                             }
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <small class="text-muted">@customer.CreatedDate.ToString("dd/MM/yyyy")</small>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             @if (!string.IsNullOrEmpty(customer.Email) && !string.IsNullOrEmpty(customer.Phone))
                                             {
                                                 <span class="badge bg-success">
@@ -166,7 +180,7 @@
                                                 </span>
                                             }
                                         </td>
-                                        <td>
+                                        <td class="align-middle text-center">
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a asp-action="Details" asp-route-id="@customer.Id" 
                                                    class="btn btn-outline-primary" title="Ver detalles">

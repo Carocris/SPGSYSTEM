@@ -26,7 +26,7 @@ namespace Database.Repositories
             _db.Set<T>().Remove(entity);
         }
 
-        public async Task<IReadOnlyList<T>> GetAllAsync()
+        public virtual async Task<IReadOnlyList<T>> GetAllAsync()
         {
             return await _db.Set<T>()
                              .AsNoTracking()

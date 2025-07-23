@@ -85,14 +85,30 @@
                         <table class="table table-hover mb-0" id="salesTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th><i class="fas fa-hashtag me-1"></i>ID Venta</th>
-                                    <th><i class="fas fa-user me-1"></i>Cliente</th>
-                                    <th><i class="fas fa-calendar me-1"></i>Fecha</th>
-                                    <th><i class="fas fa-boxes me-1"></i>Productos</th>
-                                    <th><i class="fas fa-dollar-sign me-1"></i>Total</th>
-                                    <th><i class="fas fa-credit-card me-1"></i>Método Pago</th>
-                                    <th><i class="fas fa-info-circle me-1"></i>Estado</th>
-                                    <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                                    <th class="border-0">
+                                        <i class="fas fa-hashtag me-2"></i>ID Venta
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-user me-2"></i>Cliente
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-calendar me-2"></i>Fecha
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-boxes me-2"></i>Productos
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-dollar-sign me-2"></i>Total
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-credit-card me-2"></i>Método Pago
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-info-circle me-2"></i>Estado
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-cogs me-2"></i>Acciones
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -103,34 +119,34 @@
                                         data-payment="@(sale.PaymentMethod.ToString() ?? "")"
                                         data-amount="@sale.TotalAmount"
                                         data-date="@sale.SaleDate.ToString("yyyy-MM-dd")">
-                                        <td>
+                                        <td class="align-middle">
                                             <span class="badge bg-secondary">#@sale.Id.ToString("D4")</span>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <div class="sale-icon me-2">
+                                                <div class="sale-icon bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <i class="fas fa-user"></i>
                                                 </div>
                                                 <div>
-                                                    <strong>@(sale.CustomerName ?? "Cliente no disponible")</strong>
+                                                    <strong class="text-primary">@(sale.CustomerName ?? "Cliente no disponible")</strong>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <div>
                                                 <strong>@sale.SaleDate.ToString("dd/MM/yyyy")</strong>
                                                 <br><small class="text-muted">@sale.SaleDate.ToString("HH:mm")</small>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <span class="badge bg-info">
                                                 <i class="fas fa-box me-1"></i>@(sale.Details?.Count() ?? 0) artículo(s)
                                             </span>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             <span class="text-success fw-bold">$@sale.TotalAmount.ToString("N2")</span>
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             @switch(sale.PaymentMethod.ToString())
                                             {
                                                 case "Cash":
@@ -155,7 +171,7 @@
                                                     break;
                                             }
                                         </td>
-                                        <td>
+                                        <td class="align-middle">
                                             @if (sale.Payment != null && sale.Payment.PaymentStatus == "Paid")
                                             {
                                                 <span class="badge bg-success">
@@ -169,7 +185,7 @@
                                                 </span>
                                             }
                                         </td>
-                                        <td>
+                                        <td class="align-middle text-center">
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a asp-action="Details" asp-route-id="@sale.Id"
                                                    class="btn btn-outline-primary" title="Ver detalles">

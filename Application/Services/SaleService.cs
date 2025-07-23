@@ -30,5 +30,10 @@ namespace Application.Services
             await _saleRepository.SaveChangesAsync();
             return sale;
         }
+
+        public async Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync()
+        {
+            return await _saleRepository.GetAllWithDetailsAsync();
+        }
     }
 }

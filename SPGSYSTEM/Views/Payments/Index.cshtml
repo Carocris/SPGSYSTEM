@@ -73,142 +73,111 @@
 
         @if (Model != null && Model.Any())
         {
-            <!-- Payments Grid -->
-            <div class="row" id="paymentsContainer">
-                @foreach (var payment in Model)
-                {
-                    <div class="col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-4 payment-card" 
-                         data-customer="@payment.CustomerName.ToLower()" 
-                         data-sale="@payment.SaleNumber.ToLower()"
-                         data-method="@payment.PaymentMethod.ToString().ToLower()"
-                         data-amount="@payment.Amount"
-                         data-date="@payment.PaymentDate.ToString("yyyy-MM-dd")">
-                        <div class="card h-100 shadow-sm border-0 payment-item">
-                            <div class="card-header @GetPaymentMethodHeaderClass(payment.PaymentMethod) text-white py-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center">
-                                        <div class="payment-method-icon me-3">
-                                            @switch(payment.PaymentMethod.ToString())
-                                            {
-                                                case "Cash":
-                                                    <i class="fas fa-money-bill-wave"></i>
-                                                    break;
-                                                case "Card":
-                                                    <i class="fas fa-credit-card"></i>
-                                                    break;
-                                                case "Transfer":
-                                                    <i class="fas fa-exchange-alt"></i>
-                                                    break;
-                                            }
-                                        </div>
-                                        <div>
-                                            <h6 class="card-title mb-0 fw-bold">
-                                                @GetPaymentMethodName(payment.PaymentMethod)
-                                            </h6>
-                                            <small class="opacity-75">Pago ID: #@payment.Id</small>
-                                        </div>
-                                    </div>
-                                    <span class="badge bg-light text-dark">
-                                        <i class="fas fa-calendar me-1"></i>@payment.PaymentDate.ToString("dd/MM")
-                                    </span>
-                                </div>
-                            </div>
-                            
-                            <div class="card-body d-flex flex-column">
-                                <div class="payment-info flex-grow-1">
-                                    <!-- Sale Information -->
-                                    <div class="info-item mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="info-icon bg-primary me-3">
-                                                <i class="fas fa-shopping-cart"></i>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <small class="text-muted d-block">Venta</small>
-                                                <span class="fw-medium">@payment.SaleNumber</span>
+            <!-- Payments Table -->
+            <div class="card shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="paymentsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0">
+                                        <i class="fas fa-hashtag me-2"></i>ID
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-shopping-cart me-2"></i>Venta
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-user me-2"></i>Cliente
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-credit-card me-2"></i>Método
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-dollar-sign me-2"></i>Monto
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-calendar me-2"></i>Fecha Pago
+                                    </th>
+                                    <th class="border-0">
+                                        <i class="fas fa-check-circle me-2"></i>Estado
+                                    </th>
+                                    <th class="border-0 text-center">
+                                        <i class="fas fa-cogs me-2"></i>Acciones
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var payment in Model)
+                                {
+                                    <tr class="payment-row" 
+                                        data-customer="@payment.CustomerName.ToLower()" 
+                                        data-sale="@payment.SaleNumber.ToLower()"
+                                        data-method="@payment.PaymentMethod.ToString().ToLower()"
+                                        data-amount="@payment.Amount"
+                                        data-date="@payment.PaymentDate.ToString("yyyy-MM-dd")">
+                                        <td class="align-middle">
+                                            <span class="badge bg-secondary">#@payment.Id</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div>
+                                                <strong class="text-primary">@payment.SaleNumber</strong>
                                                 <br>
                                                 <small class="text-muted">@payment.SaleDate.ToString("dd/MM/yyyy")</small>
                                             </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Customer Information -->
-                                    <div class="info-item mb-3">
-                                        <div class="d-flex align-items-center">
-                                            <div class="info-icon bg-info me-3">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div class="flex-grow-1">
-                                                <small class="text-muted d-block">Cliente</small>
-                                                <span class="fw-medium">@payment.CustomerName</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Amount and Status -->
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <div class="info-item">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="info-icon bg-success me-2">
-                                                        <i class="fas fa-dollar-sign"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <small class="text-muted d-block">Monto</small>
-                                                        <span class="fw-bold text-success">$@payment.Amount.ToString("N2")</span>
-                                                    </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>@payment.CustomerName</strong>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="col-6">
-                                            <div class="info-item">
-                                                <div class="d-flex align-items-center">
-                                                    <div class="info-icon bg-success me-2">
-                                                        <i class="fas fa-check-circle"></i>
-                                                    </div>
-                                                    <div class="flex-grow-1">
-                                                        <small class="text-muted d-block">Estado</small>
-                                                        <span class="badge bg-success">@payment.PaymentStatus</span>
-                                                    </div>
-                                                </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge @GetPaymentMethodBadgeClass(payment.PaymentMethod)">
+                                                @GetPaymentMethodIcon(payment.PaymentMethod) @GetPaymentMethodName(payment.PaymentMethod)
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="fw-bold text-success">$@payment.Amount.ToString("N2")</span>
+                                        </td>
+                                        <td class="align-middle">
+                                            <div>
+                                                <div class="fw-medium">@payment.PaymentDate.ToString("dd/MM/yyyy")</div>
+                                                <small class="text-muted">@payment.PaymentDate.ToString("HH:mm")</small>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Payment Date -->
-                                    <div class="mt-3 text-center p-2 bg-light rounded">
-                                        <small class="text-muted d-block">Fecha de Pago</small>
-                                        <span class="fw-medium text-primary">@payment.PaymentDate.ToString("dddd, dd 'de' MMMM 'de' yyyy")</span>
-                                        <br>
-                                        <small class="text-muted">@payment.PaymentDate.ToString("HH:mm")</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card-footer bg-transparent border-0 pt-0">
-                                <div class="d-grid gap-2">
-                                    <div class="btn-group" role="group">
-                                        <a asp-action="Details" asp-route-id="@payment.Id" 
-                                           class="btn btn-outline-primary btn-sm" title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a asp-action="CreateEdit" asp-route-id="@payment.Id" 
-                                           class="btn btn-outline-warning btn-sm" title="Editar">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-controller="Sales" asp-action="Details" asp-route-id="@payment.SaleId" 
-                                           class="btn btn-outline-info btn-sm" title="Ver venta">
-                                            <i class="fas fa-shopping-cart"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-danger btn-sm" 
-                                                title="Eliminar" onclick="confirmDelete(@payment.Id, '@payment.SaleNumber')">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                        </td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-success">@payment.PaymentStatus</span>
+                                        </td>
+                                        <td class="align-middle text-center">
+                                            <div class="btn-group" role="group">
+                                                <a asp-action="Details" asp-route-id="@payment.Id" 
+                                                   class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a asp-action="CreateEdit" asp-route-id="@payment.Id" 
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a asp-controller="Sales" asp-action="Details" asp-route-id="@payment.SaleId" 
+                                                   class="btn btn-outline-info btn-sm" title="Ver venta">
+                                                    <i class="fas fa-shopping-cart"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        title="Eliminar" onclick="confirmDelete(@payment.Id, '@payment.SaleNumber')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
-                }
+                </div>
             </div>
 
             <!-- Statistics Section -->
@@ -374,7 +343,7 @@
             const methodFilter = document.getElementById('paymentMethodFilter').value;
             const amountFilter = document.getElementById('amountFilter').value;
             const dateFilter = document.getElementById('dateFilter').value;
-            const payments = document.querySelectorAll('.payment-card');
+            const payments = document.querySelectorAll('.payment-row');
 
             payments.forEach(function(payment) {
                 const customer = payment.getAttribute('data-customer');
@@ -415,7 +384,7 @@
                     showPayment = false;
                 }
 
-                payment.style.display = showPayment ? 'block' : 'none';
+                payment.style.display = showPayment ? 'table-row' : 'none';
             });
         }
 
@@ -426,58 +395,30 @@
         }
 
         // Add hover effects
-        document.querySelectorAll('.payment-item').forEach(function(card) {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-5px)';
-                this.style.transition = 'transform 0.3s ease';
-                this.classList.add('shadow-lg');
+        document.querySelectorAll('.payment-row').forEach(function(row) {
+            row.addEventListener('mouseenter', function() {
+                this.classList.add('table-active');
             });
 
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.classList.remove('shadow-lg');
+            row.addEventListener('mouseleave', function() {
+                this.classList.remove('table-active');
             });
         });
     </script>
 
     <style>
-        .payment-item {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        .payment-row {
+            transition: background-color 0.3s ease;
         }
 
-        .payment-item:hover {
-            transform: translateY(-5px);
+        .payment-row:hover {
+            background-color: #f8f9fa;
         }
 
-        .payment-method-icon {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-        }
-
-        .info-icon {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            color: white;
-        }
-
-        .info-item {
-            padding: 0.5rem 0;
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
+        .avatar-sm {
+            width: 32px;
+            height: 32px;
+            font-size: 0.875rem;
         }
 
         .btn-group .btn {
@@ -514,21 +455,36 @@
             color: #0dcaf0;
         }
 
+        .table-responsive {
+            border-radius: 0.375rem;
+        }
+
+        .table th {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
         @@media (max-width: 768px) {
-            .payment-card {
-                margin-bottom: 1rem;
-            }
-            
             .btn-group .btn {
                 font-size: 0.8rem;
                 padding: 0.375rem 0.5rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.875rem;
             }
         }
     </style>
 }
 
 @functions {
-    public string GetPaymentMethodHeaderClass(Database.Enum.PaymentMethodType method)
+    public string GetPaymentMethodBadgeClass(Database.Enum.PaymentMethodType method)
     {
         return method switch
         {
@@ -539,13 +495,24 @@
         };
     }
 
+    public string GetPaymentMethodIcon(Database.Enum.PaymentMethodType method)
+    {
+        return method switch
+        {
+            Database.Enum.PaymentMethodType.Cash => "💵",
+            Database.Enum.PaymentMethodType.Card => "💳",
+            Database.Enum.PaymentMethodType.Transfer => "🏦",
+            _ => "❓"
+        };
+    }
+
     public string GetPaymentMethodName(Database.Enum.PaymentMethodType method)
     {
         return method switch
         {
-            Database.Enum.PaymentMethodType.Cash => "💵 Efectivo",
-            Database.Enum.PaymentMethodType.Card => "💳 Tarjeta",
-            Database.Enum.PaymentMethodType.Transfer => "🏦 Transferencia",
+            Database.Enum.PaymentMethodType.Cash => "Efectivo",
+            Database.Enum.PaymentMethodType.Card => "Tarjeta",
+            Database.Enum.PaymentMethodType.Transfer => "Transferencia",
             _ => "Desconocido"
         };
     }

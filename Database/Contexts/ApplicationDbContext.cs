@@ -161,9 +161,6 @@ namespace Database.Contexts
                 .HasColumnType("decimal(10,2)")
                 .IsRequired();
             modelBuilder.Entity<Product>()
-                .Property(p => p.UnitOfMeasure)
-                .HasMaxLength(20);
-            modelBuilder.Entity<Product>()
                 .Property(p => p.Stock)
                 .IsRequired();
             modelBuilder.Entity<Product>()

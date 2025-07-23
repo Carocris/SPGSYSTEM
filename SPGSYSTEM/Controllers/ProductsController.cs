@@ -366,5 +366,37 @@ namespace SPGSYSTEM.Controllers
                 return Json(new List<object>());
             }
         }
+
+        // GET: /Products/GetCategories
+        [HttpGet]
+        public async Task<JsonResult> GetCategories()
+        {
+            try
+            {
+                var categories = await _categoryService.GetActiveAsync();
+                var result = categories.Select(c => new { id = c.Id, name = c.Name }).ToList();
+                return Json(result);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
+        }
+
+        // GET: /Products/GetSuppliers
+        [HttpGet]
+        public async Task<JsonResult> GetSuppliers()
+        {
+            try
+            {
+                var suppliers = await _supplierService.GetActiveAsync();
+                var result = suppliers.Select(s => new { id = s.Id, name = s.Name }).ToList();
+                return Json(result);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
+        }
     }
 }

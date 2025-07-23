@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Application.Interfaces.Repositories;
 using Database.Contexts;
 using Database.Entities;
@@ -17,6 +18,15 @@ namespace Database.Repositories
                             .Include(p => p.SaleDetails)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public override async Task<IReadOnlyList<Product>> GetAllAsync()
+        {
+            return await _db.Products
+                            .Include(p => p.Category)
+                            .Include(p => p.Supplier)
+                            .AsNoTracking()
+                            .ToListAsync();
         }
     }
 }

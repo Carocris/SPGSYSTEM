@@ -25,5 +25,16 @@ namespace Database.Repositories
                             .AsNoTracking()
                             .FirstOrDefaultAsync(s => s.Id == id);
         }
+
+        public async Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync()
+        {
+            return await _db.Sales
+                            .Include(s => s.Customer)
+                            .Include(s => s.Details)
+                                .ThenInclude(d => d.Product)
+                            .Include(s => s.Payment)
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
     }
 }

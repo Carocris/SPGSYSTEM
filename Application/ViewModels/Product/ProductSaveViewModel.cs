@@ -36,9 +36,7 @@ namespace Application.ViewModels.Product
         [Display(Name = "Precio de Venta")]
         public decimal SalePrice { get; set; }
 
-        [StringLength(20, ErrorMessage = "La unidad de medida no puede exceder 20 caracteres")]
-        [Display(Name = "Unidad de Medida")]
-        public string? UnitOfMeasure { get; set; }
+
 
         [Required(ErrorMessage = "El stock es requerido")]
         [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]

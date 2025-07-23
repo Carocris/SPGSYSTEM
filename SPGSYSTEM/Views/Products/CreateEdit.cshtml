@@ -209,18 +209,7 @@
                             }
                         </div>
 
-                        <!-- Unit of Measure and Minimum Stock Row -->
-                        <div class="col-md-6">
-                            <label asp-for="UnitOfMeasure" class="form-label fw-medium">
-                                <i class="fas fa-ruler text-primary me-2"></i>Unidad de Medida
-                            </label>
-                            <input asp-for="UnitOfMeasure"
-                                   class="form-control form-control-lg"
-                                   placeholder="Ej: kg, pz, lt"
-                                   maxlength="20" />
-                            <span asp-validation-for="UnitOfMeasure" class="text-danger small"></span>
-                        </div>
-
+                        <!-- Minimum Stock Row -->
                         <div class="col-md-6">
                             <label asp-for="MinimumStock" class="form-label fw-medium">
                                 <i class="fas fa-exclamation-triangle text-warning me-2"></i>Stock Mínimo
@@ -385,7 +374,7 @@
         let originalStock = @originalStock;
 
         // Form field change detection
-        const formFields = ['Code', 'Name', 'Description', 'PurchasePrice', 'SalePrice', 'Stock', 'UnitOfMeasure', 'MinimumStock'];
+        const formFields = ['Code', 'Name', 'Description', 'PurchasePrice', 'SalePrice', 'Stock', 'MinimumStock'];
         let hasChanges = false;
 
         formFields.forEach(field => {

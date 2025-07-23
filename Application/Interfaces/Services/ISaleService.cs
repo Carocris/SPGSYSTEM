@@ -11,6 +11,7 @@ namespace Application.Interfaces.Services
     {
         Task<Sale> GetFullSaleAsync(int id);
         Task<Sale> CreateSaleAsync(Sale sale);
+        Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync();
     }
 
 }

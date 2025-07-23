@@ -45,8 +45,7 @@ namespace Database.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal SalePrice { get; set; } // Precio de venta
 
-        [StringLength(20)]
-        public string? UnitOfMeasure { get; set; } // Unidad de medida (kg, pz, lt, etc.)
+
 
         [Required]
         public int Stock { get; set; } // Stock actual
