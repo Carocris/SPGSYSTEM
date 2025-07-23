@@ -49,6 +49,27 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var viewModel = _mapper.Map<SupplierViewModel>(supplier);
+                
+                // Cargar los productos del proveedor para mostrarlos en la vista
+                if (supplier.Products != null)
+                {
+                    ViewBag.SupplierProducts = supplier.Products.Select(p => new
+                    {
+                        Id = p.Id,
+                        Name = p.Name,
+                        Code = p.Code,
+                        Description = p.Description,
+                        Stock = p.Stock,
+                        PurchasePrice = p.PurchasePrice,
+                        SalePrice = p.SalePrice,
+                        CategoryName = p.Category?.Name ?? "Sin categoría"
+                    }).ToList();
+                }
+                else
+                {
+                    ViewBag.SupplierProducts = new List<object>();
+                }
+                
                 return View(viewModel);
             }
             catch (Exception ex)

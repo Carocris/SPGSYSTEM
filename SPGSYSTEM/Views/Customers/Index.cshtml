@@ -14,7 +14,7 @@
                 </h2>
                 <p class="text-muted mb-0">Administra tu base de datos de clientes</p>
             </div>
-            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
+            <a asp-action="Create" class="btn btn-success btn-lg">
                 <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
             </a>
         </div>
@@ -164,7 +164,7 @@
                                            class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="CreateEdit" asp-route-id="@customer.Id" 
+                                        <a asp-action="Edit" asp-route-id="@customer.Id" 
                                            class="btn btn-outline-warning btn-sm" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </a>
@@ -226,7 +226,7 @@
                 </div>
                 <h4 class="text-muted mb-3">No hay clientes registrados</h4>
                 <p class="text-muted mb-4">Comienza agregando tu primer cliente al sistema</p>
-                <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
+                <a asp-action="Create" class="btn btn-primary btn-lg">
                     <i class="fas fa-user-plus me-2"></i>Agregar Primer Cliente
                 </a>
             </div>

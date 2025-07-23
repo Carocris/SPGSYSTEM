@@ -90,14 +90,31 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/Create
         [HttpGet]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(int? supplierId = null, int? categoryId = null)
         {
             try
             {
                 await LoadViewBagDataAsync();
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
-                return View("CreateEdit", new ProductSaveViewModel());
+                
+                var viewModel = new ProductSaveViewModel();
+                
+                // Si se proporciona un supplierId, preseleccionar el proveedor
+                if (supplierId.HasValue)
+                {
+                    viewModel.SupplierId = supplierId.Value;
+                    ViewBag.SelectedSupplierId = supplierId.Value;
+                }
+                
+                // Si se proporciona un categoryId, preseleccionar la categoría
+                if (categoryId.HasValue)
+                {
+                    viewModel.CategoryId = categoryId.Value;
+                    ViewBag.SelectedCategoryId = categoryId.Value;
+                }
+                
+                return View("CreateEdit", viewModel);
             }
             catch (Exception ex)
             {

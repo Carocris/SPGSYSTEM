@@ -87,7 +87,7 @@
                                                 No especificado
                                             </span>
                                             <div class="mt-2">
-                                                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
+                                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
                                                     <i class="fas fa-plus me-1"></i>Agregar
                                                 </a>
                                             </div>
@@ -127,7 +127,7 @@
                                                 No especificado
                                             </span>
                                             <div class="mt-2">
-                                                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
+                                                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
                                                     <i class="fas fa-plus me-1"></i>Agregar
                                                 </a>
                                             </div>
@@ -210,7 +210,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
+                            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
                                 <i class="fas fa-edit me-2"></i>Editar Cliente
                             </a>
                             @if (!string.IsNullOrEmpty(Model.Phone))

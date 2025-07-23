@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    @if (!ViewBag.SupplierPrices.Any())
+                    @if (ViewBag.SupplierPrices == null || ViewBag.SupplierPrices.Count == 0)
                     {
                         <div class="text-center py-4">
                             <i class="fas fa-box-open fa-3x text-muted mb-3"></i>

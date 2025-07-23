@@ -118,15 +118,18 @@
                                                 <span class="badge bg-secondary">Inactivo</span>
                                             }
                                         </td>
-                                        <td>
-                                            <span class="badge bg-info">@supplier.ProductCount productos</span>
+                                        <td class="text-center">
                                             @if (supplier.ProductCount > 0)
                                             {
-                                                <br>
-                                                <a href="@Url.Action("SupplierProducts", new { id = supplier.Id })" 
-                                                   class="btn btn-sm btn-outline-primary mt-1">
-                                                    <i class="fas fa-box me-1"></i>Ver Productos
-                                                </a>
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-box me-1"></i>@supplier.ProductCount
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-box-open me-1"></i>0
+                                                </span>
                                             }
                                         </td>
                                         <td class="text-center">
