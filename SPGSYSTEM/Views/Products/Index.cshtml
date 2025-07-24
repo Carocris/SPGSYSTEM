@@ -6,6 +6,7 @@
 
 <div class="row">
     <div class="col-12">
+        <!-- Header Section -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="h2 text-primary mb-1">
@@ -17,6 +18,23 @@
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
         </div>
+
+        <!-- Alert Messages -->
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
 
         <!-- Search and Filter Section -->
         <div class="card shadow-sm mb-4">
@@ -78,7 +96,7 @@
                             <thead class="table-light">
                                 <tr>
                                     <th class="border-0">
-                                        <i class="fas fa-barcode me-2"></i>Código
+                                        <i class="fas fa-hashtag me-2"></i>ID
                                     </th>
                                     <th class="border-0">
                                         <i class="fas fa-box me-2"></i>Producto
@@ -118,15 +136,16 @@
                                         data-category="@(product.CategoryName?.ToLower() ?? "")"
                                         data-supplier="@(product.SupplierName?.ToLower() ?? "")">
                                         <td class="align-middle">
-                                            <span class="badge bg-secondary">@product.Code</span>
+                                            <span class="badge bg-secondary">#@product.Id.ToString("D4")</span>
                                         </td>
                                         <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <div class="product-icon bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <div class="avatar-circle bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
                                                     <i class="fas fa-box"></i>
                                                 </div>
                                                 <div>
                                                     <strong class="text-primary">@product.Name</strong>
+                                                    <br><small class="text-muted">@product.Code</small>
                                                     @if (!string.IsNullOrEmpty(product.Description))
                                                     {
                                                         <br><small class="text-muted text-truncate" title="@product.Description">@product.Description</small>
@@ -147,7 +166,10 @@
                                         <td class="align-middle">
                                             @if (!string.IsNullOrWhiteSpace(product.SupplierName))
                                             {
-                                                <span class="badge bg-info">@product.SupplierName</span>
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-truck text-info me-2"></i>
+                                                    <span class="text-truncate" title="@product.SupplierName">@product.SupplierName</span>
+                                                </div>
                                             }
                                             else
                                             {
@@ -175,10 +197,16 @@
                                             }
                                         </td>
                                         <td class="align-middle">
-                                            <span class="text-primary fw-bold">$@product.PurchasePrice.ToString("N2")</span>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-arrow-down text-primary me-2"></i>
+                                                <span class="text-primary fw-bold">$@product.PurchasePrice.ToString("N2")</span>
+                                            </div>
                                         </td>
                                         <td class="align-middle">
-                                            <span class="text-success fw-bold">$@product.SalePrice.ToString("N2")</span>
+                                            <div class="d-flex align-items-center">
+                                                <i class="fas fa-arrow-up text-success me-2"></i>
+                                                <span class="text-success fw-bold">$@product.SalePrice.ToString("N2")</span>
+                                            </div>
                                         </td>
                                         <td class="align-middle">
                                             <span class="badge @(product.ProfitMargin > 50 ? "bg-success" : product.ProfitMargin > 20 ? "bg-warning" : "bg-info")">
@@ -442,24 +470,20 @@
     </script>
 
     <style>
-        .product-icon {
+        .avatar-circle {
             width: 35px;
             height: 35px;
             border-radius: 50%;
+            background: #e9ecef;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 0.9rem;
+            color: #6c757d;
         }
 
-        .product-row {
-            transition: background-color 0.3s ease;
-        }
-
-        .product-row:hover {
+        .table-hover tbody tr:hover {
             background-color: rgba(0, 123, 255, 0.1) !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .btn-group .btn {
@@ -482,41 +506,16 @@
 
         .table-responsive {
             border-radius: 0.375rem;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
         .table th {
             border-top: none;
             font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.875rem;
-            letter-spacing: 0.5px;
             color: #495057;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         }
 
         .table td {
             vertical-align: middle;
-            border-color: #f8f9fa;
-        }
-
-        .table tbody tr {
-            border-bottom: 1px solid #f8f9fa;
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.375rem 0.75rem;
-        }
-
-        .card {
-            border: none;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-bottom: 1px solid #dee2e6;
         }
 
         @@media (max-width: 768px) {
@@ -526,24 +525,7 @@
             }
             
             .table-responsive {
-                font-size: 0.875rem;
-            }
-
-            .product-icon {
-                width: 30px;
-                height: 30px;
-                font-size: 0.8rem;
-            }
-        }
-
-        @@media (max-width: 576px) {
-            .table-responsive {
-                font-size: 0.8rem;
-            }
-
-            .badge {
-                font-size: 0.7rem;
-                padding: 0.25rem 0.5rem;
+                font-size: 0.9rem;
             }
         }
     </style>
