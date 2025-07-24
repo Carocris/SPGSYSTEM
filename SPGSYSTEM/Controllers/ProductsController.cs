@@ -8,6 +8,7 @@ using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.DependencyInjection; // Added for HttpContext.RequestServices
 
 namespace SPGSYSTEM.Controllers
 {
@@ -79,6 +80,22 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var vm = _mapper.Map<ProductViewModel>(product);
+                
+                // Cargar historial de ventas del producto
+                var salesService = HttpContext.RequestServices.GetService<Application.Interfaces.Services.ISaleService>();
+                if (salesService != null)
+                {
+                    var allSales = await salesService.GetAllWithDetailsAsync();
+                    var productSales = allSales
+                        .Where(s => s.Details != null && s.Details.Any(d => d.ProductId == id))
+                        .OrderByDescending(s => s.SaleDate)
+                        .Take(10)
+                        .ToList();
+                    
+                    var productSalesViewModels = _mapper.Map<List<Application.ViewModels.Sale.SaleViewModel>>(productSales);
+                    ViewBag.ProductSales = productSalesViewModels;
+                }
+                
                 return View(vm);
             }
             catch (Exception ex)

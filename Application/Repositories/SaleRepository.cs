@@ -36,5 +36,16 @@ namespace Database.Repositories
                             .AsNoTracking()
                             .ToListAsync();
         }
+
+        public async Task<IReadOnlyList<Sale>> GetSalesWithoutPaymentAsync()
+        {
+            return await _db.Sales
+                            .Include(s => s.Customer)
+                            .Include(s => s.Details)
+                                .ThenInclude(d => d.Product)
+                            .Where(s => s.Payment == null)
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
     }
 }

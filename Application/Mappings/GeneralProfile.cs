@@ -97,10 +97,10 @@ namespace Application.Mappings
             CreateMap<Sale, SaleViewModel>()
                 .ForMember(dest => dest.CustomerName,
                            opt => opt.MapFrom(src => src.Customer.Name))
-                .ForMember(dest => dest.PaymentMethod,
-                           opt => opt.MapFrom(src => src.Payment.PaymentMethod))
                 .ForMember(dest => dest.Payment,
                            opt => opt.MapFrom(src => src.Payment))
+                .ForMember(dest => dest.PaymentStatus,
+                           opt => opt.MapFrom(src => src.PaymentStatus))
                 .ForMember(dest => dest.TotalItems,
                            opt => opt.MapFrom(src => src.Details != null ? src.Details.Sum(d => d.Quantity) : 0));
             CreateMap<SaleSaveViewModel, Sale>()
@@ -118,9 +118,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.SaleDate,
                            opt => opt.MapFrom(src => src.Sale.SaleDate))
                 .ForMember(dest => dest.SaleTotal,
-                           opt => opt.MapFrom(src => src.Sale.TotalAmount))
-                .ForMember(dest => dest.PaymentStatus,
-                           opt => opt.MapFrom(src => "Completado"));
+                           opt => opt.MapFrom(src => src.Sale.TotalAmount));
                            
             CreateMap<PaymentSaveViewModel, Payment>()
                 .ForMember(dest => dest.PaymentDate, opt => opt.Ignore())

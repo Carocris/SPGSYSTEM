@@ -1,0 +1,74 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var viewKey = $"{currentController}_{currentAction}";
+    var messageKey = $"notification_message_{viewKey}";
+    var typeKey = $"notification_type_{viewKey}";
+    var notificationMessage = TempData[messageKey]?.ToString();
+    var notificationType = TempData[typeKey]?.ToString();
+}
+
+<script>
+    // Notification system for view-specific messages
+    const NotificationSystem = {
+        viewKey: '@viewKey',
+        
+        show: function(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notifications-container');
+            const notificationId = 'notification-' + Date.now();
+            
+            const alertClass = type === 'success' ? 'alert-success' : 
+                             type === 'error' ? 'alert-danger' : 
+                             type === 'warning' ? 'alert-warning' : 'alert-info';
+            
+            const icon = type === 'success' ? 'fas fa-check-circle' :
+                        type === 'error' ? 'fas fa-exclamation-circle' :
+                        type === 'warning' ? 'fas fa-exclamation-triangle' : 'fas fa-info-circle';
+            
+            const notification = document.createElement('div');
+            notification.id = notificationId;
+            notification.className = `alert ${alertClass} alert-dismissible fade show`;
+            notification.style.minWidth = '300px';
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="${icon} me-2"></i>
+                    <span>${message}</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Auto-remove after duration
+            setTimeout(() => {
+                this.hide(notificationId);
+            }, duration);
+        },
+        
+        hide: function(notificationId) {
+            const notification = document.getElementById(notificationId);
+            if (notification) {
+                notification.remove();
+            }
+        },
+        
+        hideAll: function() {
+            const container = document.getElementById('notifications-container');
+            container.innerHTML = '';
+        }
+    };
+    
+    // Show notification from TempData if exists
+    document.addEventListener('DOMContentLoaded', function() {
+        @if (!string.IsNullOrEmpty(notificationMessage))
+        {
+            <text>
+            const message = '@Html.Raw(notificationMessage)';
+            const type = '@Html.Raw(notificationType ?? "info")';
+            if (message) {
+                NotificationSystem.show(message, type);
+            }
+            </text>
+        }
+    });
+</script> 

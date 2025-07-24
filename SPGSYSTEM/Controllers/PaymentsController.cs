@@ -4,6 +4,7 @@ using AutoMapper;
 using Database.Entities;
 using Database.Enum;
 using Microsoft.AspNetCore.Mvc;
+using SPGSYSTEM.Helpers;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -67,74 +68,40 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // GET: Payments/CreateEdit (para crear)
-        public async Task<IActionResult> CreateEdit()
+        // GET: Payments/CreateEdit
+        public async Task<IActionResult> CreateEdit(int? id = null)
         {
             try
             {
-                // Solo ventas sin pago asociado
-                var allSales = await _saleService.GetAllAsync();
-                var salesWithoutPayment = new List<Sale>();
-
-                foreach (var sale in allSales)
+                if (id.HasValue)
                 {
-                    var existingPayment = await _paymentService.GetBySaleIdAsync(sale.Id);
-                    if (existingPayment == null)
-                    {
-                        var fullSale = await _saleService.GetFullSaleAsync(sale.Id);
-                        salesWithoutPayment.Add(fullSale);
-                    }
-                }
-
-                ViewBag.Sales = salesWithoutPayment;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nuevo Pago";
-
-                return View(new PaymentSaveViewModel { PaymentDate = DateTime.Now });
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al cargar el formulario de pago: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
-        }
-
-        // GET: Payments/CreateEdit/5 (para editar)
-        public async Task<IActionResult> CreateEdit(int id)
-        {
-            try
-            {
-                var payment = await _paymentService.GetWithDetailsAsync(id);
+                    // EDITAR PAGO EXISTENTE
+                    var payment = await _paymentService.GetWithDetailsAsync(id.Value);
                 if (payment == null)
                 {
                     TempData["Error"] = "Pago no encontrado.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                var allSales = await _saleService.GetAllAsync();
-                var salesWithDetails = new List<Sale>();
-                foreach (var sale in allSales)
-                {
-                    var fullSale = await _saleService.GetFullSaleAsync(sale.Id);
-                    salesWithDetails.Add(fullSale);
-                }
-
-                var viewModel = new PaymentSaveViewModel
-                {
-                    SaleId = payment.SaleId,
-                    PaymentMethod = payment.PaymentMethod,
-                    Amount = payment.Amount,
-                    PaymentDate = payment.PaymentDate
-                };
-
-                ViewBag.Sales = salesWithDetails;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
+                    var model = _mapper.Map<PaymentSaveViewModel>(payment);
+                    
+                    // Solo mostrar la venta asociada
+                    var sale = await _saleService.GetFullSaleAsync(payment.SaleId);
+                    ViewBag.Sales = new List<Sale> { sale };
+                    ViewBag.PaymentMethods = Enum.GetValues<PaymentMethodType>();
+                    ViewBag.PaymentStatuses = Enum.GetValues<PaymentStatusType>();
                 ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Pago";
+                    ViewBag.PageTitle = "Gestionar Pago";
                 ViewBag.PaymentId = id;
 
-                return View(viewModel);
+                    return View(model);
+                }
+                else
+                {
+                    // REDIRIGIR A VENTAS PARA CREAR NUEVO PAGO
+                    TempData["Info"] = "Para crear un nuevo pago, ve a Ventas y crea una nueva venta con pago incluido.";
+                    return RedirectToAction("CreateEdit", "Sales");
+                }
             }
             catch (Exception ex)
             {
@@ -143,119 +110,133 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        // POST: Payments/CreateEdit (crear)
+        // POST: Payments/CreateEdit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(PaymentSaveViewModel model)
+        public async Task<IActionResult> CreateEdit(PaymentSaveViewModel model, int? id = null)
         {
             try
             {
-                if (ModelState.IsValid)
+                if (!id.HasValue)
                 {
-                    // Check if sale already has payment
-                    var existingPayment = await _paymentService.GetBySaleIdAsync(model.SaleId);
-                    if (existingPayment != null)
-                    {
-                        TempData["Error"] = "Esta venta ya tiene un pago asociado.";
-                        return await ReloadCreateEditView(model, false);
+                    // REDIRIGIR A VENTAS PARA CREAR NUEVO PAGO
+                    TempData["Info"] = "Para crear un nuevo pago, ve a Ventas y crea una nueva venta con pago incluido.";
+                    return RedirectToAction("CreateEdit", "Sales");
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    await ReloadCreateEditView(id.Value);
+                    return View(model);
                     }
 
-                    // Get sale details
-                    var sale = await _saleService.GetFullSaleAsync(model.SaleId);
-                    if (sale == null)
+                // EDITAR PAGO EXISTENTE
+                var existingPayment = await _paymentService.GetWithDetailsAsync(id.Value);
+                if (existingPayment == null)
                     {
-                        TempData["Error"] = "Venta no encontrada.";
-                        return await ReloadCreateEditView(model, false);
+                    TempData["Error"] = "Pago no encontrado.";
+                    return RedirectToAction(nameof(Index));
                     }
 
-                    // Validate payment amount
-                    if (model.Amount != sale.TotalAmount)
+                // Validar que el monto no sea mayor al de la venta
+                var sale = await _saleService.GetFullSaleAsync(model.SaleId);
+                if (model.Amount > sale.TotalAmount)
                     {
-                        TempData["Error"] = $"El monto del pago debe ser igual al total de la venta: ${sale.TotalAmount:N2}";
-                        return await ReloadCreateEditView(model, false);
+                    ModelState.AddModelError("Amount", "El monto del pago no puede ser mayor al total de la venta.");
+                    await ReloadCreateEditView(id.Value);
+                    return View(model);
                     }
 
-                    // Create payment
-                    var payment = new Payment
-                    {
-                        SaleId = model.SaleId,
-                        PaymentMethod = model.PaymentMethod,
-                        Amount = model.Amount,
-                        PaymentDate = DateTime.Now
-                    };
+                // Calcular diferencia de monto para validar stock
+                var amountDifference = Math.Abs(model.Amount - existingPayment.Amount);
+                var tolerance = 0.01m; // Tolerancia de 1 centavo
 
-                    await _paymentService.CreateAsync(payment);
-
-                    // Process stock updates for the sale
+                // Solo validar stock si el monto cambió significativamente
+                if (amountDifference > tolerance)
+                {
+                    var stockValidationErrors = new List<string>();
                     foreach (var detail in sale.Details)
                     {
                         var product = await _productService.GetByIdAsync(detail.ProductId);
-                        if (product != null)
+                        if (product.Stock < detail.Quantity)
                         {
-                            product.Stock -= detail.Quantity;
-                            await _productService.UpdateAsync(product);
+                            stockValidationErrors.Add($"Stock insuficiente para {product.Name}: {product.Stock} disponibles, {detail.Quantity} requeridos");
                         }
                     }
 
-                    TempData["Success"] = "Pago procesado exitosamente. El stock ha sido actualizado.";
-                    return RedirectToAction(nameof(Index));
-                }
+                    if (stockValidationErrors.Any())
+                    {
+                        ModelState.AddModelError("", "Stock insuficiente para procesar el pago:");
+                        foreach (var error in stockValidationErrors)
+                        {
+                            ModelState.AddModelError("", error);
+                        }
+                        await ReloadCreateEditView(id.Value);
+                        return View(model);
+                        }
+                    }
 
-                return await ReloadCreateEditView(model, false);
+                // Actualizar pago existente
+                existingPayment.PaymentMethod = model.PaymentMethod;
+                existingPayment.Amount = model.Amount;
+                existingPayment.PaymentDate = model.PaymentDate;
+                existingPayment.Status = model.Status;
+
+                await _paymentService.UpdateAsync(existingPayment);
+
+                // Manejar actualización de stock según el estado
+                await HandleStockUpdate(existingPayment, sale);
+
+                TempData["Success"] = "Pago actualizado exitosamente.";
+                    return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al procesar el pago: " + ex.Message;
-                return await ReloadCreateEditView(model, false);
+                TempData["Error"] = "Error al actualizar el pago: " + ex.Message;
+                if (id.HasValue)
+                {
+                    await ReloadCreateEditView(id.Value);
+                }
+                return View(model);
             }
         }
 
-        // POST: Payments/CreateEdit/5 (editar)
+        // POST: Payments/ChangeStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, PaymentSaveViewModel model)
+        public async Task<IActionResult> ChangeStatus(int id, PaymentStatusType newStatus)
         {
             try
             {
-                if (ModelState.IsValid)
-                {
-                    var existingPayment = await _paymentService.GetWithDetailsAsync(id);
-                    if (existingPayment == null)
+                var payment = await _paymentService.GetWithDetailsAsync(id);
+                if (payment == null)
                     {
                         TempData["Error"] = "Pago no encontrado.";
                         return RedirectToAction(nameof(Index));
                     }
 
-                    // Get sale details
-                    var sale = await _saleService.GetFullSaleAsync(model.SaleId);
-                    if (sale == null)
+                var oldStatus = payment.Status;
+                payment.Status = newStatus;
+
+                // Obtener la venta asociada
+                var sale = await _saleService.GetFullSaleAsync(payment.SaleId);
+
+                // Manejar actualización de stock según el cambio de estado
+                if (oldStatus != newStatus)
                     {
-                        TempData["Error"] = "Venta no encontrada.";
-                        return await ReloadCreateEditView(model, true, id);
-                    }
-
-                    // Validate payment amount
-                    if (model.Amount != sale.TotalAmount)
-                    {
-                        TempData["Error"] = $"El monto del pago debe ser igual al total de la venta: ${sale.TotalAmount:N2}";
-                        return await ReloadCreateEditView(model, true, id);
-                    }
-
-                    // Update payment
-                    existingPayment.PaymentMethod = model.PaymentMethod;
-                    existingPayment.Amount = model.Amount;
-
-                    await _paymentService.UpdateAsync(existingPayment);
-                    TempData["Success"] = "Pago actualizado exitosamente.";
-                    return RedirectToAction(nameof(Index));
+                    await HandleStockUpdate(payment, sale);
                 }
 
-                return await ReloadCreateEditView(model, true, id);
+                await _paymentService.UpdateAsync(payment);
+
+                var statusMessage = newStatus == PaymentStatusType.Completed ? "completado" : "cancelado";
+                TempData["Success"] = $"Pago {statusMessage} exitosamente.";
+                    return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al actualizar el pago: " + ex.Message;
-                return await ReloadCreateEditView(model, true, id);
+                TempData["Error"] = "Error al cambiar el estado del pago: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
 
@@ -427,6 +408,55 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
+        // GET: Payments/Cancel/5
+        public async Task<IActionResult> Cancel(int id)
+        {
+            try
+            {
+                var payment = await _paymentService.GetWithDetailsAsync(id);
+                if (payment == null)
+                {
+                    TempData["Error"] = "Pago no encontrado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (payment.Status == PaymentStatusType.Cancelled)
+                {
+                    TempData["Warning"] = "Este pago ya está cancelado.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Cambiar estado a cancelado
+                payment.Status = PaymentStatusType.Cancelled;
+
+                // Obtener la venta asociada para restaurar stock
+                var sale = await _saleService.GetFullSaleAsync(payment.SaleId);
+                if (sale != null)
+                {
+                    // Restaurar stock de productos
+                    foreach (var detail in sale.Details)
+                    {
+                        var product = await _productService.GetByIdAsync(detail.ProductId);
+                        if (product != null)
+                        {
+                            product.Stock += detail.Quantity;
+                            await _productService.UpdateAsync(product);
+                        }
+                    }
+                }
+
+                await _paymentService.UpdateAsync(payment);
+
+                TempData["Success"] = $"Pago #{payment.Id:D4} cancelado exitosamente. Stock restaurado.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cancelar el pago: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
         // API: Search Payments
         [HttpGet]
         public async Task<IActionResult> Search(string searchTerm)
@@ -451,42 +481,81 @@ namespace SPGSYSTEM.Controllers
         }
 
         // Helper method to reload CreateEdit view
-        private async Task<IActionResult> ReloadCreateEditView(PaymentSaveViewModel model, bool isEdit, int? id = null)
+        private async Task ReloadCreateEditView(int id)
         {
-            if (isEdit)
+            try
             {
-                var allSales = await _saleService.GetAllAsync();
-                var salesWithDetails = new List<Sale>();
-                foreach (var sale in allSales)
+                var payment = await _paymentService.GetWithDetailsAsync(id);
+                if (payment != null)
                 {
-                    var fullSale = await _saleService.GetFullSaleAsync(sale.Id);
-                    salesWithDetails.Add(fullSale);
-                }
-                ViewBag.Sales = salesWithDetails;
+                    var sale = await _saleService.GetFullSaleAsync(payment.SaleId);
+                    ViewBag.Sales = new List<Sale> { sale };
+                    ViewBag.PaymentMethods = Enum.GetValues<PaymentMethodType>();
+                    ViewBag.PaymentStatuses = Enum.GetValues<PaymentStatusType>();
+                    ViewBag.IsEdit = true;
+                    ViewBag.PageTitle = "Gestionar Pago";
+                    ViewBag.PaymentId = id;
             }
-            else
+            }
+            catch (Exception ex)
             {
-                var allSales = await _saleService.GetAllAsync();
-                var salesWithoutPayment = new List<Sale>();
+                TempData["Error"] = "Error al recargar la vista: " + ex.Message;
+            }
+        }
 
-                foreach (var sale in allSales)
+        private string GetPaymentMethodDisplayName(PaymentMethodType method)
+        {
+            return method switch
+            {
+                PaymentMethodType.Cash => "💵 Efectivo",
+                PaymentMethodType.Card => "💳 Tarjeta",
+                PaymentMethodType.Transfer => "🏦 Transferencia",
+                _ => method.ToString()
+            };
+        }
+
+        private async Task HandleStockUpdate(Payment payment, Sale sale)
+        {
+            try
+            {
+                foreach (var detail in sale.Details)
                 {
-                    var existingPayment = await _paymentService.GetBySaleIdAsync(sale.Id);
-                    if (existingPayment == null)
+                    var product = await _productService.GetByIdAsync(detail.ProductId);
+                    if (product != null)
                     {
-                        var fullSale = await _saleService.GetFullSaleAsync(sale.Id);
-                        salesWithoutPayment.Add(fullSale);
+                        if (payment.Status == PaymentStatusType.Completed)
+                    {
+                            // Reducir stock cuando el pago se completa
+                            if (product.Stock >= detail.Quantity)
+                            {
+                                product.Stock -= detail.Quantity;
+                                await _productService.UpdateAsync(product);
+                            }
+                        }
+                        else if (payment.Status == PaymentStatusType.Cancelled)
+                        {
+                            // Restaurar stock cuando el pago se cancela
+                            product.Stock += detail.Quantity;
+                            await _productService.UpdateAsync(product);
+            }
                     }
                 }
-                ViewBag.Sales = salesWithoutPayment;
             }
+            catch (Exception ex)
+            {
+                // Log the error but don't throw to avoid breaking the payment process
+                Console.WriteLine($"Error updating stock for payment {payment.Id}: {ex.Message}");
+            }
+        }
 
-            ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
-            ViewBag.IsEdit = isEdit;
-            ViewBag.PageTitle = isEdit ? "Editar Pago" : "Nuevo Pago";
-            if (id.HasValue) ViewBag.PaymentId = id.Value;
-
-            return View(model);
+        private string GetPaymentStatusDisplayName(PaymentStatusType status)
+        {
+            return status switch
+            {
+                PaymentStatusType.Completed => "Completado",
+                PaymentStatusType.Cancelled => "Cancelado",
+                _ => status.ToString()
+            };
         }
     }
 } 

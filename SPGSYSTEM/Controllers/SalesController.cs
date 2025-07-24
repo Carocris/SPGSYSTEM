@@ -6,6 +6,7 @@ using AutoMapper;
 using Database.Entities;
 using Database.Enum;
 using Microsoft.AspNetCore.Mvc;
+using SPGSYSTEM.Helpers;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -170,252 +171,81 @@ namespace SPGSYSTEM.Controllers
         [HttpPost]
         [Route("Sales/CreateEdit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(SaleSaveViewModel model)
+        public async Task<IActionResult> CreateEdit(SaleSaveViewModel model, int? id = null)
         {
-            // Declarar variables una sola vez al inicio del método
-            IReadOnlyList<Customer> customers = null;
-            IReadOnlyList<Product> products = null;
-
             try
             {
                 if (ModelState.IsValid)
                 {
-                    // Handle file upload for transfer receipt
-                    string transferReceiptPath = null;
-                    if (model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer && model.TransferReceipt != null)
+                    bool isEdit = id.HasValue;
+                    
+                    if (isEdit)
                     {
-                        try
+                        // EDITAR VENTA
+                        var existingSale = await _saleService.GetFullSaleAsync(id.Value);
+                        if (existingSale == null)
                         {
-                            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "transfer-receipts");
-                            Directory.CreateDirectory(uploadsFolder);
-
-                            var uniqueFileName = Guid.NewGuid().ToString() + "_" + model.TransferReceipt.FileName;
-                            var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                            using (var fileStream = new FileStream(filePath, FileMode.Create))
-                            {
-                                await model.TransferReceipt.CopyToAsync(fileStream);
-                            }
-
-                            transferReceiptPath = "/uploads/transfer-receipts/" + uniqueFileName;
-                        }
-                        catch (Exception ex)
-                        {
-                            TempData["Error"] = "Error al subir el comprobante: " + ex.Message;
-                            // Continue with the sale even if file upload fails
-                        }
+                            TempData["Error"] = "Venta no encontrada.";
+                            return RedirectToAction(nameof(Index));
                     }
 
-                    // Calculate totals
-                    decimal totalAmount = 0;
-                    products = await _productService.GetAllAsync();
+                        // Update sale properties
+                        existingSale.CustomerId = model.CustomerId;
 
-                    foreach (var detail in model.Details)
-                    {
-                        var product = products.FirstOrDefault(p => p.Id == detail.ProductId);
-                        if (product != null)
-                        {
-                            detail.Subtotal = product.Price * detail.Quantity;
-                            totalAmount += detail.Subtotal;
+                        await _saleService.UpdateAsync(existingSale);
+
+                        TempData["Success"] = $"Venta #{existingSale.Id:D4} actualizada exitosamente.";
+                        return RedirectToAction(nameof(Index));
                         }
-                    }
-
-                    // Create Sale entity
+                    else
+                    {
+                        // CREAR VENTA
                     var sale = new Sale
                     {
                         CustomerId = model.CustomerId,
                         SaleDate = DateTime.Now,
-                        TotalAmount = totalAmount,
-                        Details = model.Details.Select(d => new SaleDetail
+                            TotalAmount = model.AmountPaid
+                        };
+
+                        await _saleService.CreateAsync(sale);
+
+                        // Crear pago automáticamente
+                        var payment = new Payment
                         {
-                            ProductId = d.ProductId,
-                            Quantity = d.Quantity,
-                            Subtotal = d.Subtotal
-                        }).ToList(),
-                        Payment = new Payment
-                        {
+                            SaleId = sale.Id,
                             PaymentMethod = model.PaymentMethod,
                             Amount = model.AmountPaid,
                             PaymentDate = DateTime.Now,
-                            // Campos específicos según método de pago
-                            CardNumber = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardNumber : null,
-                            CardHolderName = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardHolderName : null,
-                            CardExpiryDate = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardExpiryDate : null,
-                            CardCVV = model.PaymentMethod == Database.Enum.PaymentMethodType.Card ? model.CardCVV : null,
-                            TransferReference = model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer ? model.TransferReference : null,
-                            BankAccount = model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer ? model.BankAccount : null,
-                            TransferReceiptPath = transferReceiptPath
-                        }
-                    };
+                            Status = PaymentStatusType.Completed // Pago completado inmediatamente
+                        };
 
-                    // Update product stock
+                        await _paymentService.CreateAsync(payment);
+
+                        // Actualizar stock de productos
+                        if (model.Details != null && model.Details.Any())
+                        {
                     foreach (var detail in model.Details)
                     {
                         var product = await _productService.GetByIdAsync(detail.ProductId);
-                        if (product != null)
+                                if (product != null && product.Stock >= detail.Quantity)
                         {
                             product.Stock -= detail.Quantity;
                             await _productService.UpdateAsync(product);
                         }
                     }
+                        }
 
-                    await _saleService.CreateSaleAsync(sale);
-                    TempData["Success"] = "Venta creada exitosamente.";
+                        TempData["Success"] = $"Venta #{sale.Id:D4} creada exitosamente con pago procesado.";
                     return RedirectToAction(nameof(Index));
                 }
-                else
-                {
-                    // Debug: Log validation errors
-                    var errors = ModelState
-                        .Where(x => x.Value.Errors.Count > 0)
-                        .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
-                        .ToList();
-                    
-                    string errorMessages = string.Join("; ", errors.SelectMany(e => e.Errors));
-                    TempData["Error"] = "Errores de validación: " + errorMessages;
                 }
-
-                // If we got this far, something failed, redisplay form
-                customers = await _customerService.GetAllAsync();
-                if (products == null) products = await GetAvailableProductsAsync();
-
-                ViewBag.Customers = customers;
-                ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(Database.Enum.PaymentMethodType));
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nueva Venta";
-                return View(model);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al crear la venta: " + ex.Message;
-                
-                customers = await _customerService.GetAllAsync();
-                if (products == null) products = await GetAvailableProductsAsync();
-
-                ViewBag.Customers = customers;
-                ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(Database.Enum.PaymentMethodType));
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nueva Venta";
-                return View(model);
+                TempData["Error"] = "Error al procesar la venta: " + ex.Message;
             }
-        }
 
-        // POST: Sales/CreateEdit/5 (editar)
-        [HttpPost]
-        [Route("Sales/CreateEdit/{id:int}")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(int id, SaleSaveViewModel model)
-        {
-            // Declarar variables una sola vez al inicio del método
-            IReadOnlyList<Customer> customers = null;
-            IReadOnlyList<Product> products = null;
-            Sale existingSale = null;
-
-            try
-            {
-                existingSale = await _saleService.GetFullSaleAsync(id);
-                if (existingSale == null)
-                {
-                    TempData["Error"] = "Venta no encontrada.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                if (ModelState.IsValid)
-                {
-                    // Restore stock from original sale
-                    foreach (var originalDetail in existingSale.Details)
-                    {
-                        var product = await _productService.GetByIdAsync(originalDetail.ProductId);
-                        if (product != null)
-                        {
-                            product.Stock += originalDetail.Quantity;
-                            await _productService.UpdateAsync(product);
-                        }
-                    }
-
-                    // Calculate new totals
-                    decimal totalAmount = 0;
-                    products = await _productService.GetAllAsync();
-
-                    foreach (var detail in model.Details)
-                    {
-                        var product = products.FirstOrDefault(p => p.Id == detail.ProductId);
-                        if (product != null)
-                        {
-                            detail.Subtotal = product.Price * detail.Quantity;
-                            totalAmount += detail.Subtotal;
-                        }
-                    }
-
-                    // Update sale
-                    existingSale.TotalAmount = totalAmount;
-                    existingSale.Payment.PaymentMethod = model.PaymentMethod;
-                    existingSale.Payment.Amount = model.AmountPaid;
-
-                    // Clear existing details and add new ones
-                    existingSale.Details.Clear();
-                    existingSale.Details = model.Details.Select(d => new SaleDetail
-                    {
-                        ProductId = d.ProductId,
-                        Quantity = d.Quantity,
-                        Subtotal = d.Subtotal,
-                        SaleId = id
-                    }).ToList();
-
-                    // Update product stock with new quantities
-                    foreach (var detail in model.Details)
-                    {
-                        var product = await _productService.GetByIdAsync(detail.ProductId);
-                        if (product != null)
-                        {
-                            product.Stock -= detail.Quantity;
-                            await _productService.UpdateAsync(product);
-                        }
-                    }
-
-                    await _saleService.UpdateAsync(existingSale);
-                    TempData["Success"] = "Venta actualizada exitosamente.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // If we got this far, something failed, redisplay form
-                customers = await _customerService.GetAllAsync();
-                if (products == null) products = await GetProductsForEditAsync(existingSale.Details.Select(d => d.ProductId));
-
-                ViewBag.Customers = customers;
-                ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
-                ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Venta";
-                ViewBag.SaleId = id;
-
-                return View(model);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al actualizar la venta: " + ex.Message;
-
-                customers = await _customerService.GetAllAsync();
-                // Si existingSale es null, obtenemos productos disponibles, sino obtenemos productos para editar
-                if (products == null)
-                {
-                    if (existingSale != null)
-                        products = await GetProductsForEditAsync(existingSale.Details.Select(d => d.ProductId));
-                    else
-                        products = await GetAvailableProductsAsync();
-                }
-
-                ViewBag.Customers = customers;
-                ViewBag.Products = products;
-                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
-                ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Venta";
-                ViewBag.SaleId = id;
-
-                return View(model);
-            }
+            return await ReloadCreateEditView(model, id.HasValue, id);
         }
 
         // GET: Sales/Delete/5
@@ -502,6 +332,28 @@ namespace SPGSYSTEM.Controllers
             catch (Exception ex)
             {
                 return Json(new { error = ex.Message });
+            }
+        }
+
+        private async Task<IActionResult> ReloadCreateEditView(SaleSaveViewModel model, bool isEdit, int? id = null)
+        {
+            try
+            {
+                var customers = await _customerService.GetAllAsync();
+                var products = await GetAvailableProductsAsync();
+
+                ViewBag.Customers = customers;
+                ViewBag.Products = products;
+                ViewBag.PaymentMethods = Enum.GetValues(typeof(PaymentMethodType)).Cast<PaymentMethodType>();
+                ViewBag.IsEdit = isEdit;
+                ViewBag.SaleId = id;
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar los datos: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

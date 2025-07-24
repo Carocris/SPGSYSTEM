@@ -23,6 +23,9 @@ namespace Database.Entities
         [Required]
         public DateTime PaymentDate { get; set; }
 
+        [Required]
+        public PaymentStatusType Status { get; set; } = PaymentStatusType.Completed;
+
         // Campos específicos para pago con tarjeta
         [StringLength(19)]
         public string? CardNumber { get; set; }

@@ -17,17 +17,6 @@
                 </h2>
                 <p class="text-muted mb-0">Información completa de la venta #@Model.Id.ToString("D4")</p>
             </div>
-            <div class="d-flex gap-2">
-                <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
-                    <i class="fas fa-edit me-2"></i>Editar
-                </a>
-                <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-outline-success">
-                    <i class="fas fa-credit-card me-2"></i>Simular Pago
-                </a>
-                <button type="button" class="btn btn-outline-info" onclick="window.print()">
-                    <i class="fas fa-print me-2"></i>Imprimir
-                </button>
-            </div>
         </div>
 
         <!-- Alert Messages -->
@@ -209,98 +198,14 @@
                     </div>
                     <div class="card-body">
                         <div class="payment-method-display mb-3 text-center">
-                            @switch(Model.PaymentMethod.ToString())
-                            {
-                                case "Cash":
-                                    <div class="payment-icon text-success mb-2">
-                                        <i class="fas fa-money-bill-wave fa-2x"></i>
-                                    </div>
-                                    <h6 class="mb-1">Pago en Efectivo</h6>
-                                    <p class="text-muted small mb-0">Pago realizado en efectivo</p>
-                                    break;
-                                case "Card":
-                                    <div class="payment-icon text-primary mb-2">
-                                        <i class="fas fa-credit-card fa-2x"></i>
-                                    </div>
-                                    <h6 class="mb-1">Pago con Tarjeta</h6>
+                            <span class="badge @Model.PaymentStatusBadgeClass fs-6">
+                                @Model.PaymentStatusDisplay
+                            </span>
                                     @if (Model.Payment != null)
                                     {
-                                        <div class="card-details mt-3">
-                                            <div class="row g-2">
-                                                <div class="col-12">
-                                                    <small class="text-muted">Número de Tarjeta:</small>
-                                                    <div class="fw-medium">@Model.Payment.MaskedCardNumber</div>
-                                                </div>
-                                                @if (!string.IsNullOrEmpty(Model.Payment.CardHolderName))
-                                                {
-                                                    <div class="col-12">
-                                                        <small class="text-muted">Titular:</small>
-                                                        <div class="fw-medium">@Model.Payment.CardHolderName</div>
-                                                    </div>
-                                                }
-                                                @if (!string.IsNullOrEmpty(Model.Payment.CardExpiryDate))
-                                                {
-                                                    <div class="col-12">
-                                                        <small class="text-muted">Vencimiento:</small>
-                                                        <div class="fw-medium">@Model.Payment.CardExpiryDate</div>
-                                                    </div>
-                                                }
-                                            </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">Método: @Model.Payment.PaymentMethodName</small>
                                         </div>
-                                    }
-                                    break;
-                                case "Transfer":
-                                    <div class="payment-icon text-info mb-2">
-                                        <i class="fas fa-exchange-alt fa-2x"></i>
-                                    </div>
-                                    <h6 class="mb-1">Transferencia Bancaria</h6>
-                                    @if (Model.Payment != null)
-                                    {
-                                        <div class="transfer-details mt-3">
-                                            <div class="row g-2">
-                                                @if (!string.IsNullOrEmpty(Model.Payment.TransferReference))
-                                                {
-                                                    <div class="col-12">
-                                                        <small class="text-muted">Número de Referencia:</small>
-                                                        <div class="fw-medium text-primary">@Model.Payment.TransferReference</div>
-                                                    </div>
-                                                }
-                                                @if (!string.IsNullOrEmpty(Model.Payment.BankAccount))
-                                                {
-                                                    <div class="col-12">
-                                                        <small class="text-muted">Banco Origen:</small>
-                                                        <div class="fw-medium">@Model.Payment.BankAccount</div>
-                                                    </div>
-                                                }
-                                                @if (!string.IsNullOrEmpty(Model.Payment.TransferReceiptPath))
-                                                {
-                                                    <div class="col-12 mt-3">
-                                                        <small class="text-muted d-block mb-2">Comprobante de Transferencia:</small>
-                                                        <div class="text-center">
-                                                            <img src="@Model.Payment.TransferReceiptPath" 
-                                                                 alt="Comprobante de transferencia" 
-                                                                 class="img-fluid rounded border" 
-                                                                 style="max-height: 200px; cursor: pointer;"
-                                                                 onclick="showReceiptModal('@Model.Payment.TransferReceiptPath')" />
-                                                            <div class="mt-2">
-                                                                <a href="@Model.Payment.TransferReceiptPath" 
-                                                                   target="_blank" 
-                                                                   class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-external-link-alt me-1"></i>Ver completo
-                                                                </a>
-                                                                <a href="@Model.Payment.TransferReceiptPath" 
-                                                                   download 
-                                                                   class="btn btn-sm btn-outline-secondary">
-                                                                    <i class="fas fa-download me-1"></i>Descargar
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                }
-                                            </div>
-                                        </div>
-                                    }
-                                    break;
                             }
                         </div>
                         

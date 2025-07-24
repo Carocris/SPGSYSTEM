@@ -1,8 +1,134 @@
 @model IEnumerable<Application.ViewModels.Payment.PaymentViewModel>
+@using Database.Enum
 
 @{
     ViewData["Title"] = "Gestión de Pagos";
 }
+
+<style>
+    /* Responsive table styles */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Mobile-friendly table */
+    @@media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.5rem 0.25rem;
+            vertical-align: middle;
+        }
+        
+        /* Custom button sizes for more compact design */
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .btn-group-sm .btn i {
+            font-size: 0.7rem;
+        }
+
+        /* Make button groups more compact */
+        .btn-group {
+            gap: 1px;
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.25rem;
+            border-bottom-left-radius: 0.25rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+        }
+        
+        .badge {
+            font-size: 0.75rem;
+        }
+        
+        .avatar-sm {
+            width: 24px !important;
+            height: 24px !important;
+            font-size: 0.75rem;
+        }
+        
+        .payment-icon {
+            font-size: 1em !important;
+        }
+        
+        .text-truncate {
+            max-width: 80px !important;
+        }
+    }
+    
+    /* Tablet adjustments */
+    @@media (min-width: 769px) and (max-width: 1024px) {
+        .table-responsive {
+            font-size: 0.9rem;
+        }
+        
+        .text-truncate {
+            max-width: 120px !important;
+        }
+    }
+    
+    /* Hover effects */
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 123, 255, 0.05);
+    }
+    
+    /* Payment method icons */
+    .payment-icon {
+        display: inline-block;
+        text-align: center;
+        min-width: 1.5em;
+    }
+    
+    /* Status badges */
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.35em 0.65em;
+    }
+    
+    /* Button groups */
+    .btn-group-vertical .btn-group {
+        display: flex;
+        flex-direction: row;
+    }
+    
+    .btn-group-vertical .btn-group .btn {
+        border-radius: 0.25rem;
+        margin-right: 0.125rem;
+    }
+    
+    /* Avatar styles */
+    .avatar-sm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-size: 0.875rem;
+    }
+    
+    /* Text truncation */
+    .text-truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+</style>
 
 <div class="row">
     <div class="col-12">
@@ -10,13 +136,21 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="h2 text-primary mb-1">
-                    <i class="fas fa-credit-card me-2"></i>Gestión de Pagos
+                    <i class="fas fa-credit-card me-2"></i>Administración de Pagos
                 </h2>
-                <p class="text-muted mb-0">Administra los pagos y transacciones del sistema</p>
+                <p class="text-muted mb-0">Gestiona y administra los pagos existentes del sistema</p>
             </div>
-            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
-                <i class="fas fa-plus me-2"></i>Nuevo Pago
+            <div class="d-flex gap-2">
+                <a asp-controller="Sales" asp-action="CreateEdit" class="btn btn-outline-primary">
+                    <i class="fas fa-plus me-2"></i>Nueva Venta con Pago
+                </a>
+                @if (Model.Any())
+                {
+                    <a asp-action="CreateEdit" class="btn btn-success">
+                        <i class="fas fa-credit-card me-2"></i>Gestionar Pago
             </a>
+                }
+            </div>
         </div>
 
         <!-- Alert Messages -->
@@ -36,8 +170,29 @@
             </div>
         }
 
+        <!-- Information Section -->
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-info-circle me-2 mt-1"></i>
+                <div>
+                    <strong>¿Cómo funciona el sistema de pagos?</strong>
+                    <ul class="mb-0 mt-2">
+                        <li><strong>Crear pagos:</strong> Ve a <a href="/Sales/CreateEdit" class="alert-link">Ventas</a> y crea una nueva venta con pago incluido</li>
+                        <li><strong>Gestionar pagos:</strong> Aquí puedes cambiar el estado de los pagos existentes (Completado ↔ Cancelado)</li>
+                        <li><strong>Stock automático:</strong> El stock se actualiza automáticamente según el estado del pago</li>
+                    </ul>
+                </div>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
         <!-- Search and Filter Section -->
         <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h6 class="card-title mb-0">
+                    <i class="fas fa-filter me-2"></i>Filtros y Búsqueda
+                </h6>
+            </div>
             <div class="card-body">
                 <div class="row g-3">
                     <div class="col-md-4">
@@ -45,10 +200,11 @@
                             <span class="input-group-text bg-light">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar por cliente, venta o método...">
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Buscar por cliente, venta o método...">
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" id="paymentMethodFilter">
                             <option value="">Todos los métodos</option>
                             <option value="cash">💵 Efectivo</option>
@@ -56,7 +212,7 @@
                             <option value="transfer">🏦 Transferencia</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <select class="form-select" id="amountFilter">
                             <option value="">Todos los montos</option>
                             <option value="low">$0 - $500</option>
@@ -65,7 +221,18 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" id="dateFilter" title="Filtrar por fecha">
+                        <input type="date" class="form-control" id="dateFilter" 
+                               title="Filtrar por fecha" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-outline-secondary" id="clearFilters">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </button>
+                            <button type="button" class="btn btn-primary" id="applyFilters">
+                                <i class="fas fa-filter me-1"></i>Aplicar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,6 +240,11 @@
 
         @if (Model != null && Model.Any())
         {
+            <!-- Filter Status -->
+            <div class="alert alert-info d-none" id="filterStatus" role="alert">
+                <i class="fas fa-filter me-2"></i>Filtros activos
+            </div>
+
             <!-- Payments Table -->
             <div class="card shadow-sm">
                 <div class="card-body p-0">
@@ -80,29 +252,26 @@
                         <table class="table table-hover mb-0" id="paymentsTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 8%;">
                                         <i class="fas fa-hashtag me-2"></i>ID
                                     </th>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 12%;">
                                         <i class="fas fa-shopping-cart me-2"></i>Venta
                                     </th>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 20%;">
                                         <i class="fas fa-user me-2"></i>Cliente
                                     </th>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 18%;">
                                         <i class="fas fa-credit-card me-2"></i>Método
                                     </th>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 12%;">
                                         <i class="fas fa-dollar-sign me-2"></i>Monto
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-calendar me-2"></i>Fecha Pago
-                                    </th>
-                                    <th class="border-0">
+                                    <th class="border-0" style="width: 15%;">
                                         <i class="fas fa-check-circle me-2"></i>Estado
                                     </th>
-                                    <th class="border-0 text-center">
-                                        <i class="fas fa-cogs me-2"></i>Acciones
+                                    <th class="text-center">
+                                        <i class="fas fa-cogs me-1"></i>Acciones
                                     </th>
                                 </tr>
                             </thead>
@@ -127,47 +296,64 @@
                                         </td>
                                         <td class="align-middle">
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
                                                     <i class="fas fa-user"></i>
                                                 </div>
-                                                <div>
-                                                    <strong>@payment.CustomerName</strong>
+                                                <div class="text-truncate">
+                                                    <strong class="d-block text-truncate" style="max-width: 150px;">@payment.CustomerName</strong>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="align-middle">
-                                            <span class="badge @GetPaymentMethodBadgeClass(payment.PaymentMethod)">
-                                                @GetPaymentMethodIcon(payment.PaymentMethod) @GetPaymentMethodName(payment.PaymentMethod)
-                                            </span>
+                                            <div class="d-flex align-items-center">
+                                                <div class="payment-icon me-2" style="font-size: 1.2em;">
+                                                    @payment.PaymentMethodIcon
+                                                </div>
+                                                <div class="text-truncate">
+                                                    <div class="fw-medium text-truncate" style="max-width: 100px;">@payment.PaymentMethodName</div>
+                                                    <small class="text-muted">@payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</small>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="align-middle">
                                             <span class="fw-bold text-success">$@payment.Amount.ToString("N2")</span>
                                         </td>
                                         <td class="align-middle">
-                                            <div>
-                                                <div class="fw-medium">@payment.PaymentDate.ToString("dd/MM/yyyy")</div>
-                                                <small class="text-muted">@payment.PaymentDate.ToString("HH:mm")</small>
-                                            </div>
+                                            <span class="badge @payment.StatusBadgeClass">
+                                                @payment.PaymentStatus
+                                            </span>
+                                            @if (payment.Status == PaymentStatusType.Completed)
+                                            {
+                                                <br><small class="text-success">Stock actualizado</small>
+                                            }
+                                            else if (payment.Status == PaymentStatusType.Cancelled)
+                                            {
+                                                <br><small class="text-danger">Stock restaurado</small>
+                                            }
                                         </td>
-                                        <td class="align-middle">
-                                            <span class="badge bg-success">@payment.PaymentStatus</span>
-                                        </td>
-                                        <td class="align-middle text-center">
-                                            <div class="btn-group" role="group">
-                                                <a asp-action="Details" asp-route-id="@payment.Id" 
-                                                   class="btn btn-outline-primary btn-sm" title="Ver detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
+                                        <td class="text-center">
+                                            <div class="btn-group btn-group-sm" role="group">
                                                 <a asp-action="CreateEdit" asp-route-id="@payment.Id" 
-                                                   class="btn btn-outline-warning btn-sm" title="Editar">
+                                                   class="btn btn-outline-primary" 
+                                                   title="Gestionar Pago">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a asp-controller="Sales" asp-action="Details" asp-route-id="@payment.SaleId" 
-                                                   class="btn btn-outline-info btn-sm" title="Ver venta">
-                                                    <i class="fas fa-shopping-cart"></i>
+                                                <a asp-action="Details" asp-route-id="@payment.Id" 
+                                                   class="btn btn-outline-info" 
+                                                   title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger btn-sm" 
-                                                        title="Eliminar" onclick="confirmDelete(@payment.Id, '@payment.SaleNumber')">
+                                                @if (payment.Status == PaymentStatusType.Completed)
+                                                {
+                                                    <button type="button" class="btn btn-outline-warning" 
+                                                            onclick="confirmCancelPayment(@payment.Id)" 
+                                                            title="Cancelar Pago">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-outline-danger" 
+                                                        onclick="confirmDelete(@payment.Id)" 
+                                                        title="Eliminar Pago">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -194,20 +380,20 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-item">
-                                        <h4 class="text-success mb-1">$@Model.Sum(p => p.Amount).ToString("N2")</h4>
+                                        <h4 class="text-success mb-1">$@Model.Where(p => p.Status == PaymentStatusType.Completed).Sum(p => p.Amount).ToString("N2")</h4>
                                         <small class="text-muted">Total Recaudado</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-item">
-                                        <h4 class="text-info mb-1">$@Model.Average(p => p.Amount).ToString("N2")</h4>
-                                        <small class="text-muted">Promedio por Pago</small>
+                                        <h4 class="text-danger mb-1">$@Model.Where(p => p.Status == PaymentStatusType.Cancelled).Sum(p => p.Amount).ToString("N2")</h4>
+                                        <small class="text-muted">Total Cancelado</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-item">
-                                        <h4 class="text-warning mb-1">@Model.Where(p => p.PaymentDate.Date == DateTime.Today).Count()</h4>
-                                        <small class="text-muted">Pagos Hoy</small>
+                                        <h4 class="text-info mb-1">@Model.Count(p => p.Status == PaymentStatusType.Completed)</h4>
+                                        <small class="text-muted">Pagos Completados</small>
                                     </div>
                                 </div>
                             </div>
@@ -268,19 +454,19 @@
         }
         else
         {
-            <!-- Empty State -->
-            <div class="text-center py-5">
+            <!-- No Payments Message -->
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-5">
                 <div class="mb-4">
                     <i class="fas fa-credit-card text-muted" style="font-size: 4rem;"></i>
                 </div>
                 <h4 class="text-muted mb-3">No hay pagos registrados</h4>
-                <p class="text-muted mb-4">Los pagos aparecerán aquí cuando se procesen transacciones</p>
-                <div class="d-flex gap-2 justify-content-center">
-                    <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-plus me-2"></i>Procesar Primer Pago
-                    </a>
-                    <a asp-controller="Sales" asp-action="Index" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-shopping-cart me-2"></i>Ver Ventas
+                    <p class="text-muted mb-4">
+                        Los pagos se crean automáticamente cuando realizas una venta.<br>
+                        Ve a <strong>Ventas</strong> para crear tu primera venta con pago.
+                    </p>
+                    <a asp-controller="Sales" asp-action="CreateEdit" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Crear Primera Venta
                     </a>
                 </div>
             </div>
@@ -321,88 +507,137 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            filterPayments();
-        });
+        // Función para confirmar cancelación de pago
+        function confirmCancelPayment(paymentId) {
+            if (confirm('¿Estás seguro de que deseas cancelar este pago?\n\n⚠️ ADVERTENCIA: Esto restaurará el stock de los productos.')) {
+                // Crear un formulario temporal para enviar la solicitud
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("ChangeStatus", "Payments")';
+                
+                // Agregar token CSRF
+                const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '__RequestVerificationToken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+                
+                // Agregar parámetros
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = paymentId;
+                form.appendChild(idInput);
+                
+                const statusInput = document.createElement('input');
+                statusInput.type = 'hidden';
+                statusInput.name = 'newStatus';
+                statusInput.value = '2'; // PaymentStatusType.Cancelled
+                form.appendChild(statusInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
 
-        document.getElementById('paymentMethodFilter').addEventListener('change', function() {
-            filterPayments();
-        });
+        // Función para confirmar eliminación
+        function confirmDelete(paymentId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este pago?\n\n⚠️ Esta acción no se puede deshacer.')) {
+                window.location.href = '@Url.Action("Delete", "Payments")/' + paymentId;
+            }
+        }
 
-        document.getElementById('amountFilter').addEventListener('change', function() {
-            filterPayments();
-        });
+        // Filtros de búsqueda
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const paymentMethodFilter = document.getElementById('paymentMethodFilter');
+            const amountFilter = document.getElementById('amountFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const clearFiltersBtn = document.getElementById('clearFilters');
+            const applyFiltersBtn = document.getElementById('applyFilters');
+            const filterStatus = document.getElementById('filterStatus');
+            const paymentRows = document.querySelectorAll('.payment-row');
 
-        document.getElementById('dateFilter').addEventListener('change', function() {
-            filterPayments();
-        });
+            function applyFilters() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const methodFilter = paymentMethodFilter.value.toLowerCase();
+                const amountFilterValue = amountFilter.value;
+                const dateFilterValue = dateFilter.value;
 
-        function filterPayments() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const methodFilter = document.getElementById('paymentMethodFilter').value;
-            const amountFilter = document.getElementById('amountFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-            const payments = document.querySelectorAll('.payment-row');
+                let visibleCount = 0;
+                let hasActiveFilters = searchTerm || methodFilter || amountFilterValue || dateFilterValue;
 
-            payments.forEach(function(payment) {
-                const customer = payment.getAttribute('data-customer');
-                const sale = payment.getAttribute('data-sale');
-                const method = payment.getAttribute('data-method');
-                const amount = parseFloat(payment.getAttribute('data-amount'));
-                const paymentDate = payment.getAttribute('data-date');
+                paymentRows.forEach(row => {
+                    const customer = row.dataset.customer;
+                    const sale = row.dataset.sale;
+                    const method = row.dataset.method;
+                    const amount = parseFloat(row.dataset.amount);
+                    const date = row.dataset.date;
 
-                let showPayment = true;
+                    let show = true;
 
-                // Search filter
+                    // Filtro de búsqueda
                 if (searchTerm && !customer.includes(searchTerm) && !sale.includes(searchTerm) && !method.includes(searchTerm)) {
-                    showPayment = false;
+                        show = false;
                 }
 
-                // Method filter
+                    // Filtro de método de pago
                 if (methodFilter && method !== methodFilter) {
-                    showPayment = false;
+                        show = false;
                 }
 
-                // Amount filter
-                if (amountFilter) {
-                    switch(amountFilter) {
+                    // Filtro de monto
+                    if (amountFilterValue) {
+                        switch (amountFilterValue) {
                         case 'low':
-                            if (amount > 500) showPayment = false;
+                                if (amount > 500) show = false;
                             break;
                         case 'medium':
-                            if (amount <= 500 || amount > 2000) showPayment = false;
+                                if (amount < 500 || amount > 2000) show = false;
                             break;
                         case 'high':
-                            if (amount <= 2000) showPayment = false;
+                                if (amount < 2000) show = false;
                             break;
                     }
                 }
 
-                // Date filter
-                if (dateFilter && paymentDate !== dateFilter) {
-                    showPayment = false;
+                    // Filtro de fecha
+                    if (dateFilterValue && date !== dateFilterValue) {
+                        show = false;
                 }
 
-                payment.style.display = showPayment ? 'table-row' : 'none';
-            });
+                    row.style.display = show ? '' : 'none';
+                    if (show) visibleCount++;
+                });
+
+                // Mostrar/ocultar estado de filtros
+                if (hasActiveFilters) {
+                    filterStatus.classList.remove('d-none');
+                    filterStatus.innerHTML = `<i class="fas fa-filter me-2"></i>Filtros activos - Mostrando ${visibleCount} de ${paymentRows.length} pagos`;
+                } else {
+                    filterStatus.classList.add('d-none');
+                }
         }
 
-        function confirmDelete(paymentId, saleNumber) {
-            document.getElementById('deletePaymentId').value = paymentId;
-            document.getElementById('saleNumberToDelete').textContent = saleNumber;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
+            // Event listeners
+            searchInput.addEventListener('input', applyFilters);
+            paymentMethodFilter.addEventListener('change', applyFilters);
+            amountFilter.addEventListener('change', applyFilters);
+            dateFilter.addEventListener('change', applyFilters);
 
-        // Add hover effects
-        document.querySelectorAll('.payment-row').forEach(function(row) {
-            row.addEventListener('mouseenter', function() {
-                this.classList.add('table-active');
+            clearFiltersBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                paymentMethodFilter.value = '';
+                amountFilter.value = '';
+                dateFilter.value = '@DateTime.Now.ToString("yyyy-MM-dd")';
+                applyFilters();
             });
 
-            row.addEventListener('mouseleave', function() {
-                this.classList.remove('table-active');
-            });
+            applyFiltersBtn.addEventListener('click', applyFilters);
+
+            // Aplicar filtros al cargar la página
+            applyFilters();
         });
     </script>
 
@@ -433,6 +668,22 @@
         .btn-group .btn:last-child {
             border-top-right-radius: 0.375rem;
             border-bottom-right-radius: 0.375rem;
+        }
+
+        /* Custom button sizes for more compact design */
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .btn-group-sm .btn i {
+            font-size: 0.7rem;
+        }
+
+        /* Make button groups more compact */
+        .btn-group {
+            gap: 1px;
         }
 
         .stat-item {

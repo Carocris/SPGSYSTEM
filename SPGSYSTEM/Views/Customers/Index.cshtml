@@ -14,7 +14,7 @@
                 </h2>
                 <p class="text-muted mb-0">Administra tu base de datos de clientes</p>
             </div>
-            <a asp-action="Create" class="btn btn-success btn-lg">
+            <a asp-action="Create" class="btn btn-success">
                 <i class="fas fa-user-plus me-2"></i>Nuevo Cliente
             </a>
         </div>
@@ -181,23 +181,23 @@
                                             }
                                         </td>
                                         <td class="align-middle text-center">
-                                            <div class="btn-group btn-group-sm" role="group">
+                                            <div class="btn-group" role="group">
                                                 <a asp-action="Details" asp-route-id="@customer.Id" 
-                                                   class="btn btn-outline-primary" title="Ver detalles">
+                                                   class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a asp-action="Edit" asp-route-id="@customer.Id" 
-                                                   class="btn btn-outline-warning" title="Editar">
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 @if (!string.IsNullOrEmpty(customer.Email))
                                                 {
                                                     <a href="mailto:@customer.Email" 
-                                                       class="btn btn-outline-info" title="Enviar Email">
+                                                       class="btn btn-outline-info btn-sm" title="Enviar Email">
                                                         <i class="fas fa-paper-plane"></i>
                                                     </a>
                                                 }
-                                                <button type="button" class="btn btn-outline-danger" 
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
                                                         title="Eliminar" onclick="confirmDelete(@customer.Id, '@customer.Name')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>

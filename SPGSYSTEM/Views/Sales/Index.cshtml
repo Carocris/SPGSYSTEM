@@ -1,4 +1,5 @@
 @model IEnumerable<Application.ViewModels.Sale.SaleViewModel>
+@using Database.Enum
 
 @{
     ViewData["Title"] = "Gestión de Ventas";
@@ -14,7 +15,7 @@
                 </h2>
                 <p class="text-muted mb-0">Administra las ventas del sistema</p>
             </div>
-            <a asp-action="CreateEdit" class="btn btn-success btn-lg">
+            <a asp-action="CreateEdit" class="btn btn-success">
                 <i class="fas fa-plus me-2"></i>Nueva Venta
             </a>
         </div>
@@ -101,10 +102,7 @@
                                         <i class="fas fa-dollar-sign me-2"></i>Total
                                     </th>
                                     <th class="border-0">
-                                        <i class="fas fa-credit-card me-2"></i>Método Pago
-                                    </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-info-circle me-2"></i>Estado
+                                        <i class="fas fa-credit-card me-2"></i>Estado Pago
                                     </th>
                                     <th class="border-0 text-center">
                                         <i class="fas fa-cogs me-2"></i>Acciones
@@ -116,7 +114,7 @@
                                 {
                                     <tr class="sale-row"
                                         data-customer="@(sale.CustomerName?.ToLower() ?? "")"
-                                        data-payment="@(sale.PaymentMethod.ToString() ?? "")"
+                                        data-payment="@(sale.PaymentStatus.ToString() ?? "")"
                                         data-amount="@sale.TotalAmount"
                                         data-date="@sale.SaleDate.ToString("yyyy-MM-dd")">
                                         <td class="align-middle">
@@ -147,63 +145,51 @@
                                             <span class="text-success fw-bold">$@sale.TotalAmount.ToString("N2")</span>
                                         </td>
                                         <td class="align-middle">
-                                            @switch(sale.PaymentMethod.ToString())
+                                            <span class="badge @sale.PaymentStatusBadgeClass">
+                                                @sale.PaymentStatusDisplay
+                                                    </span>
+                                            @if (sale.Payment != null)
                                             {
-                                                case "Cash":
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-money-bill-wave me-1"></i>Efectivo
-                                                    </span>
-                                                    break;
-                                                case "Card":
-                                                    <span class="badge bg-primary">
-                                                        <i class="fas fa-credit-card me-1"></i>Tarjeta
-                                                    </span>
-                                                    break;
-                                                case "Transfer":
-                                                    <span class="badge bg-info">
-                                                        <i class="fas fa-exchange-alt me-1"></i>Transferencia
-                                                    </span>
-                                                    break;
-                                                default:
-                                                    <span class="badge bg-secondary">
-                                                        <i class="fas fa-question me-1"></i>N/A
-                                                    </span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td class="align-middle">
-                                            @if (sale.Payment != null && sale.Payment.PaymentStatus == "Paid")
-                                            {
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check me-1"></i>Pagado
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-warning">
-                                                    <i class="fas fa-clock me-1"></i>Pendiente
-                                                </span>
+                                                <br><small class="text-muted">@sale.Payment.PaymentMethodName</small>
                                             }
                                         </td>
                                         <td class="align-middle text-center">
-                                            <div class="btn-group btn-group-sm" role="group">
+                                            <div class="btn-group" role="group">
                                                 <a asp-action="Details" asp-route-id="@sale.Id"
-                                                   class="btn btn-outline-primary" title="Ver detalles">
+                                                   class="btn btn-outline-info btn-sm" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a asp-action="CreateEdit" asp-route-id="@sale.Id"
-                                                   class="btn btn-outline-warning" title="Editar">
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@sale.Id"
-                                                   class="btn btn-outline-success" title="Simular pago">
+                                                @if (sale.Payment == null)
+                                                {
+                                                    <a asp-controller="Payments" asp-action="CreateEdit" asp-route-saleId="@sale.Id"
+                                                       class="btn btn-outline-success btn-sm" title="Crear pago">
                                                     <i class="fas fa-credit-card"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-info"
+                                                }
+                                                else if (sale.Payment.Status == PaymentStatusType.Cancelled)
+                                                {
+                                                    <a asp-controller="Payments" asp-action="CreateEdit" asp-route-id="@sale.Payment.Id"
+                                                       class="btn btn-outline-info btn-sm" title="Gestionar pago">
+                                                        <i class="fas fa-cog"></i>
+                                                    </a>
+                                                }
+                                                else if (sale.Payment.Status == PaymentStatusType.Completed)
+                                                {
+                                                    <button type="button" class="btn btn-outline-warning btn-sm"
+                                                            onclick="confirmCancelPayment(@sale.Payment.Id)" 
+                                                            title="Cancelar Pago">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                }
+                                                <button type="button" class="btn btn-outline-info btn-sm"
                                                         title="Imprimir" onclick="printSale(@sale.Id)">
                                                     <i class="fas fa-print"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-outline-danger"
+                                                <button type="button" class="btn btn-outline-danger btn-sm"
                                                         title="Eliminar" onclick="confirmDelete(@sale.Id, '@sale.Id.ToString("D4")')">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
@@ -237,14 +223,20 @@
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-item">
-                                        <h4 class="text-info mb-1">@Model.Count(s => s.Payment != null && s.Payment.PaymentStatus == "Paid")</h4>
+                                        <h4 class="text-info mb-1">@Model.Count(s => s.IsPaid)</h4>
                                         <small class="text-muted">Ventas Pagadas</small>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="stat-item">
-                                        <h4 class="text-warning mb-1">@Model.Count(s => s.Payment == null || s.Payment.PaymentStatus != "Paid")</h4>
-                                        <small class="text-muted">Ventas Pendientes</small>
+                                        <h4 class="text-warning mb-1">@Model.Count(s => s.IsCancelled)</h4>
+                                        <small class="text-muted">Ventas Canceladas</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="stat-item">
+                                        <h4 class="text-danger mb-1">@Model.Count(s => s.IsCancelled)</h4>
+                                        <small class="text-muted">Ventas Canceladas</small>
                                     </div>
                                 </div>
                             </div>
@@ -369,6 +361,12 @@
             window.open(`/Sales/Print/${saleId}`, '_blank');
         }
 
+        function confirmCancelPayment(paymentId) {
+            if (confirm('¿Estás seguro de que deseas cancelar este pago?')) {
+                window.location.href = `/Payments/Cancel/${paymentId}`;
+            }
+        }
+
         // Add hover effects
         document.querySelectorAll('.sale-row').forEach(function(row) {
             row.addEventListener('mouseenter', function() {
@@ -410,6 +408,22 @@
         .btn-group .btn:last-child {
             border-top-right-radius: 0.375rem;
             border-bottom-right-radius: 0.375rem;
+        }
+
+        /* Custom button sizes for more compact design */
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+        }
+
+        .btn-group-sm .btn i {
+            font-size: 0.7rem;
+        }
+
+        /* Make button groups more compact */
+        .btn-group {
+            gap: 1px;
         }
 
         .stat-item {

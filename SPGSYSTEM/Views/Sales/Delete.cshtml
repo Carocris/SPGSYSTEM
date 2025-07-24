@@ -97,25 +97,27 @@
                             </h6>
                             
                             <div class="payment-method-display text-center p-3 bg-light rounded">
-                                @switch(Model.PaymentMethod.ToString())
+                                @switch(Model.PaymentStatus.ToString())
                                 {
-                                    case "Cash":
-                                        <div class="payment-icon text-success mb-2">
-                                            <i class="fas fa-money-bill-wave fa-2x"></i>
-                                        </div>
-                                        <h6 class="mb-1">Efectivo</h6>
+                                    case "Pending":
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Pendiente
+                                        </span>
                                         break;
-                                    case "Card":
-                                        <div class="payment-icon text-primary mb-2">
-                                            <i class="fas fa-credit-card fa-2x"></i>
-                                        </div>
-                                        <h6 class="mb-1">Tarjeta</h6>
+                                    case "Completed":
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i>Completado
+                                        </span>
                                         break;
-                                    case "Transfer":
-                                        <div class="payment-icon text-info mb-2">
-                                            <i class="fas fa-exchange-alt fa-2x"></i>
-                                        </div>
-                                        <h6 class="mb-1">Transferencia</h6>
+                                    case "Cancelled":
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times me-1"></i>Cancelado
+                                        </span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-question me-1"></i>N/A
+                                        </span>
                                         break;
                                 }
                                 <p class="text-muted small mb-0">Método utilizado</p>

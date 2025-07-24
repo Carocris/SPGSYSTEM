@@ -9,15 +9,15 @@
 <div class="row justify-content-center">
     <div class="col-lg-8 col-md-10">
         <!-- Header -->
-        <div class="d-flex align-items-center mb-4">
-            <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary me-3" title="Volver a detalles">
+        <div class="d-flex align-items-center mb-3">
+            <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary me-2" title="Volver a detalles">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h2 class="h3 text-success mb-1">
+                <h3 class="h4 text-success mb-1">
                     <i class="fas fa-plus-circle me-2"></i>Agregar Stock
-                </h2>
-                <p class="text-muted mb-0">Incrementa el inventario de "@product.Name"</p>
+                </h3>
+                <p class="text-muted mb-0 small">Incrementa el inventario de "@product.Name"</p>
             </div>
         </div>
 
@@ -38,43 +38,41 @@
             </div>
         }
 
-        <div class="row">
+        <div class="row g-3">
             <!-- Product Information -->
-            <div class="col-lg-5 mb-4">
+            <div class="col-lg-4">
                 <div class="card shadow-sm border-0 h-100">
-                    <div class="card-header bg-primary text-white py-3">
-                        <h5 class="card-title mb-0">
+                    <div class="card-header bg-primary text-white py-2">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-box me-2"></i>Información del Producto
-                        </h5>
+                        </h6>
                     </div>
-                    <div class="card-body">
-                        <div class="product-info">
-                            <div class="text-center mb-4">
-                                <div class="product-icon-large mb-3">
-                                    <i class="fas fa-box fa-3x text-primary"></i>
+                    <div class="card-body p-3">
+                        <div class="text-center mb-3">
+                            <div class="product-icon mb-2">
+                                <i class="fas fa-box fa-2x text-primary"></i>
                                 </div>
-                                <h4 class="mb-2">@product.Name</h4>
+                            <h5 class="mb-1">@product.Name</h5>
                                 @if (!string.IsNullOrEmpty(product.Description))
                                 {
-                                    <p class="text-muted">@product.Description</p>
+                                <small class="text-muted">@product.Description</small>
                                 }
                             </div>
 
                             <div class="product-details">
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted">Precio Unitario:</span>
-                                    <span class="fw-bold text-success">$@product.Price.ToString("N2")</span>
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                <small class="text-muted">Precio:</small>
+                                <small class="fw-bold text-success">$@product.Price.ToString("N2")</small>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                    <span class="text-muted">Stock Actual:</span>
-                                    <span class="fw-bold text-info">@currentStock unidades</span>
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                <small class="text-muted">Stock Actual:</small>
+                                <small class="fw-bold text-info">@currentStock unidades</small>
                                 </div>
-                                <div class="d-flex justify-content-between align-items-center py-2">
-                                    <span class="text-muted">Estado:</span>
-                                    <span class="badge @(currentStock > 0 ? "bg-success" : "bg-warning")">
+                            <div class="d-flex justify-content-between align-items-center py-1">
+                                <small class="text-muted">Estado:</small>
+                                <span class="badge @(currentStock > 0 ? "bg-success" : "bg-warning") small">
                                         @(currentStock > 0 ? "En Stock" : "Sin Stock")
                                     </span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -82,29 +80,29 @@
             </div>
 
             <!-- Add Stock Form -->
-            <div class="col-lg-7">
+            <div class="col-lg-8">
                 <div class="card shadow-sm border-0">
-                    <div class="card-header bg-success text-white py-3">
-                        <h5 class="card-title mb-0">
+                    <div class="card-header bg-success text-white py-2">
+                        <h6 class="card-title mb-0">
                             <i class="fas fa-plus me-2"></i>Agregar Stock
-                        </h5>
+                        </h6>
                     </div>
-                    <div class="card-body p-4">
+                    <div class="card-body p-3">
                         <form asp-action="AddStock" method="post" id="addStockForm" novalidate>
                             @Html.AntiForgeryToken()
                             <input asp-for="ProductId" type="hidden" />
 
                             <!-- Quantity to Add -->
-                            <div class="mb-4">
-                                <label asp-for="QuantityToAdd" class="form-label fw-medium h6">
+                            <div class="mb-3">
+                                <label asp-for="QuantityToAdd" class="form-label fw-medium">
                                     <i class="fas fa-plus-circle text-success me-2"></i>Cantidad a Agregar
                                 </label>
-                                <div class="input-group input-group-lg">
+                                <div class="input-group">
                                     <span class="input-group-text bg-success text-white">
                                         <i class="fas fa-boxes"></i>
                                     </span>
                                     <input asp-for="QuantityToAdd" type="number" min="1" 
-                                           class="form-control form-control-lg" placeholder="0" 
+                                           class="form-control" placeholder="0" 
                                            id="quantityInput" />
                                     <span class="input-group-text">unidades</span>
                                 </div>
@@ -112,7 +110,7 @@
                             </div>
 
                             <!-- Reason (Optional) -->
-                            <div class="mb-4">
+                            <div class="mb-3">
                                 <label asp-for="Reason" class="form-label fw-medium">
                                     <i class="fas fa-comment text-primary me-2"></i>Motivo (Opcional)
                                 </label>
@@ -133,63 +131,56 @@
                             </div>
 
                             <!-- Stock Calculation Preview -->
-                            <div class="alert alert-info" id="stockPreview" style="display: none;">
-                                <h6 class="alert-heading">
-                                    <i class="fas fa-calculator me-2"></i>Vista Previa del Cambio
+                            <div class="alert alert-info py-2" id="stockPreview" style="display: none;">
+                                <h6 class="alert-heading mb-2">
+                                    <i class="fas fa-calculator me-2"></i>Vista Previa
                                 </h6>
                                 <div class="calculation-display">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>Stock actual:</span>
-                                        <span class="fw-medium">@currentStock unidades</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>Stock actual:</small>
+                                        <small class="fw-medium">@currentStock unidades</small>
                                     </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <span>Cantidad a agregar:</span>
-                                        <span class="fw-medium text-success" id="addingQuantity">0 unidades</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small>Cantidad a agregar:</small>
+                                        <small class="fw-medium text-success" id="addingQuantity">0 unidades</small>
                                     </div>
-                                    <hr>
+                                    <hr class="my-2">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold">Nuevo stock total:</span>
-                                        <span class="fw-bold text-success fs-5" id="newStockTotal">@currentStock unidades</span>
+                                        <small class="fw-bold">Nuevo stock total:</small>
+                                        <small class="fw-bold text-success" id="newStockTotal">@currentStock unidades</small>
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Add Buttons -->
+                            <div class="mb-3">
+                                <small class="text-muted mb-2 d-block">Cantidades rápidas:</small>
+                                <div class="d-flex flex-wrap gap-1">
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="1">+1</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="5">+5</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="10">+10</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="25">+25</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="50">+50</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm quick-add" data-quantity="100">+100</button>
                                 </div>
                             </div>
 
                             <!-- Action Buttons -->
                             <div class="d-flex justify-content-between align-items-center">
-                                <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary btn-lg">
-                                    <i class="fas fa-arrow-left me-2"></i>Volver
+                                <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-arrow-left me-1"></i>Volver
                                 </a>
                                 <div class="d-flex gap-2">
-                                    <a asp-action="CreateEdit" asp-route-id="@product.Id" class="btn btn-outline-warning btn-lg">
-                                        <i class="fas fa-edit me-2"></i>Editar Producto
+                                    <a asp-action="CreateEdit" asp-route-id="@product.Id" class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-edit me-1"></i>Editar
                                     </a>
-                                    <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
-                                        <i class="fas fa-plus me-2"></i>
+                                    <button type="submit" class="btn btn-success btn-sm" id="submitBtn" disabled>
+                                        <i class="fas fa-plus me-1"></i>
                                         <span id="submitText">Agregar Stock</span>
                                     </button>
                                 </div>
                             </div>
                         </form>
-                    </div>
-                </div>
-
-                <!-- Quick Add Buttons -->
-                <div class="card shadow-sm border-0 mt-4">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-bolt me-2"></i>Cantidades Rápidas
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2">
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="1">+1</button>
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="5">+5</button>
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="10">+10</button>
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="25">+25</button>
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="50">+50</button>
-                            <button type="button" class="btn btn-outline-success quick-add" data-quantity="100">+100</button>
-                        </div>
-                        <small class="text-muted mt-2 d-block">Haz clic en cualquier botón para establecer esa cantidad rápidamente</small>
                     </div>
                 </div>
             </div>

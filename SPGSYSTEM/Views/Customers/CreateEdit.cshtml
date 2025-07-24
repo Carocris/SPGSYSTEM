@@ -119,19 +119,19 @@
           <div class="row mt-4">
             <div class="col-12">
               <div class="d-flex gap-2 justify-content-end">
-                <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                <a asp-action="Index" class="btn btn-outline-secondary">
                   <i class="fas fa-times me-2"></i>Cancelar
                 </a>
                 @if (isEdit)
                 {
                   <a asp-action="Details" 
                      asp-route-id="@customerId" 
-                     class="btn btn-outline-info btn-lg">
+                     class="btn btn-outline-info">
                     <i class="fas fa-eye me-2"></i>Ver Detalles
                   </a>
                 }
                 <button type="submit" 
-                        class="btn @buttonClass btn-lg" 
+                        class="btn @buttonClass" 
                         id="submitBtn">
                   <i class="@(isEdit ? "fas fa-save" : "fas fa-user-plus") me-2"></i>
                   @buttonText

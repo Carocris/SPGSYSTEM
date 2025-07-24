@@ -303,17 +303,17 @@
             <div class="card shadow-sm border-0 mt-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
-                        <a asp-action="Index" class="btn btn-outline-secondary btn-lg">
+                        <a asp-action="Index" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                         <div class="d-flex gap-2">
                             @if (isEdit)
                             {
-                                <a asp-action="Details" asp-route-id="@saleId" class="btn btn-outline-info btn-lg">
+                                <a asp-action="Details" asp-route-id="@saleId" class="btn btn-outline-info">
                                     <i class="fas fa-eye me-2"></i>Ver Detalles
                                 </a>
                             }
-                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                            <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
                                 <i class="fas @(isEdit ? "fa-save" : "fa-plus") me-2"></i>@(isEdit ? "Actualizar Venta" : "Crear Venta")
                             </button>
                         </div>

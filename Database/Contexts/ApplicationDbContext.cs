@@ -199,6 +199,12 @@ namespace Database.Contexts
                 .Property(p => p.PaymentDate)
                 .IsRequired();
             modelBuilder.Entity<Payment>()
+                .Property(p => p.Status)
+                .IsRequired();
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.PaymentMethod)
+                .IsRequired();
+            modelBuilder.Entity<Payment>()
                 .Property(p => p.CardNumber)
                 .HasMaxLength(19);
             modelBuilder.Entity<Payment>()

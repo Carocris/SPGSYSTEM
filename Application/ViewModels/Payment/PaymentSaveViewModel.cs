@@ -23,5 +23,9 @@ namespace Application.ViewModels.Payment
 
         [Required]
         public DateTime PaymentDate { get; set; }
+
+        [Required]
+        [EnumDataType(typeof(PaymentStatusType))]
+        public PaymentStatusType Status { get; set; } = PaymentStatusType.Completed;
     }
 }

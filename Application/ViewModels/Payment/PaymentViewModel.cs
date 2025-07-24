@@ -19,6 +19,16 @@ namespace Application.ViewModels.Payment
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; }
 
+        public PaymentStatusType Status { get; set; }
+
+        public string PaymentStatus => GetPaymentStatusDisplayName(Status);
+
+        public string PaymentMethodName => GetPaymentMethodDisplayName(PaymentMethod);
+
+        public string PaymentMethodIcon => GetPaymentMethodIcon(PaymentMethod);
+
+        public string StatusBadgeClass => GetStatusBadgeClass(Status);
+
         // Campos específicos para pago con tarjeta
         public string? CardNumber { get; set; }
         public string? CardHolderName { get; set; }
@@ -29,8 +39,48 @@ namespace Application.ViewModels.Payment
         public string? TransferReference { get; set; }
         public string? BankAccount { get; set; }
         public string? TransferReceiptPath { get; set; }
-        public string PaymentStatus { get; set; }
 
+        public string GetPaymentStatusDisplayName(PaymentStatusType status)
+        {
+            return status switch
+            {
+                PaymentStatusType.Completed => "Completado",
+                PaymentStatusType.Cancelled => "Cancelado",
+                _ => "Desconocido"
+            };
+        }
+
+        private string GetPaymentMethodDisplayName(PaymentMethodType method)
+        {
+            return method switch
+            {
+                PaymentMethodType.Cash => "Efectivo",
+                PaymentMethodType.Card => "Tarjeta",
+                PaymentMethodType.Transfer => "Transferencia",
+                _ => method.ToString()
+            };
+        }
+
+        private string GetPaymentMethodIcon(PaymentMethodType method)
+        {
+            return method switch
+            {
+                PaymentMethodType.Cash => "💵",
+                PaymentMethodType.Card => "💳",
+                PaymentMethodType.Transfer => "🏦",
+                _ => "❓"
+            };
+        }
+
+        private string GetStatusBadgeClass(PaymentStatusType status)
+        {
+            return status switch
+            {
+                PaymentStatusType.Completed => "bg-success",
+                PaymentStatusType.Cancelled => "bg-danger",
+                _ => "bg-secondary"
+            };
+        }
 
         // Helper properties
         public string MaskedCardNumber 

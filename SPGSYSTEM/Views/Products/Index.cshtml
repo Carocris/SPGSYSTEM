@@ -7,14 +7,14 @@
 <div class="row">
     <div class="col-12">
         <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h2 class="h2 text-primary mb-1">
+                <h3 class="h4 text-primary mb-1">
                     <i class="fas fa-box-open me-2"></i>Gestión de Productos
-                </h2>
-                <p class="text-muted mb-0">Administra tu inventario de productos</p>
+                </h3>
+                <p class="text-muted mb-0 small">Administra tu inventario de productos</p>
             </div>
-            <a asp-action="Create" class="btn btn-success btn-lg">
+            <a asp-action="Create" class="btn btn-success btn-sm">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
         </div>
@@ -37,29 +37,29 @@
         }
 
         <!-- Search and Filter Section -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <div class="row g-3">
+        <div class="card shadow-sm mb-3">
+            <div class="card-body p-3">
+                <div class="row g-2">
                     <div class="col-md-4">
-                        <div class="input-group">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text bg-light">
                                 <i class="fas fa-search text-muted"></i>
                             </span>
-                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar productos por nombre, código o descripción...">
+                            <input type="text" class="form-control" id="searchInput" placeholder="Buscar productos...">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="categoryFilter">
+                        <select class="form-select form-select-sm" id="categoryFilter">
                             <option value="">Todas las categorías</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="supplierFilter">
+                        <select class="form-select form-select-sm" id="supplierFilter">
                             <option value="">Todos los proveedores</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="stockFilter">
+                        <select class="form-select form-select-sm" id="stockFilter">
                             <option value="available" selected>En stock</option>
                             <option value="all">Todos los stocks</option>
                             <option value="low">Stock bajo</option>
@@ -67,12 +67,17 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <select class="form-select" id="priceFilter">
+                        <select class="form-select form-select-sm" id="priceFilter">
                             <option value="">Todos los precios</option>
                             <option value="low">$0 - $50</option>
                             <option value="medium">$50 - $200</option>
                             <option value="high">$200+</option>
                         </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100" id="clearFilters">
+                            <i class="fas fa-times me-1"></i>Limpiar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -82,45 +87,48 @@
         {
             <!-- Products Table -->
             <div class="card shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light py-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
+                        <h6 class="mb-0">
                             <i class="fas fa-table me-2"></i>Lista de Productos
-                        </h5>
-                        <span class="badge bg-primary">@Model.Count() productos</span>
+                        </h6>
+                        <div>
+                            <span class="badge bg-primary" id="productCount">@Model.Count() productos</span>
+                            <small class="text-muted ms-2" id="filterInfo"></small>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="productsTable">
+                        <table class="table table-hover table-sm mb-0" id="productsTable">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="border-0">
-                                        <i class="fas fa-hashtag me-2"></i>ID
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-hashtag me-1"></i>ID
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-box me-2"></i>Producto
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-box me-1"></i>Producto
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-tag me-2"></i>Categoría
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-tag me-1"></i>Categoría
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-truck me-2"></i>Proveedor
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-truck me-1"></i>Proveedor
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-boxes me-2"></i>Stock
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-boxes me-1"></i>Stock
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-dollar-sign me-2"></i>Precio Compra
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-dollar-sign me-1"></i>Precio Compra
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-dollar-sign me-2"></i>Precio Venta
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-dollar-sign me-1"></i>Precio Venta
                                     </th>
-                                    <th class="border-0">
-                                        <i class="fas fa-percentage me-2"></i>Margen
+                                    <th class="border-0 py-2">
+                                        <i class="fas fa-percentage me-1"></i>Margen
                                     </th>
-                                    <th class="border-0 text-center">
-                                        <i class="fas fa-cogs me-2"></i>Acciones
+                                    <th class="border-0 text-center py-2">
+                                        <i class="fas fa-cogs me-1"></i>Acciones
                                     </th>
                                 </tr>
                             </thead>
@@ -133,18 +141,19 @@
                                         data-description="@(product.Description?.ToLower() ?? "")"
                                         data-price="@product.SalePrice"
                                         data-stock="@product.Stock"
+                                        data-minimum-stock="@product.MinimumStock"
                                         data-category="@(product.CategoryName?.ToLower() ?? "")"
                                         data-supplier="@(product.SupplierName?.ToLower() ?? "")">
-                                        <td class="align-middle">
-                                            <span class="badge bg-secondary">#@product.Id.ToString("D4")</span>
+                                        <td class="align-middle py-2">
+                                            <span class="badge bg-secondary small">#@product.Id.ToString("D4")</span>
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle py-2">
                                             <div class="d-flex align-items-center">
-                                                <div class="avatar-circle bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center">
-                                                    <i class="fas fa-box"></i>
+                                                <div class="avatar-circle bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                    <i class="fas fa-box fa-sm"></i>
                                                 </div>
                                                 <div>
-                                                    <strong class="text-primary">@product.Name</strong>
+                                                    <strong class="text-primary small">@product.Name</strong>
                                                     <br><small class="text-muted">@product.Code</small>
                                                     @if (!string.IsNullOrEmpty(product.Description))
                                                     {
@@ -153,82 +162,76 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle py-2">
                                             @if (!string.IsNullOrWhiteSpace(product.CategoryName))
                                             {
-                                                <span class="badge bg-secondary">@product.CategoryName</span>
+                                                <span class="badge bg-secondary small">@product.CategoryName</span>
                                             }
                                             else
                                             {
-                                                <span class="text-muted fst-italic">Sin categoría</span>
+                                                <span class="text-muted fst-italic small">Sin categoría</span>
                                             }
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle py-2">
                                             @if (!string.IsNullOrWhiteSpace(product.SupplierName))
                                             {
                                                 <div class="d-flex align-items-center">
-                                                    <i class="fas fa-truck text-info me-2"></i>
-                                                    <span class="text-truncate" title="@product.SupplierName">@product.SupplierName</span>
+                                                    <i class="fas fa-truck text-info me-1 fa-sm"></i>
+                                                    <small>@product.SupplierName</small>
                                                 </div>
                                             }
                                             else
                                             {
-                                                <span class="text-muted fst-italic">Sin proveedor</span>
+                                                <span class="text-muted fst-italic small">Sin proveedor</span>
                                             }
                                         </td>
-                                        <td class="align-middle">
+                                        <td class="align-middle py-2">
                                             @if (product.Stock <= 0)
                                             {
-                                                <span class="badge bg-danger">
+                                                <span class="badge bg-danger small">
                                                     <i class="fas fa-exclamation-triangle me-1"></i>Sin Stock
                                                 </span>
                                             }
                                             else if (product.IsLowStock)
                                             {
-                                                <span class="badge bg-warning">
+                                                <span class="badge bg-warning small">
                                                     <i class="fas fa-exclamation-circle me-1"></i>@product.Stock
                                                 </span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-success">
+                                                <span class="badge bg-success small">
                                                     <i class="fas fa-check-circle me-1"></i>@product.Stock
                                                 </span>
                                             }
                                         </td>
-                                        <td class="align-middle">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-arrow-down text-primary me-2"></i>
-                                                <span class="text-primary fw-bold">$@product.PurchasePrice.ToString("N2")</span>
-                                            </div>
+                                        <td class="align-middle py-2">
+                                            <small class="text-muted">$@product.PurchasePrice.ToString("N2")</small>
                                         </td>
-                                        <td class="align-middle">
-                                            <div class="d-flex align-items-center">
-                                                <i class="fas fa-arrow-up text-success me-2"></i>
-                                                <span class="text-success fw-bold">$@product.SalePrice.ToString("N2")</span>
-                                            </div>
+                                        <td class="align-middle py-2">
+                                            <small class="fw-bold text-success">$@product.SalePrice.ToString("N2")</small>
                                         </td>
-                                        <td class="align-middle">
-                                            <span class="badge @(product.ProfitMargin > 50 ? "bg-success" : product.ProfitMargin > 20 ? "bg-warning" : "bg-info")">
-                                                @product.ProfitMargin.ToString("P1")
+                                        <td class="align-middle py-2">
+                                            <span class="badge @(product.ProfitMargin >= 30 ? "bg-success" : product.ProfitMargin >= 15 ? "bg-warning" : "bg-danger") small">
+                                                @product.ProfitMargin.ToString("F0")%
                                             </span>
                                         </td>
-                                        <td class="align-middle text-center">
+                                        <td class="align-middle py-2">
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a asp-action="Details" asp-route-id="@product.Id"
-                                                   class="btn btn-outline-primary" title="Ver detalles">
+                                                   class="btn btn-outline-primary btn-sm" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a asp-action="Edit" asp-route-id="@product.Id"
-                                                   class="btn btn-outline-warning" title="Editar">
+                                                <a asp-action="CreateEdit" asp-route-id="@product.Id" 
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
                                                 <a asp-action="AddStock" asp-route-id="@product.Id"
-                                                   class="btn btn-outline-success" title="Agregar stock">
+                                                   class="btn btn-outline-success btn-sm" title="Agregar stock">
                                                     <i class="fas fa-plus"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger"
-                                                        title="Eliminar" onclick="confirmDelete(@product.Id, '@product.Name')">
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-btn"
+                                                        data-id="@product.Id" data-name="@product.Name" title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -348,6 +351,18 @@
             filterProducts();
         });
 
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            // Limpiar todos los filtros
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            document.getElementById('supplierFilter').value = '';
+            document.getElementById('stockFilter').value = 'available';
+            document.getElementById('priceFilter').value = '';
+            
+            // Aplicar filtros
+            filterProducts();
+        });
+
         // Load categories and suppliers for filters
         document.addEventListener('DOMContentLoaded', function() {
             loadCategoriesAndSuppliers();
@@ -397,6 +412,7 @@
                 const description = product.getAttribute('data-description');
                 const price = parseFloat(product.getAttribute('data-price'));
                 const stock = parseInt(product.getAttribute('data-stock'));
+                const minimumStock = parseInt(product.getAttribute('data-minimum-stock'));
                 const category = product.getAttribute('data-category');
                 const supplier = product.getAttribute('data-supplier');
 
@@ -421,13 +437,19 @@
                 if (stockFilter) {
                     switch(stockFilter) {
                         case 'available':
+                            // Solo productos con stock > 0
                             if (stock <= 0) showProduct = false;
                             break;
                         case 'low':
-                            if (stock > 10) showProduct = false;
+                            // Solo productos con stock bajo (stock <= minimumStock)
+                            if (stock > minimumStock || stock <= 0) showProduct = false;
                             break;
                         case 'out':
+                            // Solo productos sin stock (stock = 0)
                             if (stock > 0) showProduct = false;
+                            break;
+                        case 'all':
+                            // Mostrar todos los productos (no filtrar por stock)
                             break;
                     }
                 }
@@ -449,6 +471,52 @@
 
                 product.style.display = showProduct ? 'table-row' : 'none';
             });
+            
+            // Actualizar contador de productos mostrados
+            updateProductCount();
+        }
+        
+        function updateProductCount() {
+            const visibleProducts = document.querySelectorAll('.product-row[style*="table-row"]').length;
+            const totalProducts = document.querySelectorAll('.product-row').length;
+            const productCountElement = document.getElementById('productCount');
+            const filterInfoElement = document.getElementById('filterInfo');
+            
+            productCountElement.textContent = `${visibleProducts} productos`;
+            
+            // Mostrar información del filtro si hay filtros activos
+            const searchTerm = document.getElementById('searchInput').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const supplierFilter = document.getElementById('supplierFilter').value;
+            const stockFilter = document.getElementById('stockFilter').value;
+            const priceFilter = document.getElementById('priceFilter').value;
+            
+            let filterInfo = [];
+            if (searchTerm) filterInfo.push(`búsqueda: "${searchTerm}"`);
+            if (categoryFilter) filterInfo.push(`categoría: "${categoryFilter}"`);
+            if (supplierFilter) filterInfo.push(`proveedor: "${supplierFilter}"`);
+            if (stockFilter && stockFilter !== 'available') {
+                const stockLabels = {
+                    'all': 'todos los stocks',
+                    'low': 'stock bajo',
+                    'out': 'sin stock'
+                };
+                filterInfo.push(`stock: ${stockLabels[stockFilter]}`);
+            }
+            if (priceFilter) {
+                const priceLabels = {
+                    'low': '$0 - $50',
+                    'medium': '$50 - $200',
+                    'high': '$200+'
+                };
+                filterInfo.push(`precio: ${priceLabels[priceFilter]}`);
+            }
+            
+            if (filterInfo.length > 0) {
+                filterInfoElement.textContent = `Filtrado por: ${filterInfo.join(', ')}`;
+            } else {
+                filterInfoElement.textContent = '';
+            }
         }
 
         function confirmDelete(productId, productName) {

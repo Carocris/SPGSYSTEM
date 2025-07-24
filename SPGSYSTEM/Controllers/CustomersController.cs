@@ -3,6 +3,7 @@ using Application.ViewModels.Customer;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -46,6 +47,22 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var viewModel = _mapper.Map<CustomerViewModel>(customer);
+                
+                // Cargar historial de ventas del cliente
+                var salesService = HttpContext.RequestServices.GetService<Application.Interfaces.Services.ISaleService>();
+                if (salesService != null)
+                {
+                    var allSales = await salesService.GetAllWithDetailsAsync();
+                    var customerSales = allSales
+                        .Where(s => s.CustomerId == id)
+                        .OrderByDescending(s => s.SaleDate)
+                        .Take(10)
+                        .ToList();
+                    
+                    var customerSalesViewModels = _mapper.Map<List<Application.ViewModels.Sale.SaleViewModel>>(customerSales);
+                    ViewBag.CustomerSales = customerSalesViewModels;
+                }
+                
                 return View(viewModel);
             }
             catch (Exception ex)
