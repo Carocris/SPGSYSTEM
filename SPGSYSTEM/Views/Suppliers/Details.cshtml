@@ -28,8 +28,8 @@
                             @Model.Name
                         </h3>
                         <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Volver
-                            </a>
+                            <i class="fas fa-arrow-left me-2"></i>Volver
+                        </a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -218,8 +218,7 @@
                                                            class="btn btn-outline-primary" title="Ver detalles">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
-                                                        <a href="@Url.Action("Edit", "Products", new { id = product.Id })" 
-                                                           class="btn btn-outline-warning" title="Editar">
+                                                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="btn btn-outline-warning" title="Editar">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                         <a href="@Url.Action("AddStock", "Products", new { id = product.Id })" 
@@ -247,6 +246,152 @@
                         <a href="@Url.Action("Create", "Products", new { supplierId = Model.Id })" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Agregar Producto
                         </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Historial de Precios -->
+            @if (ViewBag.SupplierPriceHistory != null && ViewBag.SupplierPriceHistory.Count > 0)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Historial de Cambios de Precios
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="fas fa-calendar me-1"></i>Fecha</th>
+                                        <th><i class="fas fa-box me-1"></i>Producto</th>
+                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Anterior</th>
+                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Nuevo</th>
+                                        <th><i class="fas fa-chart-line me-1"></i>Cambio</th>
+                                        <th><i class="fas fa-user me-1"></i>Responsable</th>
+                                        <th><i class="fas fa-comment me-1"></i>Notas</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var history in ViewBag.SupplierPriceHistory)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small>@history.ChangeDate.ToString("dd/MM/yyyy")</small>
+                                                <br><small class="text-muted">@history.ChangeDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <small class="fw-medium">@history.ProductName</small>
+                                                <br><small class="text-muted">@history.ProductCode</small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">$@history.OldPrice.ToString("N2")</small>
+                                            </td>
+                                            <td>
+                                                <small class="fw-bold text-success">$@history.NewPrice.ToString("N2")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @history.PriceChangeBadgeClass small">
+                                                    @history.PriceChangeDirection
+                                                </span>
+                                                <br><small class="text-muted">@history.PriceChangePercentage.ToString("F1")%</small>
+                                            </td>
+                                            <td>
+                                                <small>@history.ChangedBy</small>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(history.Notes))
+                                                {
+                                                    <small class="text-muted" title="@history.Notes">@(history.Notes.Length > 30 ? history.Notes.Substring(0, 30) + "..." : history.Notes)</small>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Historial de Órdenes de Compra -->
+            @if (ViewBag.SupplierPurchaseOrders != null && ViewBag.SupplierPurchaseOrders.Count > 0)
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-shopping-cart me-2"></i>
+                            Historial de Órdenes de Compra
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="fas fa-hashtag me-1"></i>Orden</th>
+                                        <th><i class="fas fa-calendar me-1"></i>Fecha</th>
+                                        <th><i class="fas fa-cube me-1"></i>Items</th>
+                                        <th><i class="fas fa-dollar-sign me-1"></i>Total</th>
+                                        <th><i class="fas fa-circle me-1"></i>Estado</th>
+                                        <th><i class="fas fa-truck me-1"></i>Entrega</th>
+                                        <th><i class="fas fa-cogs me-1"></i>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in ViewBag.SupplierPurchaseOrders)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small class="fw-medium">@order.OrderNumber</small>
+                                            </td>
+                                            <td>
+                                                <small>@order.OrderDate.ToString("dd/MM/yyyy")</small>
+                                                <br><small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@order.Details.Count</span>
+                                            </td>
+                                            <td>
+                                                <small class="fw-bold text-success">$@order.TotalAmount.ToString("N2")</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @order.StatusBadgeClass small">@order.StatusDisplay</span>
+                                            </td>
+                                            <td>
+                                                @if (order.ExpectedDeliveryDate.HasValue)
+                                                {
+                                                    <small>@order.ExpectedDeliveryDate.Value.ToString("dd/MM/yyyy")</small>
+                                                    @if (order.ActualDeliveryDate.HasValue)
+                                                    {
+                                                        <br><small class="text-success">Entregado: @order.ActualDeliveryDate.Value.ToString("dd/MM/yyyy")</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <small class="text-muted">Sin fecha</small>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                    @if (order.CanEdit)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-warning btn-sm" title="Editar">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             }

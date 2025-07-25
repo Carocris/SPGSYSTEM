@@ -356,5 +356,28 @@ namespace SPGSYSTEM.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        // GET: Sales/Print/5
+        public async Task<IActionResult> Print(int id)
+        {
+            try
+            {
+                var sale = await _saleService.GetFullSaleAsync(id);
+                if (sale == null)
+                {
+                    TempData["Error"] = "Venta no encontrada.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var viewModel = _mapper.Map<SaleViewModel>(sale);
+                ViewBag.IsPrintView = true; // Para aplicar estilos de impresión
+                return View("Print", viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al generar la impresión: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
     }
 } 

@@ -12,7 +12,6 @@ namespace Database.Entities
         public Supplier()
         {
             Products = new List<Product>();
-            SupplierPrices = new List<SupplierPrice>();
         }
 
         public int Id { get; set; }
@@ -52,8 +51,5 @@ namespace Database.Entities
 
         // Navigation: Un proveedor puede proveer muchos productos
         public ICollection<Product> Products { get; set; }
-
-        // Navigation: Un proveedor puede tener muchos precios de productos
-        public ICollection<SupplierPrice> SupplierPrices { get; set; } = new List<SupplierPrice>();
     }
 } 

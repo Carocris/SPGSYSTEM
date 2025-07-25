@@ -202,6 +202,85 @@
                 </div>
             </div>
 
+            <!-- Transfer Information (only for Transfer payments) -->
+            @if (Model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-university me-2"></i>Información de Transferencia
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            @if (!string.IsNullOrEmpty(Model.TransferReference))
+                            {
+                                <div class="col-md-6">
+                                    <div class="transfer-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="transfer-detail-icon bg-info me-3">
+                                                <i class="fas fa-hashtag"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Número de Referencia</h6>
+                                                <small class="text-muted">Identificador de la transferencia</small>
+                                            </div>
+                                        </div>
+                                        <div class="transfer-detail-content">
+                                            <h5 class="mb-1 text-info">@Model.TransferReference</h5>
+                                            <p class="text-muted mb-0">Referencia bancaria</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.BankAccount))
+                            {
+                                <div class="col-md-6">
+                                    <div class="transfer-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="transfer-detail-icon bg-primary me-3">
+                                                <i class="fas fa-university"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Cuenta Bancaria</h6>
+                                                <small class="text-muted">Cuenta de destino</small>
+                                            </div>
+                                        </div>
+                                        <div class="transfer-detail-content">
+                                            <h5 class="mb-1">@Model.BankAccount</h5>
+                                            <p class="text-muted mb-0">Cuenta receptora</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.TransferReceiptPath))
+                            {
+                                <div class="col-12">
+                                    <div class="transfer-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="transfer-detail-icon bg-success me-3">
+                                                <i class="fas fa-image"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Comprobante de Transferencia</h6>
+                                                <small class="text-muted">Imagen del recibo</small>
+                                            </div>
+                                        </div>
+                                        <div class="transfer-detail-content">
+                                            <div class="text-center">
+                                                <img src="@Model.TransferReceiptPath" alt="Comprobante de Transferencia" 
+                                                     class="img-fluid rounded" style="max-height: 300px; max-width: 100%;" />
+                                                <p class="text-muted mb-0 mt-2">Comprobante de pago</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
             <!-- Sidebar Information -->
             <div class="col-lg-4">
                 <!-- Payment Summary -->
@@ -421,6 +500,25 @@
             border-radius: 0.5rem;
             height: 100%;
             border-left: 4px solid #198754;
+        }
+
+        .transfer-detail-card {
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+            height: 100%;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .transfer-detail-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 0.375rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
         }
 
         .amount-display {

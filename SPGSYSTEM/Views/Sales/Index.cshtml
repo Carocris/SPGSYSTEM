@@ -127,6 +127,11 @@
                                                 </div>
                                                 <div>
                                                     <strong class="text-primary">@(sale.CustomerName ?? "Cliente no disponible")</strong>
+                                                    <br>
+                                                    <a asp-controller="Customers" asp-action="Details" asp-route-id="@sale.CustomerId" 
+                                                       class="btn btn-outline-primary btn-sm" title="Ver cliente">
+                                                        <i class="fas fa-user me-1"></i>Ver cliente
+                                                    </a>
                                                 </div>
                                             </div>
                                         </td>
@@ -350,19 +355,18 @@
             });
         }
 
-        function confirmDelete(saleId, saleIdText) {
+        function confirmDelete(saleId, saleNumber) {
             document.getElementById('deleteSaleId').value = saleId;
-            document.getElementById('saleIdToDelete').textContent = saleIdText;
+            document.getElementById('saleIdToDelete').textContent = saleNumber;
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
 
         function printSale(saleId) {
-            // Implementar funcionalidad de impresión
             window.open(`/Sales/Print/${saleId}`, '_blank');
         }
 
         function confirmCancelPayment(paymentId) {
-            if (confirm('¿Estás seguro de que deseas cancelar este pago?')) {
+            if (confirm('¿Estás seguro de que deseas cancelar este pago? Esta acción restaurará el stock de los productos.')) {
                 window.location.href = `/Payments/Cancel/${paymentId}`;
             }
         }

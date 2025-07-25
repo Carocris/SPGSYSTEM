@@ -134,11 +134,11 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
-                                                <a href="@Url.Action("Details", new { id = supplier.Id })" 
+                                                <a asp-action="Details" asp-route-id="@supplier.Id" 
                                                    class="btn btn-outline-info btn-sm" title="Ver Detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a href="@Url.Action("Edit", new { id = supplier.Id })" 
+                                                <a asp-action="Edit" asp-route-id="@supplier.Id" 
                                                    class="btn btn-outline-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>

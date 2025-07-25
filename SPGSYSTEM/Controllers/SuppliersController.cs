@@ -1,6 +1,7 @@
 using Application.Interfaces.Services;
 using Application.ViewModels.Supplier;
-using Application.ViewModels.SupplierPrice;
+using Application.ViewModels.SupplierPriceHistory;
+using Application.ViewModels.PurchaseOrder;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -10,13 +11,19 @@ namespace SPGSYSTEM.Controllers
     public class SuppliersController : Controller
     {
         private readonly ISupplierService _supplierService;
-        private readonly ISupplierPriceService _supplierPriceService;
+        private readonly ISupplierPriceHistoryService _supplierPriceHistoryService;
+        private readonly IPurchaseOrderService _purchaseOrderService;
         private readonly IMapper _mapper;
 
-        public SuppliersController(ISupplierService supplierService, ISupplierPriceService supplierPriceService, IMapper mapper)
+        public SuppliersController(
+            ISupplierService supplierService, 
+            ISupplierPriceHistoryService supplierPriceHistoryService,
+            IPurchaseOrderService purchaseOrderService,
+            IMapper mapper)
         {
             _supplierService = supplierService;
-            _supplierPriceService = supplierPriceService;
+            _supplierPriceHistoryService = supplierPriceHistoryService;
+            _purchaseOrderService = purchaseOrderService;
             _mapper = mapper;
         }
 
@@ -69,6 +76,10 @@ namespace SPGSYSTEM.Controllers
                 {
                     ViewBag.SupplierProducts = new List<object>();
                 }
+
+                // Inicializar ViewBags vacíos para evitar errores en la vista
+                ViewBag.SupplierPriceHistory = new List<object>();
+                ViewBag.SupplierPurchaseOrders = new List<object>();
                 
                 return View(viewModel);
             }
@@ -259,14 +270,12 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                var supplierPrices = await _supplierPriceService.GetBySupplierAsync(id);
-                var viewModels = _mapper.Map<List<SupplierPriceViewModel>>(supplierPrices);
-                
                 var supplierViewModel = _mapper.Map<SupplierViewModel>(supplier);
                 
-                ViewBag.SupplierPrices = viewModels;
-                ViewBag.AveragePrice = viewModels.Any() ? viewModels.Average(sp => sp.Price) : 0;
-                ViewBag.HighestPrice = viewModels.Any() ? viewModels.Max(sp => sp.Price) : 0;
+                // Inicializar ViewBags vacíos para evitar errores
+                ViewBag.SupplierPrices = new List<object>();
+                ViewBag.AveragePrice = 0;
+                ViewBag.HighestPrice = 0;
                 
                 return View(supplierViewModel);
             }

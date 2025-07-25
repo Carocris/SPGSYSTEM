@@ -15,5 +15,9 @@ namespace Application.ViewModels.Product
         [StringLength(200)]
         [Display(Name = "Motivo (Opcional)")]
         public string? Reason { get; set; }
+
+        [Display(Name = "Nuevo Precio de Compra (Opcional)")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0")]
+        public decimal? NewPurchasePrice { get; set; }
     }
 } 

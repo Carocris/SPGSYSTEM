@@ -196,8 +196,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <a href="@Url.Action("Edit", "Products", new { id = product.Id })" 
-                                               class="btn btn-sm btn-outline-primary">
+                                            <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-outline-primary">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         </td>

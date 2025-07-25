@@ -12,7 +12,9 @@ namespace Database.Contexts
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Supplier> Suppliers { get; set; }
-        public DbSet<SupplierPrice> SupplierPrices { get; set; }
+        public DbSet<SupplierPriceHistory> SupplierPriceHistories { get; set; }
+        public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+        public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleDetail> SaleDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
@@ -27,7 +29,9 @@ namespace Database.Contexts
             modelBuilder.Entity<Sale>().HasKey(s => s.Id);
             modelBuilder.Entity<SaleDetail>().HasKey(sd => sd.Id);
             modelBuilder.Entity<Payment>().HasKey(p => p.Id);
-            modelBuilder.Entity<SupplierPrice>().HasKey(sp => sp.Id);
+            modelBuilder.Entity<SupplierPriceHistory>().HasKey(sph => sph.Id);
+            modelBuilder.Entity<PurchaseOrder>().HasKey(po => po.Id);
+            modelBuilder.Entity<PurchaseOrderDetail>().HasKey(pod => pod.Id);
             #endregion
 
             #region Relationships
@@ -73,19 +77,40 @@ namespace Database.Contexts
                 .HasForeignKey(p => p.SupplierId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // SupplierPrice -> Supplier
-            modelBuilder.Entity<SupplierPrice>()
-                .HasOne(sp => sp.Supplier)
-                .WithMany(s => s.SupplierPrices)
-                .HasForeignKey(sp => sp.SupplierId)
+            // SupplierPriceHistory -> Supplier
+            modelBuilder.Entity<SupplierPriceHistory>()
+                .HasOne(sph => sph.Supplier)
+                .WithMany()
+                .HasForeignKey(sph => sph.SupplierId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // SupplierPrice -> Product
-            modelBuilder.Entity<SupplierPrice>()
-                .HasOne(sp => sp.Product)
-                .WithMany(p => p.SupplierPrices)
-                .HasForeignKey(sp => sp.ProductId)
+            // SupplierPriceHistory -> Product
+            modelBuilder.Entity<SupplierPriceHistory>()
+                .HasOne(sph => sph.Product)
+                .WithMany()
+                .HasForeignKey(sph => sph.ProductId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // PurchaseOrder -> Supplier
+            modelBuilder.Entity<PurchaseOrder>()
+                .HasOne(po => po.Supplier)
+                .WithMany()
+                .HasForeignKey(po => po.SupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // PurchaseOrderDetail -> PurchaseOrder
+            modelBuilder.Entity<PurchaseOrderDetail>()
+                .HasOne(pod => pod.PurchaseOrder)
+                .WithMany(po => po.Details)
+                .HasForeignKey(pod => pod.PurchaseOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // PurchaseOrderDetail -> Product
+            modelBuilder.Entity<PurchaseOrderDetail>()
+                .HasOne(pod => pod.Product)
+                .WithMany()
+                .HasForeignKey(pod => pod.ProductId)
+                .OnDelete(DeleteBehavior.Restrict);
             #endregion
 
             #region Property configurations
@@ -225,23 +250,6 @@ namespace Database.Contexts
             modelBuilder.Entity<Payment>()
                 .Property(p => p.TransferReceiptPath)
                 .HasMaxLength(255);
-
-            // SupplierPrice
-            modelBuilder.Entity<SupplierPrice>()
-                .Property(sp => sp.Price)
-                .HasColumnType("decimal(10,2)")
-                .IsRequired();
-            modelBuilder.Entity<SupplierPrice>()
-                .Property(sp => sp.Currency)
-                .HasMaxLength(20);
-            modelBuilder.Entity<SupplierPrice>()
-                .Property(sp => sp.Notes)
-                .HasMaxLength(500);
-
-            // Unique constraint for SupplierPrice (one price per supplier-product combination)
-            modelBuilder.Entity<SupplierPrice>()
-                .HasIndex(sp => new { sp.SupplierId, sp.ProductId })
-                .IsUnique();
             #endregion
         }
     }

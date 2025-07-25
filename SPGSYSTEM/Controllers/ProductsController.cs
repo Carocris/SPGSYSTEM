@@ -17,13 +17,20 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly ISupplierService _supplierService;
+        private readonly ISupplierPriceHistoryService _supplierPriceHistoryService;
         private readonly IMapper _mapper;
 
-        public ProductsController(IProductService productService, ICategoryService categoryService, ISupplierService supplierService, IMapper mapper)
+        public ProductsController(
+            IProductService productService, 
+            ICategoryService categoryService, 
+            ISupplierService supplierService,
+            ISupplierPriceHistoryService supplierPriceHistoryService,
+            IMapper mapper)
         {
             _productService = productService;
             _categoryService = categoryService;
             _supplierService = supplierService;
+            _supplierPriceHistoryService = supplierPriceHistoryService;
             _mapper = mapper;
         }
 
@@ -161,13 +168,26 @@ namespace SPGSYSTEM.Controllers
                 product.Category = null;
                 product.Supplier = null;
                 product.SaleDetails = null;
-                product.SupplierPrices = null;
                 
                 // Log para depuración
                 Console.WriteLine($"Creando producto: {product.Name}, Código: {product.Code}");
                 Console.WriteLine($"CategoryId: {product.CategoryId}, SupplierId: {product.SupplierId}");
                 
                 await _productService.CreateAsync(product);
+
+                // Registrar precio inicial si el producto tiene proveedor
+                if (product.SupplierId.HasValue && product.PurchasePrice > 0)
+                {
+                    await _supplierPriceHistoryService.CreateHistoryRecordAsync(
+                        product.SupplierId.Value,
+                        product.Id,
+                        0, // Precio anterior (0 para productos nuevos)
+                        product.PurchasePrice,
+                        "Sistema",
+                        $"Precio inicial establecido al crear el producto",
+                        "Creación de producto"
+                    );
+                }
 
                 TempData["Success"] = $"Producto '{product.Name}' creado exitosamente con {product.Stock} unidades en stock.";
                 return RedirectToAction(nameof(Index));
@@ -246,9 +266,55 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Guardar valores originales para comparar cambios
                 var originalStock = existing.Stock;
+                var originalPurchasePrice = existing.PurchasePrice;
+                var originalSalePrice = existing.SalePrice;
+
                 _mapper.Map(vm, existing);
                 await _productService.UpdateAsync(existing);
+
+                // Registrar cambios de precios si el producto tiene proveedor
+                if (existing.SupplierId.HasValue)
+                {
+                    var priceChanges = new List<string>();
+
+                    // Verificar cambio en precio de compra
+                    if (originalPurchasePrice != existing.PurchasePrice)
+                    {
+                        await _supplierPriceHistoryService.CreateHistoryRecordAsync(
+                            existing.SupplierId.Value,
+                            existing.Id,
+                            originalPurchasePrice,
+                            existing.PurchasePrice,
+                            "Sistema",
+                            $"Actualización de precio de compra desde la edición del producto",
+                            "Actualización manual"
+                        );
+                        priceChanges.Add($"Precio de compra: ${originalPurchasePrice:N2} → ${existing.PurchasePrice:N2}");
+                    }
+
+                    // Verificar cambio en precio de venta
+                    if (originalSalePrice != existing.SalePrice)
+                    {
+                        await _supplierPriceHistoryService.CreateHistoryRecordAsync(
+                            existing.SupplierId.Value,
+                            existing.Id,
+                            originalSalePrice,
+                            existing.SalePrice,
+                            "Sistema",
+                            $"Actualización de precio de venta desde la edición del producto",
+                            "Actualización manual"
+                        );
+                        priceChanges.Add($"Precio de venta: ${originalSalePrice:N2} → ${existing.SalePrice:N2}");
+                    }
+
+                    // Agregar mensaje sobre cambios de precios
+                    if (priceChanges.Any())
+                    {
+                        TempData["Info"] = $"Cambios de precios registrados: {string.Join(", ", priceChanges)}";
+                    }
+                }
 
                 var delta = existing.Stock - originalStock;
                 var stockMsg = delta > 0
@@ -319,10 +385,28 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var before = product.Stock;
+                var originalPurchasePrice = product.PurchasePrice;
+                
+                // Actualizar stock
                 product.Stock += model.QuantityToAdd;
+                
+                // Actualizar precio de compra si se especificó un valor válido
+                if (model.NewPurchasePrice.HasValue && model.NewPurchasePrice.Value > 0)
+                {
+                    product.PurchasePrice = model.NewPurchasePrice.Value;
+                }
+                
                 await _productService.UpdateAsync(product);
 
-                TempData["Success"] = $"Stock agregado exitosamente. {product.Name}: {before} → {product.Stock} unidades (+{model.QuantityToAdd})";
+                // Mensaje de éxito
+                var successMessage = $"Stock agregado exitosamente. {product.Name}: {before} → {product.Stock} unidades (+{model.QuantityToAdd})";
+                
+                if (model.NewPurchasePrice.HasValue && model.NewPurchasePrice.Value > 0 && model.NewPurchasePrice.Value != originalPurchasePrice)
+                {
+                    successMessage += $". Precio de compra actualizado: ${originalPurchasePrice:N2} → ${model.NewPurchasePrice.Value:N2}";
+                }
+
+                TempData["Success"] = successMessage;
                 return RedirectToAction(nameof(Details), new { id = model.ProductId });
             }
             catch (Exception ex)
