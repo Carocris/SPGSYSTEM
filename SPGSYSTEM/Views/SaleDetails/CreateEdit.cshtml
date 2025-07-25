@@ -74,7 +74,7 @@
                                 <select asp-for="SaleId"
                                         class="form-select form-select-lg"
                                         disabled>
-                                    <option value="">-- Selecciona una venta --</option>
+                                <option value="">-- Selecciona una venta --</option>
                                     @foreach (var sale in sales ?? Enumerable.Empty<Database.Entities.Sale>())
                                     {
                                         <option value="@sale.Id"
@@ -82,8 +82,8 @@
                                             Venta #@sale.Id.ToString("D4") -
                                             @sale.Customer.Name (@sale.SaleDate:dd/MM/yyyy)
                                         </option>
-                                    }
-                                </select>
+                                }
+                            </select>
                                 <input type="hidden" asp-for="SaleId" />
                                 <small class="text-muted">
                                     La venta no puede modificarse en un detalle existente

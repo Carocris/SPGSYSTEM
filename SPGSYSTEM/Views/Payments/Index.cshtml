@@ -273,36 +273,36 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var payment in Model)
-                                {
+                @foreach (var payment in Model)
+                {
                                     <tr class="payment-row" 
-                                        data-customer="@payment.CustomerName.ToLower()" 
-                                        data-sale="@payment.SaleNumber.ToLower()"
-                                        data-method="@payment.PaymentMethod.ToString().ToLower()"
-                                        data-amount="@payment.Amount"
-                                        data-date="@payment.PaymentDate.ToString("yyyy-MM-dd")">
+                         data-customer="@payment.CustomerName.ToLower()" 
+                         data-sale="@payment.SaleNumber.ToLower()"
+                         data-method="@payment.PaymentMethod.ToString().ToLower()"
+                         data-amount="@payment.Amount"
+                         data-date="@payment.PaymentDate.ToString("yyyy-MM-dd")">
                                         <td class="align-middle">
                                             <span class="badge bg-secondary">#@payment.Id</span>
                                         </td>
                                         <td class="align-middle">
-                                            <div>
+                                        <div>
                                                 <strong class="text-primary">@payment.SaleNumber</strong>
                                                 <br>
                                                 <small class="text-muted">@payment.SaleDate.ToString("dd/MM/yyyy")</small>
                                             </div>
                                         </td>
                                         <td class="align-middle">
-                                            <div class="d-flex align-items-center">
+                                        <div class="d-flex align-items-center">
                                                 <div class="avatar-sm bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
-                                                    <i class="fas fa-user"></i>
-                                                </div>
+                                                <i class="fas fa-user"></i>
+                                            </div>
                                                 <div class="text-truncate">
                                                     <strong class="d-block text-truncate" style="max-width: 150px;">@payment.CustomerName</strong>
                                                 </div>
                                             </div>
                                         </td>
                                         <td class="align-middle">
-                                            <div class="d-flex align-items-center">
+                                                <div class="d-flex align-items-center">
                                                 <div class="payment-icon me-2" style="font-size: 1.2em;">
                                                     @payment.PaymentMethodIcon
                                                 </div>
@@ -317,23 +317,23 @@
                                                                 <div class="transfer-detail">
                                                                     <i class="fas fa-hashtag text-info me-1"></i>
                                                                     <small class="text-info fw-medium">Ref: @payment.TransferReference</small>
-                                                                </div>
+                                            </div>
                                                             }
                                                             @if (!string.IsNullOrEmpty(payment.BankAccount))
                                                             {
                                                                 <div class="transfer-detail">
                                                                     <i class="fas fa-university text-primary me-1"></i>
                                                                     <small class="text-muted">Cuenta: @payment.BankAccount</small>
-                                                                </div>
+                                        </div>
                                                             }
                                                             @if (!string.IsNullOrEmpty(payment.TransferReceiptPath))
                                                             {
                                                                 <div class="transfer-detail">
                                                                     <i class="fas fa-image text-success me-1"></i>
                                                                     <small class="text-success">Comprobante disponible</small>
-                                                                </div>
+                                                    </div>
                                                             }
-                                                        </div>
+                                                    </div>
                                                     }
                                                 </div>
                                             </div>
@@ -343,16 +343,16 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a asp-action="CreateEdit" asp-route-id="@payment.Id" 
+                                        <a asp-action="CreateEdit" asp-route-id="@payment.Id" 
                                                    class="btn btn-outline-primary" 
                                                    title="Gestionar Pago">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
+                                            <i class="fas fa-edit"></i>
+                                        </a>
                                                 <a asp-action="Details" asp-route-id="@payment.Id" 
                                                    class="btn btn-outline-info" 
                                                    title="Ver Detalles">
                                                     <i class="fas fa-eye"></i>
-                                                </a>
+                                        </a>
                                                 @if (payment.Status == PaymentStatusType.Completed)
                                                 {
                                                     <button type="button" class="btn btn-outline-warning" 
@@ -364,9 +364,9 @@
                                                 <button type="button" class="btn btn-outline-danger" 
                                                         onclick="confirmDelete(@payment.Id)" 
                                                         title="Eliminar Pago">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
                                         </td>
                                     </tr>
                                 }
