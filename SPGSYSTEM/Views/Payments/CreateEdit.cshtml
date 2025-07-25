@@ -160,37 +160,6 @@
                                     <span asp-validation-for="PaymentDate" class="text-danger small"></span>
                                 </div>
 
-                                @* Payment Status *@
-                                <div class="col-md-6">
-                                    <label asp-for="Status" class="form-label fw-medium">
-                                        <i class="fas fa-info-circle text-info me-2"></i>Estado del Pago
-                            </label>
-                                    <select asp-for="Status" class="form-select" required id="statusSelect">
-                                        <option value="">-- Selecciona estado --</option>
-                                        @if (ViewBag.PaymentStatuses != null)
-                                        {
-                                            foreach (var status in ViewBag.PaymentStatuses)
-                                            {
-                                                <option value="@status">
-                                                    @switch(status.ToString())
-                                                    {
-                                                        case "Pending":
-                                                            <text>⏳ Pendiente</text>
-                                                            break;
-                                                        case "Completed":
-                                                            <text>✅ Completado</text>
-                                                            break;
-                                                        case "Cancelled":
-                                                            <text>❌ Cancelado</text>
-                                                            break;
-                                                    }
-                                                </option>
-                                            }
-                                        }
-                                    </select>
-                                    <span asp-validation-for="Status" class="text-danger small"></span>
-                                </div>
-
                                 @* Reference Number (for Card/Transfer) *@
                                 <div class="col-md-6" id="referenceSection" style="display: none;">
                                     <label class="form-label fw-medium">
@@ -488,7 +457,6 @@
     <style>
         .sale-info {
             transition: all 0.3s ease;
-        }
         
         .form-control:focus, .form-select:focus {
             border-color: var(--bs-success);
@@ -501,3 +469,4 @@
         }
     </style>
 } 
+}

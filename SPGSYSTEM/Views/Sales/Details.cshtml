@@ -198,115 +198,91 @@
                         </h6>
                     </div>
                     <div class="card-body">
-                        @if (Model.Payment != null)
-                        {
-                            @if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Transfer)
+                        <div class="payment-method-display mb-3 text-center">
+                            @if (Model.Payment != null)
                             {
-                                <!-- Transfer Information -->
-                                <div class="transfer-payment-info">
-                                    <div class="row">
+                                <div class="mb-3">
+                                    <small class="text-muted">Método: @Model.Payment.PaymentMethodName</small>
+                                </div>
+                                
+                                @if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Transfer)
+                                {
+                                    <div class="transfer-info">
                                         @if (!string.IsNullOrEmpty(Model.Payment.TransferReference))
                                         {
-                                            <div class="col-md-6 mb-3">
-                                                <div class="transfer-detail-item">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="fas fa-hashtag text-info me-2"></i>
-                                                        <strong>Número de Referencia:</strong>
-                                                    </div>
-                                                    <div class="transfer-value">
-                                                        <span class="text-info fw-bold">@Model.Payment.TransferReference</span>
-                                                    </div>
-                                                </div>
+                                            <div class="mb-2">
+                                                <small class="text-info">
+                                                    <i class="fas fa-hashtag me-1"></i>Ref: @Model.Payment.TransferReference
+                                                </small>
                                             </div>
                                         }
                                         @if (!string.IsNullOrEmpty(Model.Payment.BankAccount))
                                         {
-                                            <div class="col-md-6 mb-3">
-                                                <div class="transfer-detail-item">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="fas fa-university text-primary me-2"></i>
-                                                        <strong>Cuenta Bancaria:</strong>
-                                                    </div>
-                                                    <div class="transfer-value">
-                                                        <span class="text-primary fw-bold">@Model.Payment.BankAccount</span>
-                                                    </div>
-                                                </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-university me-1"></i>Cuenta: @Model.Payment.BankAccount
+                                                </small>
                                             </div>
                                         }
                                         @if (!string.IsNullOrEmpty(Model.Payment.TransferReceiptPath))
                                         {
-                                            <div class="col-12 mb-3">
-                                                <div class="transfer-detail-item">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <i class="fas fa-image text-success me-2"></i>
-                                                        <strong>Comprobante de Transferencia:</strong>
-                                                    </div>
-                                                    <div class="transfer-receipt">
-                                                        <img src="@Model.Payment.TransferReceiptPath" 
-                                                             alt="Comprobante de Transferencia" 
-                                                             class="img-fluid rounded" 
-                                                             style="max-height: 200px; max-width: 100%;" />
-                                                    </div>
-                                                </div>
+                                            <div class="mb-2">
+                                                <small class="text-success">
+                                                    <i class="fas fa-image me-1"></i>Comprobante disponible
+                                                </small>
+                                            </div>
+                                            <div class="transfer-receipt mt-3">
+                                                <img src="@Model.Payment.TransferReceiptPath" 
+                                                     alt="Comprobante de Transferencia" 
+                                                     class="img-fluid rounded" 
+                                                     style="max-height: 200px; max-width: 100%;" />
+                                                <small class="text-muted d-block mt-1">Comprobante de pago</small>
                                             </div>
                                         }
                                     </div>
-                                    
-                                    <hr class="my-3">
-                                    
-                                    <div class="payment-summary">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted">Método de Pago:</span>
-                                            <span class="fw-medium">@Model.Payment.PaymentMethodName</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted">Estado:</span>
-                                            <span class="badge @Model.PaymentStatusBadgeClass">@Model.PaymentStatusDisplay</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="text-muted">Monto Pagado:</span>
-                                            <span class="fw-bold text-success h5 mb-0">$@Model.TotalAmount.ToString("N2")</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <span class="text-muted">Fecha de Pago:</span>
-                                            <span class="fw-medium">@Model.Payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</span>
-                                        </div>
+                                }
+                                else if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Card)
+                                {
+                                    <div class="card-info">
+                                        @if (!string.IsNullOrEmpty(Model.Payment.CardNumber))
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-primary">
+                                                    <i class="fas fa-credit-card me-1"></i>**** **** **** @Model.Payment.CardNumber.Substring(Math.Max(0, Model.Payment.CardNumber.Length - 4))
+                                                </small>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Payment.CardHolderName))
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user me-1"></i>@Model.Payment.CardHolderName
+                                                </small>
+                                            </div>
+                                        }
                                     </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <!-- Other Payment Methods -->
-                                <div class="payment-method-display mb-3 text-center">
-                                    <span class="badge @Model.PaymentStatusBadgeClass fs-6">
-                                        @Model.PaymentStatusDisplay
-                                    </span>
-                                    <div class="mt-3">
-                                        <small class="text-muted">Método: @Model.Payment.PaymentMethodName</small>
+                                }
+                                else if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Cash)
+                                {
+                                    <div class="cash-info">
+                                        <small class="text-success">
+                                            <i class="fas fa-money-bill-wave me-1"></i>Pago en efectivo
+                                        </small>
                                     </div>
-                                </div>
-                                
-                                <hr class="my-3">
-                                
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">Monto Pagado:</span>
-                                    <span class="fw-bold text-success h5 mb-0">$@Model.TotalAmount.ToString("N2")</span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-muted">Fecha de Pago:</span>
-                                    <span class="fw-medium">@Model.Payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</span>
-                                </div>
+                                }
                             }
-                        }
-                        else
-                        {
-                            <!-- No Payment -->
-                            <div class="text-center py-3">
-                                <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
-                                <h6 class="text-warning">Sin Pago Registrado</h6>
-                                <p class="text-muted mb-0">Esta venta no tiene un pago asociado.</p>
-                            </div>
-                        }
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Monto Pagado:</span>
+                            <span class="fw-bold text-success h5 mb-0">$@Model.TotalAmount.ToString("N2")</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Fecha de Pago:</span>
+                            <span class="fw-medium">@(Model.Payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm") ?? Model.SaleDate.ToString("dd/MM/yyyy HH:mm"))</span>
+                        </div>
                     </div>
                 </div>
 
@@ -381,7 +357,6 @@
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
         function confirmDelete(saleId, saleNumber) {
@@ -391,90 +366,117 @@
         }
 
         function downloadPDF() {
-            // Implementar descarga de PDF
-            alert('Función de descarga de PDF en desarrollo');
+            // Future implementation for PDF download
+            alert('Función de descarga PDF no implementada aún.');
         }
+
+        // Print functionality
+        window.addEventListener('beforeprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'none';
+            document.querySelectorAll('.btn').forEach(btn => {
+                if (!btn.closest('.modal')) {
+                    btn.style.display = 'none';
+                }
+            });
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.querySelector('.d-flex.gap-2').style.display = 'flex';
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.style.display = '';
+            });
+        });
+
+        // Add some interactive effects
+        document.querySelectorAll('.card').forEach(function(card) {
+            card.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('no-hover')) {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'transform 0.3s ease';
+                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                }
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+        });
     </script>
 
     <style>
-        .transfer-payment-info {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
+        .card-header.bg-gradient {
+            background: linear-gradient(45deg, #28a745, #20c997) !important;
         }
 
-        .transfer-detail-item {
-            background: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-left: 4px solid #17a2b8;
+        .sale-icon-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
         }
 
-        .transfer-value {
-            font-size: 1.1rem;
-            padding: 0.5rem 0;
+        .customer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bs-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
         }
 
-        .transfer-receipt {
-            text-align: center;
-            padding: 1rem;
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .transfer-receipt img {
-            border: 2px solid #dee2e6;
-            border-radius: 0.5rem;
-        }
-
-        .payment-summary {
-            background: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .product-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 0.375rem;
+            background: var(--bs-info);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
         }
 
         .payment-method-display {
-            background: linear-gradient(135deg, #d1e7dd 0%, #badbcc 100%);
+            padding: 1rem;
             border-radius: 0.5rem;
-            padding: 1.5rem;
+            background: rgba(var(--bs-light-rgb), 0.5);
         }
 
-        .badge {
-            font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-        }
+        @@media print {
+            .btn, .modal, .alert {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
 
-        .card {
-            transition: transform 0.2s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn {
-            transition: all 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
+            .card-header {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
         }
 
         @@media (max-width: 768px) {
-            .transfer-payment-info {
-                padding: 1rem;
+            .d-flex.gap-2 {
+                flex-direction: column;
             }
             
-            .transfer-detail-item {
-                padding: 0.75rem;
+            .btn {
+                margin-bottom: 0.5rem;
             }
-            
-            .transfer-value {
-                font-size: 1rem;
+
+            .table-responsive {
+                font-size: 0.875rem;
             }
         }
     </style>
@@ -509,4 +511,5 @@
         document.getElementById('downloadReceiptBtn').href = imagePath;
         new bootstrap.Modal(document.getElementById('receiptModal')).show();
     }
+</script> 
 </script> 

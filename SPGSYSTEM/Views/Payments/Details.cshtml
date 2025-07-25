@@ -60,7 +60,7 @@
                                 </div>
                                 <div>
                                     <h4 class="card-title mb-0">@GetPaymentMethodName(Model.PaymentMethod)</h4>
-                                    <small class="opacity-75">Pago ID: #@Model.Id | Estado: @Model.PaymentStatus</small>
+                                    <small class="opacity-75">Pago ID: #@Model.Id</small>
                                 </div>
                             </div>
                             <div class="text-end">
@@ -178,29 +178,155 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Method Specific Information -->
+            @if (Model.PaymentMethod == Database.Enum.PaymentMethodType.Cash)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-money-bill-wave me-2"></i>Información de Pago en Efectivo
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="payment-detail-card">
                                     <div class="d-flex align-items-center mb-3">
-                                        <div class="payment-detail-icon bg-warning me-3">
-                                            <i class="fas fa-check-circle"></i>
+                                        <div class="payment-detail-icon bg-success me-3">
+                                            <i class="fas fa-money-bill"></i>
                                         </div>
                                         <div>
-                                            <h6 class="mb-1">Estado del Pago</h6>
-                                            <small class="text-muted">Estado actual</small>
+                                            <h6 class="mb-1">Monto Recibido</h6>
+                                            <small class="text-muted">Cantidad entregada</small>
                                         </div>
                                     </div>
                                     <div class="payment-detail-content">
-                                        <span class="badge bg-success fs-6 px-3 py-2">
-                                            <i class="fas fa-check me-1"></i>@Model.PaymentStatus
-                                        </span>
-                                        <p class="text-muted mb-0 mt-2">Pago procesado exitosamente</p>
+                                        <h5 class="mb-1 text-success">$@Model.Amount.ToString("N2")</h5>
+                                        <p class="text-muted mb-0">Pago en efectivo</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="payment-detail-card">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="payment-detail-icon bg-success me-3">
+                                            <i class="fas fa-hand-holding-usd"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">Método de Pago</h6>
+                                            <small class="text-muted">Forma de pago</small>
+                                        </div>
+                                    </div>
+                                    <div class="payment-detail-content">
+                                        <h5 class="mb-1">Efectivo</h5>
+                                        <p class="text-muted mb-0">Pago en moneda local</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
+
+            @if (Model.PaymentMethod == Database.Enum.PaymentMethodType.Card)
+            {
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-credit-card me-2"></i>Información de Pago con Tarjeta
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-4">
+                            @if (!string.IsNullOrEmpty(Model.CardNumber))
+                            {
+                                <div class="col-md-6">
+                                    <div class="payment-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-detail-icon bg-primary me-3">
+                                                <i class="fas fa-credit-card"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Número de Tarjeta</h6>
+                                                <small class="text-muted">Últimos 4 dígitos</small>
+                                            </div>
+                                        </div>
+                                        <div class="payment-detail-content">
+                                            <h5 class="mb-1 text-primary">**** **** **** @Model.CardNumber.Substring(Math.Max(0, Model.CardNumber.Length - 4))</h5>
+                                            <p class="text-muted mb-0">Tarjeta de crédito/débito</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.CardHolderName))
+                            {
+                                <div class="col-md-6">
+                                    <div class="payment-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-detail-icon bg-info me-3">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Titular de la Tarjeta</h6>
+                                                <small class="text-muted">Nombre del titular</small>
+                                            </div>
+                                        </div>
+                                        <div class="payment-detail-content">
+                                            <h5 class="mb-1">@Model.CardHolderName</h5>
+                                            <p class="text-muted mb-0">Titular de la cuenta</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.CardExpiryDate))
+                            {
+                                <div class="col-md-6">
+                                    <div class="payment-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-detail-icon bg-warning me-3">
+                                                <i class="fas fa-calendar"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">Fecha de Expiración</h6>
+                                                <small class="text-muted">MM/YY</small>
+                                            </div>
+                                        </div>
+                                        <div class="payment-detail-content">
+                                            <h5 class="mb-1">@Model.CardExpiryDate</h5>
+                                            <p class="text-muted mb-0">Fecha de vencimiento</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.CardCVV))
+                            {
+                                <div class="col-md-6">
+                                    <div class="payment-detail-card">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="payment-detail-icon bg-secondary me-3">
+                                                <i class="fas fa-shield-alt"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1">CVV</h6>
+                                                <small class="text-muted">Código de seguridad</small>
+                                            </div>
+                                        </div>
+                                        <div class="payment-detail-content">
+                                            <h5 class="mb-1">***</h5>
+                                            <p class="text-muted mb-0">Código de verificación</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
 
             <!-- Transfer Information (only for Transfer payments) -->
             @if (Model.PaymentMethod == Database.Enum.PaymentMethodType.Transfer)
