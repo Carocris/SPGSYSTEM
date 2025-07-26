@@ -5,6 +5,8 @@ using Database.Entities;
 using Database.Enum;
 using Microsoft.AspNetCore.Mvc;
 using SPGSYSTEM.Helpers;
+using Microsoft.AspNetCore.Hosting;
+using System.IO;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -15,19 +17,22 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly ICustomerService _customerService;
         private readonly IMapper _mapper;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public PaymentsController(
             IPaymentService paymentService,
             ISaleService saleService,
             IProductService productService,
             ICustomerService customerService,
-            IMapper mapper)
+            IMapper mapper,
+            IWebHostEnvironment webHostEnvironment)
         {
             _paymentService = paymentService;
             _saleService = saleService;
             _productService = productService;
             _customerService = customerService;
             _mapper = mapper;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: Payments
@@ -113,7 +118,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/CreateEdit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(PaymentSaveViewModel model, int? id = null)
+        public async Task<IActionResult> CreateEdit(PaymentSaveViewModel model, int? id, IFormFile transferReceiptFile)
         {
             try
             {
@@ -176,12 +181,23 @@ namespace SPGSYSTEM.Controllers
                         }
                     }
 
-                // Actualizar pago existente
-                existingPayment.PaymentMethod = model.PaymentMethod;
-                existingPayment.Amount = model.Amount;
-                existingPayment.PaymentDate = model.PaymentDate;
-                existingPayment.Status = model.Status;
+                // Procesar la subida del archivo si es una transferencia
+                if (model.PaymentMethod == PaymentMethodType.Transfer && transferReceiptFile != null)
+                {
+                    if (!string.IsNullOrEmpty(existingPayment.TransferReceiptPath))
+                    {
+                        var oldPath = Path.Combine(_webHostEnvironment.WebRootPath, existingPayment.TransferReceiptPath.TrimStart('/'));
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            System.IO.File.Delete(oldPath);
+                        }
+                    }
+                    model.TransferReceiptPath = await UploadReceiptFile(transferReceiptFile);
+                }
 
+                // Actualizar pago existente
+                _mapper.Map(model, existingPayment);
+                
                 await _paymentService.UpdateAsync(existingPayment);
 
                 // Manejar actualización de stock según el estado
@@ -381,6 +397,16 @@ namespace SPGSYSTEM.Controllers
                     TempData["Error"] = "Pago no encontrado.";
                     return RedirectToAction(nameof(Index));
                 }
+                
+                // Si es transferencia, eliminar el comprobante
+                if (!string.IsNullOrEmpty(payment.TransferReceiptPath))
+                {
+                    var filePath = Path.Combine(_webHostEnvironment.WebRootPath, payment.TransferReceiptPath.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
 
                 // Restore stock when payment is deleted
                 var sale = await _saleService.GetFullSaleAsync(payment.SaleId);
@@ -556,6 +582,28 @@ namespace SPGSYSTEM.Controllers
                 PaymentStatusType.Cancelled => "Cancelado",
                 _ => status.ToString()
             };
+        }
+        
+        private async Task<string> UploadReceiptFile(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return null;
+
+            var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "transfer-receipts");
+            if (!Directory.Exists(uploadFolder))
+            {
+                Directory.CreateDirectory(uploadFolder);
+            }
+
+            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var filePath = Path.Combine(uploadFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return $"/uploads/transfer-receipts/{fileName}";
         }
     }
 } 
