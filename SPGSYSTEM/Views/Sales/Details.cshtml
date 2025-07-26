@@ -4,320 +4,426 @@
     ViewData["Title"] = "Detalles de la Venta";
 }
 
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <!-- Header -->
-        <div class="d-flex align-items-center mb-4">
-            <a asp-action="Index" class="btn btn-outline-secondary me-3" title="Volver al listado">
-                <i class="fas fa-arrow-left"></i>
-            </a>
-            <div class="flex-grow-1">
-                <h2 class="h3 text-info mb-1">
-                    <i class="fas fa-receipt me-2"></i>Detalles de la Venta
-                </h2>
-                <p class="text-muted mb-0">Información completa de la venta #@Model.Id.ToString("D4")</p>
+<div class="container-fluid px-4 py-3">
+    <!-- Header con navegación mejorada -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb bg-transparent p-0">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" class="text-decoration-none">
+                            <i class="fas fa-list me-1"></i>Ventas
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-receipt me-1"></i>Venta #@Model.Id.ToString("D4")
+                    </li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center">
+                    <div class="sale-status-badge me-3">
+                        <i class="fas fa-check-circle text-success"></i>
+                    </div>
+                    <div>
+                        <h1 class="h2 mb-1 text-dark">Venta #@Model.Id.ToString("D4")</h1>
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            @Model.SaleDate.ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm")
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                        <i class="fas fa-edit me-1"></i>Editar
+                    </a>
+                    <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i>Imprimir
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" 
+                            onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
+                        <i class="fas fa-trash me-1"></i>Eliminar
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Alert Messages -->
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- Alertas mejoradas -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>@TempData["Success"]</span>
             </div>
-        }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Error"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <span>@TempData["Error"]</span>
             </div>
-        }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-        <div class="row">
-            <!-- Main Sale Information -->
-            <div class="col-lg-8">
-                <!-- Sale Header -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-gradient bg-success text-white py-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <div class="sale-icon-large me-3">
+    <div class="row g-4">
+        <!-- Columna principal -->
+        <div class="col-lg-8">
+            <!-- Tarjeta de resumen principal -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="sale-icon me-3">
                                     <i class="fas fa-shopping-cart"></i>
                                 </div>
                                 <div>
-                                    <h4 class="card-title mb-0">Venta #@Model.Id.ToString("D4")</h4>
-                                    <small class="opacity-75">@Model.SaleDate.ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm")</small>
+                                    <h3 class="mb-1 text-dark">Resumen de Venta</h3>
+                                    <p class="text-muted mb-0">@Model.Details.Count() producto@(Model.Details.Count() != 1 ? "s" : "") vendido@(Model.Details.Count() != 1 ? "s" : "")</p>
                                 </div>
                             </div>
-                            <div class="text-end">
-                                <h3 class="mb-0">$@Model.TotalAmount.ToString("N2")</h3>
-                                <small class="opacity-75">Total</small>
-                            </div>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Customer Information -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-user me-2"></i>Información del Cliente
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-8">
-                                <div class="d-flex align-items-center">
-                                    <div class="customer-avatar me-3">
-                                        <i class="fas fa-user"></i>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1">@Model.CustomerName</h5>
-                                        <small class="text-muted">Cliente de la venta</small>
-                                    </div>
-                                </div>
+                        <div class="col-md-4 text-end">
+                            <div class="total-amount">
+                                <span class="h2 text-success mb-0">$@Model.TotalAmount.ToString("N2")</span>
+                                <p class="text-muted mb-0 small">Total de la venta</p>
                             </div>
-                            <div class="col-md-4 text-end">
-                                <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId" 
-                                   class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye me-1"></i>Ver Cliente
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Products Details -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-boxes me-2"></i>Productos Vendidos
-                        </h6>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th class="border-0">Producto</th>
-                                        <th class="border-0 text-center">Cantidad</th>
-                                        <th class="border-0 text-end">Precio Unit.</th>
-                                        <th class="border-0 text-end">Subtotal</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var detail in Model.Details)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="product-icon me-3">
-                                                        <i class="fas fa-box"></i>
-                                                    </div>
-                                                    <div>
-                                                        <span class="fw-medium">@detail.ProductName</span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="text-center">
-                                                <span class="badge bg-primary rounded-pill">@detail.Quantity</span>
-                                            </td>
-                                            <td class="text-end">
-                                                @{
-                                                    var unitPrice = detail.Subtotal / detail.Quantity;
-                                                }
-                                                <span class="text-muted">$@unitPrice.ToString("N2")</span>
-                                            </td>
-                                            <td class="text-end">
-                                                <span class="fw-bold text-success">$@detail.Subtotal.ToString("N2")</span>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                                <tfoot>
-                                    <tr class="table-light">
-                                        <th colspan="3" class="text-end border-0">Total de la Venta:</th>
-                                        <th class="text-end border-0">
-                                            <span class="h5 text-success mb-0">$@Model.TotalAmount.ToString("N2")</span>
-                                        </th>
-                                    </tr>
-                                </tfoot>
-                            </table>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Sidebar Information -->
-            <div class="col-lg-4">
-                <!-- Sale Summary -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-info-circle me-2"></i>Resumen de la Venta
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-unstyled mb-0">
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted">ID de Venta:</span>
-                                <span class="fw-medium">#@Model.Id.ToString("D4")</span>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted">Fecha:</span>
-                                <span class="fw-medium">@Model.SaleDate.ToString("dd/MM/yyyy")</span>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted">Hora:</span>
-                                <span class="fw-medium">@Model.SaleDate.ToString("HH:mm")</span>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted">Cliente:</span>
-                                <span class="fw-medium">@Model.CustomerName</span>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center py-2 border-bottom">
-                                <span class="text-muted">Productos:</span>
-                                <span class="fw-medium">@Model.Details.Count() artículo(s)</span>
-                            </li>
-                            <li class="d-flex justify-content-between align-items-center py-2">
-                                <span class="text-muted">Total:</span>
-                                <span class="fw-bold text-success">$@Model.TotalAmount.ToString("N2")</span>
-                            </li>
-                        </ul>
+            <!-- Información del cliente -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-user me-2 text-primary"></i>Cliente
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center">
+                                <div class="customer-avatar me-3">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 fw-bold">@Model.CustomerName</h6>
+                                    <small class="text-muted">Cliente de la venta</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="#" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>Ver Cliente
+                            </a>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Payment Information -->
-                <div class="card shadow-sm border-0 mb-4">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-credit-card me-2"></i>Información de Pago
-                        </h6>
+            <!-- Lista de productos -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-boxes me-2 text-primary"></i>Productos Vendidos
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="border-0 ps-4">Producto</th>
+                                    <th class="border-0 text-center">Cantidad</th>
+                                    <th class="border-0 text-end">Precio Unit.</th>
+                                    <th class="border-0 text-end pe-4">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var detail in Model.Details)
+                                {
+                                    <tr>
+                                        <td class="ps-4">
+                                            <div class="d-flex align-items-center">
+                                                <div class="product-icon me-3">
+                                                    <i class="fas fa-box"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="fw-medium">@detail.ProductName</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="badge bg-primary rounded-pill">@detail.Quantity</span>
+                                        </td>
+                                        <td class="text-end">
+                                            <span class="text-muted">$@(detail.Subtotal / detail.Quantity).ToString("N2")</span>
+                                        </td>
+                                        <td class="text-end pe-4">
+                                            <span class="fw-bold text-success">$@detail.Subtotal</span>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <th colspan="3" class="text-end border-0 ps-4">Total de la Venta:</th>
+                                    <th class="text-end border-0 pe-4">
+                                        <span class="h5 text-success mb-0">$@Model.TotalAmount.ToString("N2")</span>
+                                    </th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar mejorado -->
+        <div class="col-lg-4">
+            <!-- Información de pago -->
+            @if (Model.Payment != null)
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h5 class="mb-0 text-dark">
+                            <i class="fas fa-credit-card me-2 text-primary"></i>Pago
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <div class="payment-method-display mb-3 text-center">
-                            @if (Model.Payment != null)
-                            {
-                                <div class="mb-3">
-                                    <small class="text-muted">Método: @Model.Payment.PaymentMethodName</small>
-                                </div>
-                                
-                                @if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Transfer)
-                                {
-                                    <div class="transfer-info">
-                                        @if (!string.IsNullOrEmpty(Model.Payment.TransferReference))
-                                        {
-                                            <div class="mb-2">
-                                                <small class="text-info">
-                                                    <i class="fas fa-hashtag me-1"></i>Ref: @Model.Payment.TransferReference
-                                                </small>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(Model.Payment.BankAccount))
-                                        {
-                                            <div class="mb-2">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-university me-1"></i>Cuenta: @Model.Payment.BankAccount
-                                                </small>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(Model.Payment.TransferReceiptPath))
-                                        {
-                                            <div class="mb-2">
-                                                <small class="text-success">
-                                                    <i class="fas fa-image me-1"></i>Comprobante disponible
-                                                </small>
-                                            </div>
-                                            <div class="transfer-receipt mt-3">
-                                                <img src="@Model.Payment.TransferReceiptPath" 
-                                                     alt="Comprobante de Transferencia" 
-                                                     class="img-fluid rounded" 
-                                                     style="max-height: 200px; max-width: 100%;" />
-                                                <small class="text-muted d-block mt-1">Comprobante de pago</small>
-                                            </div>
-                                        }
+                        @switch(Model.Payment.PaymentMethod.ToString())
+                        {
+                            case "Cash":
+                                <div class="payment-method-card text-center p-3 mb-3">
+                                    <div class="payment-icon-large text-success mb-3">
+                                        <i class="fas fa-money-bill-wave"></i>
                                     </div>
-                                }
-                                else if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Card)
-                                {
-                                    <div class="card-info">
+                                    <h6 class="mb-1">Pago en Efectivo</h6>
+                                    <p class="text-muted small mb-0">Pago realizado en efectivo</p>
+                                </div>
+                                break;
+                                
+                            case "Card":
+                                <div class="payment-method-card text-center p-3 mb-3">
+                                    <div class="payment-icon-large text-primary mb-3">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <h6 class="mb-1">Pago con Tarjeta</h6>
+                                    <div class="card-details mt-3 text-start">
                                         @if (!string.IsNullOrEmpty(Model.Payment.CardNumber))
                                         {
                                             <div class="mb-2">
-                                                <small class="text-primary">
-                                                    <i class="fas fa-credit-card me-1"></i>**** **** **** @Model.Payment.CardNumber.Substring(Math.Max(0, Model.Payment.CardNumber.Length - 4))
-                                                </small>
+                                                <small class="text-muted">Número:</small>
+                                                <div class="fw-medium">**** **** **** @Model.Payment.CardNumber.Substring(Math.Max(0, Model.Payment.CardNumber.Length - 4))</div>
                                             </div>
                                         }
                                         @if (!string.IsNullOrEmpty(Model.Payment.CardHolderName))
                                         {
                                             <div class="mb-2">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-user me-1"></i>@Model.Payment.CardHolderName
-                                                </small>
+                                                <small class="text-muted">Titular:</small>
+                                                <div class="fw-medium">@Model.Payment.CardHolderName</div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Payment.CardExpiryDate))
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-muted">Vencimiento:</small>
+                                                <div class="fw-medium">@Model.Payment.CardExpiryDate</div>
                                             </div>
                                         }
                                     </div>
-                                }
-                                else if (Model.Payment.PaymentMethod == Database.Enum.PaymentMethodType.Cash)
-                                {
-                                    <div class="cash-info">
-                                        <small class="text-success">
-                                            <i class="fas fa-money-bill-wave me-1"></i>Pago en efectivo
-                                        </small>
+                                </div>
+                                break;
+                                
+                            case "Transfer":
+                                <div class="payment-method-card text-center p-3 mb-3">
+                                    <div class="payment-icon-large text-info mb-3">
+                                        <i class="fas fa-exchange-alt"></i>
                                     </div>
-                                }
-                            }
-                        </div>
+                                    <h6 class="mb-1">Transferencia Bancaria</h6>
+                                    
+                                    <!-- Información bancaria -->
+                                    <div class="alert alert-info mt-3 mb-3 text-start">
+                                        <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Datos Bancarios:</h6>
+                                        <div class="small">
+                                            <strong>Banco:</strong> Banco Nacional<br>
+                                            <strong>Cuenta:</strong> 123-456-789-012<br>
+                                            <strong>Beneficiario:</strong> SPG SYSTEM
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="transfer-details mt-3 text-start">
+                                        @if (!string.IsNullOrEmpty(Model.Payment.TransferReference))
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-muted">Referencia:</small>
+                                                <div class="fw-medium text-primary">@Model.Payment.TransferReference</div>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(Model.Payment.BankAccount))
+                                        {
+                                            <div class="mb-2">
+                                                <small class="text-muted">Banco Origen:</small>
+                                                <div class="fw-medium">@Model.Payment.BankAccount</div>
+                                            </div>
+                                        }
+                                        
+                                        <!-- Comprobante de transferencia -->
+                                        @if (!string.IsNullOrEmpty(Model.Payment.TransferReceiptPath))
+                                        {
+                                            <div class="mt-3">
+                                                <small class="text-muted d-block mb-2">Comprobante:</small>
+                                                <div class="receipt-container">
+                                                    <img src="@Url.Content(Model.Payment.TransferReceiptPath)" 
+                                                         alt="Comprobante de transferencia" 
+                                                         class="receipt-image img-fluid rounded border" 
+                                                         onclick="window.open('@Url.Content(Model.Payment.TransferReceiptPath)', '_blank')" 
+                                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                                    <div class="alert alert-warning mt-2" style="display: none;">
+                                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                                        Error cargando la imagen
+                                                    </div>
+                                                </div>
+                                                <div class="mt-2 d-flex gap-1">
+                                                    <a href="@Url.Content(Model.Payment.TransferReceiptPath)" 
+                                                       target="_blank" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-external-link-alt me-1"></i>Ver
+                                                    </a>
+                                                    <a href="@Url.Content(Model.Payment.TransferReceiptPath)" 
+                                                       download 
+                                                       class="btn btn-sm btn-outline-secondary">
+                                                        <i class="fas fa-download me-1"></i>Descargar
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="mt-3">
+                                                <div class="alert alert-warning text-center">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                                    Sin comprobante
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                break;
+                        }
                         
                         <hr class="my-3">
                         
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted">Monto Pagado:</span>
-                            <span class="fw-bold text-success h5 mb-0">$@Model.TotalAmount.ToString("N2")</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted">Monto:</span>
+                            <span class="fw-bold text-success">$@Model.TotalAmount.ToString("N2")</span>
                         </div>
+                        
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted">Fecha de Pago:</span>
-                            <span class="fw-medium">@(Model.Payment?.PaymentDate.ToString("dd/MM/yyyy HH:mm") ?? Model.SaleDate.ToString("dd/MM/yyyy HH:mm"))</span>
+                            <span class="text-muted">Fecha:</span>
+                            <span class="fw-medium">@Model.Payment.PaymentDate.ToString("dd/MM/yyyy HH:mm")</span>
                         </div>
                     </div>
                 </div>
-
-                <!-- Quick Actions -->
-                <div class="card shadow-sm border-0">
-                    <div class="card-header bg-light">
-                        <h6 class="card-title mb-0 text-muted">
-                            <i class="fas fa-bolt me-2"></i>Acciones Rápidas
-                        </h6>
+            }
+            else
+            {
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light border-0">
+                        <h5 class="mb-0 text-dark">
+                            <i class="fas fa-credit-card me-2 text-primary"></i>Pago
+                        </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-2">
-                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-outline-warning">
-                                <i class="fas fa-edit me-2"></i>Editar Venta
-                            </a>
-                            <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-outline-success">
+                    <div class="card-body text-center">
+                        <div class="alert alert-warning border-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Sin pago procesado
+                        </div>
+                        <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" 
+                           class="btn btn-success btn-sm">
+                            <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                        </a>
+                    </div>
+                </div>
+            }
+
+            <!-- Resumen de la venta -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-info-circle me-2 text-primary"></i>Resumen
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="summary-list">
+                        <div class="summary-item">
+                            <span class="text-muted">ID:</span>
+                            <span class="fw-medium">#@Model.Id.ToString("D4")</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-muted">Fecha:</span>
+                            <span class="fw-medium">@Model.SaleDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-muted">Hora:</span>
+                            <span class="fw-medium">@Model.SaleDate.ToString("HH:mm")</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-muted">Productos:</span>
+                            <span class="fw-medium">@Model.Details.Count() artículo(s)</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="text-muted">Total:</span>
+                            <span class="fw-bold text-success">$@Model.TotalAmount.ToString("N2")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light border-0">
+                    <h5 class="mb-0 text-dark">
+                        <i class="fas fa-bolt me-2 text-primary"></i>Acciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit me-2"></i>Editar Venta
+                        </a>
+                        @if (Model.Payment == null)
+                        {
+                            <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-success btn-sm">
                                 <i class="fas fa-credit-card me-2"></i>Procesar Pago
                             </a>
-                            <a asp-controller="Payments" asp-action="Index" class="btn btn-outline-primary">
-                                <i class="fas fa-credit-card me-2"></i>Ver Pagos
+                        }
+                        else
+                        {
+                            <a asp-controller="Payments" asp-action="Details" asp-route-id="@Model.Payment.Id" class="btn btn-primary btn-sm">
+                                <i class="fas fa-credit-card me-2"></i>Ver Pago
                             </a>
-                            <button type="button" class="btn btn-outline-info" onclick="window.print()">
-                                <i class="fas fa-print me-2"></i>Imprimir Venta
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary" onclick="downloadPDF()">
-                                <i class="fas fa-file-pdf me-2"></i>Descargar PDF
-                            </button>
-                            <a asp-action="Index" class="btn btn-outline-secondary">
-                                <i class="fas fa-list me-2"></i>Ver Todas las Ventas
-                            </a>
-                            <button type="button" class="btn btn-outline-danger" 
-                                    onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
-                                <i class="fas fa-trash me-2"></i>Eliminar Venta
-                            </button>
-                        </div>
+                        }
+                        <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i>Imprimir
+                        </button>
+                        <a asp-action="Index" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-list me-2"></i>Ver Todas
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </button>
                     </div>
                 </div>
             </div>
@@ -325,11 +431,11 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+<!-- Modal de confirmación de eliminación -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white border-0">
                 <h5 class="modal-title" id="deleteModalLabel">
                     <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
                 </h5>
@@ -337,12 +443,12 @@
             </div>
             <div class="modal-body">
                 <p class="mb-3">¿Estás seguro de que deseas eliminar la venta:</p>
-                <div class="alert alert-warning">
+                <div class="alert alert-warning border-0">
                     <strong id="saleNumberToDelete"></strong>
                 </div>
                 <p class="text-muted mb-0">Esta acción restaurará el stock de los productos vendidos y no se puede deshacer.</p>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer border-0">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <form asp-action="Delete" method="post" class="d-inline">
                     <input type="hidden" id="deleteSaleId" name="id" value="" />
@@ -365,15 +471,9 @@
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
 
-        function downloadPDF() {
-            // Future implementation for PDF download
-            alert('Función de descarga PDF no implementada aún.');
-        }
-
-        // Print functionality
+        // Funcionalidad de impresión
         window.addEventListener('beforeprint', function() {
-            document.querySelector('.d-flex.gap-2').style.display = 'none';
-            document.querySelectorAll('.btn').forEach(btn => {
+            document.querySelectorAll('.btn, .breadcrumb').forEach(btn => {
                 if (!btn.closest('.modal')) {
                     btn.style.display = 'none';
                 }
@@ -381,19 +481,18 @@
         });
 
         window.addEventListener('afterprint', function() {
-            document.querySelector('.d-flex.gap-2').style.display = 'flex';
-            document.querySelectorAll('.btn').forEach(btn => {
+            document.querySelectorAll('.btn, .breadcrumb').forEach(btn => {
                 btn.style.display = '';
             });
         });
 
-        // Add some interactive effects
+        // Efectos hover mejorados
         document.querySelectorAll('.card').forEach(function(card) {
             card.addEventListener('mouseenter', function() {
                 if (!this.classList.contains('no-hover')) {
                     this.style.transform = 'translateY(-2px)';
-                    this.style.transition = 'transform 0.3s ease';
-                    this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                    this.style.transition = 'all 0.3s ease';
+                    this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
                 }
             });
 
@@ -405,15 +504,44 @@
     </script>
 
     <style>
-        .card-header.bg-gradient {
-            background: linear-gradient(45deg, #28a745, #20c997) !important;
+        /* Estilos generales */
+        body {
+            background-color: #f8f9fa;
         }
 
-        .sale-icon-large {
+        .container-fluid {
+            max-width: 1400px;
+        }
+
+        /* Breadcrumb mejorado */
+        .breadcrumb-item a {
+            color: #6c757d;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumb-item a:hover {
+            color: #007bff;
+        }
+
+        /* Badge de estado */
+        .sale-status-badge {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(40, 167, 69, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* Iconos principales */
+        .sale-icon {
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.2);
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -424,7 +552,7 @@
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background: var(--bs-primary);
+            background: linear-gradient(45deg, #28a745, #20c997);
             color: white;
             display: flex;
             align-items: center;
@@ -436,7 +564,7 @@
             width: 35px;
             height: 35px;
             border-radius: 0.375rem;
-            background: var(--bs-info);
+            background: linear-gradient(45deg, #17a2b8, #138496);
             color: white;
             display: flex;
             align-items: center;
@@ -444,28 +572,75 @@
             font-size: 0.9rem;
         }
 
-        .payment-method-display {
-            padding: 1rem;
+        /* Métodos de pago */
+        .payment-method-card {
+            border-radius: 0.75rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+        }
+
+        .payment-icon-large {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto;
+        }
+
+        /* Lista de resumen */
+        .summary-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        /* Contenedor de comprobante */
+        .receipt-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .receipt-image {
+            max-height: 180px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #dee2e6;
             border-radius: 0.5rem;
-            background: rgba(var(--bs-light-rgb), 0.5);
         }
 
-        @@media print {
-            .btn, .modal, .alert {
-                display: none !important;
-            }
-            
-            .card {
-                box-shadow: none !important;
-                border: 1px solid #dee2e6 !important;
-            }
-
-            .card-header {
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
-            }
+        .receipt-image:hover {
+            transform: scale(1.05);
+            border-color: #007bff;
+            box-shadow: 0 4px 15px rgba(0,123,255,0.3);
         }
 
+        /* Total amount destacado */
+        .total-amount {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            text-align: center;
+        }
+
+        /* Responsive */
         @@media (max-width: 768px) {
             .d-flex.gap-2 {
                 flex-direction: column;
@@ -478,38 +653,75 @@
             .table-responsive {
                 font-size: 0.875rem;
             }
+
+            .receipt-image {
+                max-height: 150px;
+            }
+
+            .sale-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+
+            .total-amount {
+                margin-top: 1rem;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .card-header .d-flex {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .text-end {
+                text-align: center !important;
+                margin-top: 1rem;
+            }
+
+            .breadcrumb {
+                font-size: 0.875rem;
+            }
+        }
+
+        /* Estilos para impresión */
+        @@media print {
+            .btn, .modal, .alert, .breadcrumb {
+                display: none !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #dee2e6 !important;
+            }
+
+            .card-header {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .receipt-image {
+                max-height: 150px;
+            }
+
+            .total-amount {
+                background: #28a745 !important;
+                color: white !important;
+            }
+        }
+
+        /* Animaciones suaves */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .btn {
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
         }
     </style>
-}
-
-<!-- Modal para mostrar comprobante de transferencia -->
-<div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="receiptModalLabel">
-                    <i class="fas fa-receipt me-2"></i>Comprobante de Transferencia
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body text-center">
-                <img id="receiptImage" src="" alt="Comprobante de transferencia" class="img-fluid rounded" />
-            </div>
-            <div class="modal-footer">
-                <a id="downloadReceiptBtn" href="" download class="btn btn-success">
-                    <i class="fas fa-download me-2"></i>Descargar Comprobante
-                </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    function showReceiptModal(imagePath) {
-        document.getElementById('receiptImage').src = imagePath;
-        document.getElementById('downloadReceiptBtn').href = imagePath;
-        new bootstrap.Modal(document.getElementById('receiptModal')).show();
-    }
-</script> 
-</script> 
+} 

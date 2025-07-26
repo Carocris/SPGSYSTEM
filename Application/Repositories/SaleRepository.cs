@@ -17,13 +17,14 @@ namespace Database.Repositories
 
         public async Task<Sale> GetFullSaleAsync(int id)
         {
-            return await _db.Sales
+            var sales = await _db.Sales
                             .Include(s => s.Customer)
                             .Include(s => s.Details)
                                 .ThenInclude(d => d.Product)
                             .Include(s => s.Payment)
                             .AsNoTracking()
                             .FirstOrDefaultAsync(s => s.Id == id);
+            return sales;
         }
 
         public async Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync()

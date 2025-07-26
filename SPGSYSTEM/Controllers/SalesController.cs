@@ -16,6 +16,7 @@ namespace SPGSYSTEM.Controllers
         private readonly ICustomerService _customerService;
         private readonly IProductService _productService;
         private readonly IPaymentService _paymentService;
+        private readonly ISaleDetailService _saleDetailService;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -24,6 +25,7 @@ namespace SPGSYSTEM.Controllers
             ICustomerService customerService,
             IProductService productService,
             IPaymentService paymentService,
+            ISaleDetailService saleDetailService,
             IMapper mapper,
             IWebHostEnvironment webHostEnvironment)
         {
@@ -31,6 +33,7 @@ namespace SPGSYSTEM.Controllers
             _customerService = customerService;
             _productService = productService;
             _paymentService = paymentService;
+            _saleDetailService = saleDetailService;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
         }
@@ -171,7 +174,7 @@ namespace SPGSYSTEM.Controllers
         [HttpPost]
         [Route("Sales/CreateEdit")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateEdit(SaleSaveViewModel model, int? id = null)
+        public async Task<IActionResult> CreateEdit(SaleSaveViewModel model, int? id = null, IFormFile? transferReceiptFile = null)
         {
             try
             {
@@ -187,16 +190,91 @@ namespace SPGSYSTEM.Controllers
                         {
                             TempData["Error"] = "Venta no encontrada.";
                             return RedirectToAction(nameof(Index));
-                    }
+                        }
 
                         // Update sale properties
                         existingSale.CustomerId = model.CustomerId;
+
+                        // Actualizar pago si existe
+                        var existingPayment = await _paymentService.GetBySaleIdAsync(existingSale.Id);
+                        if (existingPayment != null)
+                        {
+                            // Procesar archivo de comprobante si es transferencia
+                            if (model.PaymentMethod == PaymentMethodType.Transfer && transferReceiptFile != null)
+                            {
+                                // Eliminar archivo anterior si existe
+                                if (!string.IsNullOrEmpty(existingPayment.TransferReceiptPath))
+                                {
+                                    var oldPath = Path.Combine(_webHostEnvironment.WebRootPath, existingPayment.TransferReceiptPath.TrimStart('/'));
+                                    if (System.IO.File.Exists(oldPath))
+                                    {
+                                        System.IO.File.Delete(oldPath);
+                                    }
+                                }
+                                existingPayment.TransferReceiptPath = await UploadReceiptFile(transferReceiptFile);
+                            }
+
+                            // Mapear campos específicos del modelo al pago
+                            if (model.PaymentMethod == PaymentMethodType.Transfer)
+                            {
+                                existingPayment.TransferReference = model.TransferReference;
+                                existingPayment.BankAccount = model.BankAccount;
+                            }
+                            else if (model.PaymentMethod == PaymentMethodType.Card)
+                            {
+                                existingPayment.CardNumber = model.CardNumber;
+                                existingPayment.CardHolderName = model.CardHolderName;
+                                existingPayment.CardExpiryDate = model.CardExpiryDate;
+                                existingPayment.CardCVV = model.CardCVV;
+                            }
+
+                            await _paymentService.UpdateAsync(existingPayment);
+                        }
+
+                        // Eliminar detalles existentes
+                        foreach (var existingDetail in existingSale.Details)
+                        {
+                            // Restaurar stock de productos
+                            var product = await _productService.GetByIdAsync(existingDetail.ProductId);
+                            if (product != null)
+                            {
+                                product.Stock += existingDetail.Quantity;
+                                await _productService.UpdateAsync(product);
+                            }
+                            await _saleDetailService.DeleteAsync(existingDetail.Id);
+                        }
+
+                        // Crear nuevos detalles
+                        if (model.Details != null && model.Details.Any())
+                        {
+                            foreach (var detailModel in model.Details)
+                            {
+                                var product = await _productService.GetByIdAsync(detailModel.ProductId);
+                                if (product != null && product.Stock >= detailModel.Quantity)
+                                {
+                                    // Crear el detalle de venta
+                                    var saleDetail = new SaleDetail
+                                    {
+                                        SaleId = existingSale.Id,
+                                        ProductId = detailModel.ProductId,
+                                        Quantity = detailModel.Quantity,
+                                        Subtotal = product.Price * detailModel.Quantity
+                                    };
+
+                                    await _saleDetailService.CreateAsync(saleDetail);
+
+                                    // Actualizar stock del producto
+                                    product.Stock -= detailModel.Quantity;
+                                    await _productService.UpdateAsync(product);
+                                }
+                            }
+                        }
 
                         await _saleService.UpdateAsync(existingSale);
 
                         TempData["Success"] = $"Venta #{existingSale.Id:D4} actualizada exitosamente.";
                         return RedirectToAction(nameof(Index));
-                        }
+                    }
                     else
                     {
                         // CREAR VENTA
@@ -209,6 +287,32 @@ namespace SPGSYSTEM.Controllers
 
                         await _saleService.CreateAsync(sale);
 
+                        // Crear detalles de venta
+                        if (model.Details != null && model.Details.Any())
+                        {
+                            foreach (var detailModel in model.Details)
+                            {
+                                var product = await _productService.GetByIdAsync(detailModel.ProductId);
+                                if (product != null && product.Stock >= detailModel.Quantity)
+                                {
+                                    // Crear el detalle de venta
+                                    var saleDetail = new SaleDetail
+                                    {
+                                        SaleId = sale.Id,
+                                        ProductId = detailModel.ProductId,
+                                        Quantity = detailModel.Quantity,
+                                        Subtotal = product.Price * detailModel.Quantity
+                                    };
+
+                                    await _saleDetailService.CreateAsync(saleDetail);
+
+                                    // Actualizar stock del producto
+                                    product.Stock -= detailModel.Quantity;
+                                    await _productService.UpdateAsync(product);
+                                }
+                            }
+                        }
+
                         // Crear pago automáticamente
                         var payment = new Payment
                         {
@@ -219,21 +323,33 @@ namespace SPGSYSTEM.Controllers
                             Status = PaymentStatusType.Completed // Pago completado inmediatamente
                         };
 
-                        await _paymentService.CreateAsync(payment);
+                        // Procesar archivo de comprobante si es transferencia
+                        if (model.PaymentMethod == PaymentMethodType.Transfer && transferReceiptFile != null)
+                        {
+                            Console.WriteLine($"Procesando archivo de transferencia: {transferReceiptFile.FileName}");
+                            payment.TransferReceiptPath = await UploadReceiptFile(transferReceiptFile);
+                            Console.WriteLine($"Path guardado: {payment.TransferReceiptPath}");
+                        }
+                        else if (model.PaymentMethod == PaymentMethodType.Transfer)
+                        {
+                            Console.WriteLine("Método de pago es Transfer pero no hay archivo");
+                        }
 
-                        // Actualizar stock de productos
-                        if (model.Details != null && model.Details.Any())
+                        // Mapear campos específicos del modelo al pago
+                        if (model.PaymentMethod == PaymentMethodType.Transfer)
                         {
-                    foreach (var detail in model.Details)
-                    {
-                        var product = await _productService.GetByIdAsync(detail.ProductId);
-                                if (product != null && product.Stock >= detail.Quantity)
+                            payment.TransferReference = model.TransferReference;
+                            payment.BankAccount = model.BankAccount;
+                        }
+                        else if (model.PaymentMethod == PaymentMethodType.Card)
                         {
-                            product.Stock -= detail.Quantity;
-                            await _productService.UpdateAsync(product);
+                            payment.CardNumber = model.CardNumber;
+                            payment.CardHolderName = model.CardHolderName;
+                            payment.CardExpiryDate = model.CardExpiryDate;
+                            payment.CardCVV = model.CardCVV;
                         }
-                    }
-                        }
+
+                        await _paymentService.CreateAsync(payment);
 
                         TempData["Success"] = $"Venta #{sale.Id:D4} creada exitosamente con pago procesado.";
                     return RedirectToAction(nameof(Index));
@@ -378,6 +494,39 @@ namespace SPGSYSTEM.Controllers
                 TempData["Error"] = "Error al generar la impresión: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
+        }
+
+        private async Task<string> UploadReceiptFile(IFormFile file)
+        {
+            Console.WriteLine($"UploadReceiptFile llamado con archivo: {file?.FileName}");
+            
+            if (file == null || file.Length == 0)
+            {
+                Console.WriteLine("Archivo es null o está vacío");
+                return null;
+            }
+
+            var uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", "transfer-receipts");
+            Console.WriteLine($"Carpeta de upload: {uploadFolder}");
+            
+            if (!Directory.Exists(uploadFolder))
+            {
+                Directory.CreateDirectory(uploadFolder);
+                Console.WriteLine("Carpeta creada");
+            }
+
+            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var filePath = Path.Combine(uploadFolder, fileName);
+            Console.WriteLine($"Archivo a guardar: {filePath}");
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var returnPath = $"/uploads/transfer-receipts/{fileName}";
+            Console.WriteLine($"Path retornado: {returnPath}");
+            return returnPath;
         }
     }
 } 

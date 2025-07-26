@@ -243,15 +243,14 @@
                                         <span asp-validation-for="BankAccount" class="text-danger small"></span>
                                     </div>
                                     <div class="col-12">
-                                        <label asp-for="TransferReceipt" class="form-label fw-medium">
+                                        <label for="transferReceiptFile" class="form-label fw-medium">
                                             <i class="fas fa-file-image text-warning me-2"></i>Comprobante de Transferencia
                                         </label>
-                                        <input asp-for="TransferReceipt" type="file" class="form-control" 
+                                        <input type="file" name="transferReceiptFile" class="form-control" 
                                                accept="image/*,.pdf" />
                                         <div class="form-text">
                                             <small>Formatos permitidos: JPG, PNG, PDF. Tamaño máximo: 5MB</small>
                                         </div>
-                                        <span asp-validation-for="TransferReceipt" class="text-danger small"></span>
                                     </div>
                                 </div>
                             </div>
@@ -522,7 +521,7 @@
         function clearTransferFields() {
             document.querySelector('[name="TransferReference"]').value = '';
             document.querySelector('[name="BankAccount"]').value = '';
-            const fileInput = document.querySelector('[name="TransferReceipt"]');
+            const fileInput = document.querySelector('[name="transferReceiptFile"]');
             if (fileInput) fileInput.value = '';
         }
         

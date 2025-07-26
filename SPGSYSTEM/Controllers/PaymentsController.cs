@@ -298,7 +298,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/ProcessPayment (procesar pago simulado)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ProcessPayment(PaymentSaveViewModel model)
+        public async Task<IActionResult> ProcessPayment(PaymentSaveViewModel model, IFormFile? transferReceiptFile)
         {
             try
             {
@@ -320,17 +320,19 @@ namespace SPGSYSTEM.Controllers
                         return RedirectToAction("Details", "Sales", new { id = model.SaleId });
                     }
 
+                    // Process file upload for transfer payments
+                    if (model.PaymentMethod == PaymentMethodType.Transfer && transferReceiptFile != null)
+                    {
+                        model.TransferReceiptPath = await UploadReceiptFile(transferReceiptFile);
+                    }
+
                     // Simulate payment processing delay
                     await Task.Delay(2000); // 2 seconds simulation
 
-                    // Create payment
-                    var payment = new Payment
-                    {
-                        SaleId = model.SaleId,
-                        PaymentMethod = model.PaymentMethod,
-                        Amount = model.Amount,
-                        PaymentDate = DateTime.Now
-                    };
+                    // Create payment with all fields
+                    var payment = _mapper.Map<Payment>(model);
+                    payment.PaymentDate = DateTime.Now;
+                    payment.Status = PaymentStatusType.Completed;
 
                     await _paymentService.CreateAsync(payment);
 

@@ -89,11 +89,11 @@
                         </h5>
                     </div>
                     <div class="card-body p-4">
-                        <form asp-action="ProcessPayment" method="post" id="paymentForm" novalidate>
+                        <form asp-action="ProcessPayment" method="post" id="paymentForm" enctype="multipart/form-data" novalidate>
                             @Html.AntiForgeryToken()
-                                                <input asp-for="SaleId" type="hidden" />
-                    <input asp-for="Amount" type="hidden" />
-                    <input asp-for="PaymentDate" type="hidden" />
+                            <input asp-for="SaleId" type="hidden" />
+                            <input asp-for="Amount" type="hidden" />
+                            <input asp-for="PaymentDate" type="hidden" />
 
                             <!-- Payment Method Selection -->
                             <div class="mb-4">
@@ -211,6 +211,17 @@
                                                 <p class="mb-1"><strong>Cuenta:</strong> ****-****-****-5678</p>
                                                 <p class="mb-1"><strong>Referencia:</strong> VENTA-@sale.Id.ToString("D4")</p>
                                             </div>
+                                            
+                                            <!-- File Upload for Transfer Receipt -->
+                                            <div class="mt-3">
+                                                <label for="transferReceiptFile" class="form-label">
+                                                    <i class="fas fa-image me-2"></i>Comprobante de Transferencia
+                                                </label>
+                                                <input type="file" name="transferReceiptFile" class="form-control" 
+                                                       id="transferReceiptFile" accept="image/*,.pdf" />
+                                                <small class="text-muted">Sube una imagen o PDF del comprobante de transferencia</small>
+                                            </div>
+                                            
                                             <small class="text-muted">Datos simulados para demo</small>
                                         </div>
                                     </div>
