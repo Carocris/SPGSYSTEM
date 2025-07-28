@@ -28,6 +28,7 @@ namespace Application
             services.AddTransient<ISaleService, SaleService>();
             services.AddTransient<ISaleDetailService, SaleDetailService>();
             services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IInventoryMovementService, InventoryMovementService>();
 
             // Generic repository registration
             services.AddTransient(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -42,6 +43,7 @@ namespace Application
             services.AddTransient<ISaleRepository, SaleRepository>();
             services.AddTransient<ISaleDetailRepository, SaleDetailRepository>();
             services.AddTransient<IPaymentRepository, PaymentRepository>();
+            services.AddTransient<IInventoryMovementRepository, InventoryMovementRepository>();
         }
     }
 }

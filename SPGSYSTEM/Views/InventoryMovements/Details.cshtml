@@ -1,0 +1,155 @@
+@model Application.ViewModels.InventoryMovement.InventoryMovementViewModel
+@{
+    ViewData["Title"] = "Detalles del Movimiento";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-eye me-2"></i>Detalles del Movimiento
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-box me-1"></i>Información del Producto
+                        </h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Producto:</dt>
+                            <dd class="col-sm-8">
+                                <strong>@Model.ProductName</strong><br />
+                                <small class="text-muted">@Model.ProductCode</small>
+                            </dd>
+
+                            <dt class="col-sm-4">Stock Actual:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-primary">@Model.StockAfter unidades</span>
+                            </dd>
+                        </dl>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-exchange-alt me-1"></i>Información del Movimiento
+                        </h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Tipo:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge @Model.MovementTypeBadge">
+                                    @Model.MovementType
+                                </span>
+                            </dd>
+
+                            <dt class="col-sm-4">Cantidad:</dt>
+                            <dd class="col-sm-8">
+                                <span class="@(Model.IsEntry ? "text-success" : "text-danger")">
+                                    @(Model.IsEntry ? "+" : "-")@Model.Quantity
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-info-circle me-1"></i>Detalles del Movimiento
+                        </h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Fecha:</dt>
+                            <dd class="col-sm-8">@Model.MovementDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                            <dt class="col-sm-4">Motivo:</dt>
+                            <dd class="col-sm-8">@Model.Reason</dd>
+
+                            <dt class="col-sm-4">Usuario:</dt>
+                            <dd class="col-sm-8">@Model.CreatedBy</dd>
+                        </dl>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h6 class="text-muted mb-3">
+                            <i class="fas fa-chart-line me-1"></i>Impacto en Stock
+                        </h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Stock Antes:</dt>
+                            <dd class="col-sm-8">@Model.StockBefore unidades</dd>
+
+                            <dt class="col-sm-4">Stock Después:</dt>
+                            <dd class="col-sm-8">@Model.StockAfter unidades</dd>
+
+                            <dt class="col-sm-4">Diferencia:</dt>
+                            <dd class="col-sm-8">
+                                <span class="@(Model.IsEntry ? "text-success" : "text-danger")">
+                                    @(Model.IsEntry ? "+" : "-")@Math.Abs(Model.StockAfter - Model.StockBefore)
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ReferenceNumber) || !string.IsNullOrEmpty(Model.ReferenceType))
+                {
+                    <hr />
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-hashtag me-1"></i>Información de Referencia
+                            </h6>
+                            <dl class="row">
+                                @if (!string.IsNullOrEmpty(Model.ReferenceType))
+                                {
+                                    <dt class="col-sm-3">Tipo:</dt>
+                                    <dd class="col-sm-9">@Model.ReferenceType</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.ReferenceNumber))
+                                {
+                                    <dt class="col-sm-3">Número:</dt>
+                                    <dd class="col-sm-9">
+                                        <span class="badge bg-info">@Model.ReferenceNumber</span>
+                                    </dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <hr />
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">
+                                <i class="fas fa-sticky-note me-1"></i>Notas Adicionales
+                            </h6>
+                            <div class="alert alert-light">
+                                @Model.Notes
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <hr />
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a la Lista
+                    </a>
+                    
+                    @if (User.IsInRole("Admin") || User.IsInRole("InventoryManager"))
+                    {
+                        <a asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Nuevo Movimiento
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -10,6 +10,7 @@ using System.IO;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class PaymentsController : Controller
     {
         private readonly IPaymentService _paymentService;

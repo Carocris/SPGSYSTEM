@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class SuppliersController : Controller
     {
         private readonly ISupplierService _supplierService;

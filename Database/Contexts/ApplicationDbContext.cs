@@ -18,6 +18,7 @@ namespace Database.Contexts
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleDetail> SaleDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<InventoryMovement> InventoryMovements { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,7 @@ namespace Database.Contexts
             modelBuilder.Entity<SupplierPriceHistory>().HasKey(sph => sph.Id);
             modelBuilder.Entity<PurchaseOrder>().HasKey(po => po.Id);
             modelBuilder.Entity<PurchaseOrderDetail>().HasKey(pod => pod.Id);
+            modelBuilder.Entity<InventoryMovement>().HasKey(im => im.Id);
             #endregion
 
             #region Relationships
@@ -111,6 +113,13 @@ namespace Database.Contexts
                 .WithMany()
                 .HasForeignKey(pod => pod.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // InventoryMovement -> Product
+            modelBuilder.Entity<InventoryMovement>()
+                .HasOne(im => im.Product)
+                .WithMany()
+                .HasForeignKey(im => im.ProductId)
+                .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
             #region Property configurations
@@ -250,6 +259,43 @@ namespace Database.Contexts
             modelBuilder.Entity<Payment>()
                 .Property(p => p.TransferReceiptPath)
                 .HasMaxLength(255);
+
+            // InventoryMovement
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.MovementType)
+                .HasMaxLength(50)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.Quantity)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.StockBefore)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.StockAfter)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.Reason)
+                .HasMaxLength(200)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.Notes)
+                .HasMaxLength(500);
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.ReferenceNumber)
+                .HasMaxLength(100);
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.ReferenceType)
+                .HasMaxLength(50);
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.MovementDate)
+                .IsRequired();
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.CreatedBy)
+                .HasMaxLength(100);
+            modelBuilder.Entity<InventoryMovement>()
+                .Property(im => im.CreatedDate)
+                .IsRequired();
             #endregion
         }
     }

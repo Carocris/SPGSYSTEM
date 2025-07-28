@@ -10,6 +10,7 @@ using SPGSYSTEM.Helpers;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class SalesController : Controller
     {
         private readonly ISaleService _saleService;
@@ -17,6 +18,7 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly IPaymentService _paymentService;
         private readonly ISaleDetailService _saleDetailService;
+        private readonly IInventoryMovementService _inventoryMovementService;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -26,6 +28,7 @@ namespace SPGSYSTEM.Controllers
             IProductService productService,
             IPaymentService paymentService,
             ISaleDetailService saleDetailService,
+            IInventoryMovementService inventoryMovementService,
             IMapper mapper,
             IWebHostEnvironment webHostEnvironment)
         {
@@ -34,6 +37,7 @@ namespace SPGSYSTEM.Controllers
             _productService = productService;
             _paymentService = paymentService;
             _saleDetailService = saleDetailService;
+            _inventoryMovementService = inventoryMovementService;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
         }
@@ -101,6 +105,7 @@ namespace SPGSYSTEM.Controllers
         // GET: Sales/CreateEdit (para crear)
         [HttpGet]
         [Route("Sales/CreateEdit")]
+        [Authorize(Roles = "Admin,SalesUser")]
         public async Task<IActionResult> CreateEdit()
         {
             try
@@ -126,6 +131,7 @@ namespace SPGSYSTEM.Controllers
         // GET: Sales/CreateEdit/5 (para editar)
         [HttpGet]
         [Route("Sales/CreateEdit/{id:int}")]
+        [Authorize(Roles = "Admin,SalesUser")]
         public async Task<IActionResult> CreateEdit(int id)
         {
             try
@@ -174,6 +180,7 @@ namespace SPGSYSTEM.Controllers
         [HttpPost]
         [Route("Sales/CreateEdit")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,SalesUser")]
         public async Task<IActionResult> CreateEdit(SaleSaveViewModel model, int? id = null, IFormFile? transferReceiptFile = null)
         {
             try
@@ -266,6 +273,17 @@ namespace SPGSYSTEM.Controllers
                                     // Actualizar stock del producto
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
+
+                                    // Registrar movimiento de salida
+                                    var userName = User.Identity?.Name ?? "Sistema";
+                                    await _inventoryMovementService.RegisterExitAsync(
+                                        detailModel.ProductId,
+                                        detailModel.Quantity,
+                                        "Venta - Edición",
+                                        existingSale.Id.ToString(),
+                                        "Venta",
+                                        $"Venta #{existingSale.Id:D4} - {product.Name}",
+                                        userName);
                                 }
                             }
                         }
@@ -309,6 +327,17 @@ namespace SPGSYSTEM.Controllers
                                     // Actualizar stock del producto
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
+
+                                    // Registrar movimiento de salida
+                                    var userName = User.Identity?.Name ?? "Sistema";
+                                    await _inventoryMovementService.RegisterExitAsync(
+                                        detailModel.ProductId,
+                                        detailModel.Quantity,
+                                        "Venta",
+                                        sale.Id.ToString(),
+                                        "Venta",
+                                        $"Venta #{sale.Id:D4} - {product.Name}",
+                                        userName);
                                 }
                             }
                         }
@@ -389,6 +418,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Sales/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try

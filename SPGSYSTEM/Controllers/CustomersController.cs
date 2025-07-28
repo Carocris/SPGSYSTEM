@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class CustomersController : Controller
     {
         private readonly ICustomerService _customerService;

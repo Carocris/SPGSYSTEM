@@ -1,0 +1,83 @@
+@model Identity.DTOs.AuthenticationRequest
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-primary text-white text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="Login" method="post">
+                    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                    
+                    <div class="mb-3">
+                        <label asp-for="UserName" class="form-label">
+                            <i class="fas fa-user me-1"></i>Usuario
+                        </label>
+                        <input asp-for="UserName" class="form-control" placeholder="Ingrese su usuario" />
+                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Password" class="form-label">
+                            <i class="fas fa-lock me-1"></i>Contraseña
+                        </label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="Ingrese su contraseña" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </button>
+                    </div>
+                </form>
+
+                <hr class="my-4" />
+
+                <div class="text-center">
+                    <small class="text-muted">
+                        ¿No tienes cuenta? 
+                        <a asp-action="Register" class="text-decoration-none">Regístrate aquí</a>
+                    </small>
+                </div>
+
+                <!-- Información de usuarios de prueba -->
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6 class="text-muted mb-2">
+                        <i class="fas fa-info-circle me-1"></i>Usuarios de Prueba:
+                    </h6>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Admin:</small><br />
+                            <small><strong>admin</strong> / <strong>Admin123!</strong></small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Ventas:</small><br />
+                            <small><strong>sales</strong> / <strong>Sales123!</strong></small>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-6">
+                            <small class="text-muted">Inventario:</small><br />
+                            <small><strong>inventory</strong> / <strong>Inventory123!</strong></small>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Auditor:</small><br />
+                            <small><strong>auditor</strong> / <strong>Auditor123!</strong></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

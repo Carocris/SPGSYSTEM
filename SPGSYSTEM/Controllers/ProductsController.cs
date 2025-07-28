@@ -12,12 +12,14 @@ using Microsoft.Extensions.DependencyInjection; // Added for HttpContext.Request
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
         private readonly ISupplierService _supplierService;
         private readonly ISupplierPriceHistoryService _supplierPriceHistoryService;
+        private readonly IInventoryMovementService _inventoryMovementService;
         private readonly IMapper _mapper;
 
         public ProductsController(
@@ -25,12 +27,14 @@ namespace SPGSYSTEM.Controllers
             ICategoryService categoryService, 
             ISupplierService supplierService,
             ISupplierPriceHistoryService supplierPriceHistoryService,
+            IInventoryMovementService inventoryMovementService,
             IMapper mapper)
         {
             _productService = productService;
             _categoryService = categoryService;
             _supplierService = supplierService;
             _supplierPriceHistoryService = supplierPriceHistoryService;
+            _inventoryMovementService = inventoryMovementService;
             _mapper = mapper;
         }
 
@@ -114,6 +118,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/Create
         [HttpGet]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> Create(int? supplierId = null, int? categoryId = null)
         {
             try
@@ -150,6 +155,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> Create(ProductSaveViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -214,6 +220,7 @@ namespace SPGSYSTEM.Controllers
         }
         // GET: /Products/Edit/5
         [HttpGet]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> Edit(int id)
         {
             try
@@ -246,6 +253,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> Edit(int id, ProductSaveViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -340,6 +348,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/AddStock/5
         [HttpGet]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> AddStock(int id)
         {
             try
@@ -365,6 +374,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/AddStock
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,InventoryManager")]
         public async Task<IActionResult> AddStock(AddStockViewModel model)
         {
             if (!ModelState.IsValid)
@@ -398,6 +408,17 @@ namespace SPGSYSTEM.Controllers
                 
                 await _productService.UpdateAsync(product);
 
+                // Registrar movimiento de entrada
+                var userName = User.Identity?.Name ?? "Sistema";
+                await _inventoryMovementService.RegisterEntryAsync(
+                    model.ProductId, 
+                    model.QuantityToAdd, 
+                    "Agregado de stock manual", 
+                    null, 
+                    "Manual", 
+                    $"Stock agregado desde la interfaz. Precio anterior: ${originalPurchasePrice:N2}", 
+                    userName);
+
                 // Mensaje de éxito
                 var successMessage = $"Stock agregado exitosamente. {product.Name}: {before} → {product.Stock} unidades (+{model.QuantityToAdd})";
                 
@@ -422,6 +443,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

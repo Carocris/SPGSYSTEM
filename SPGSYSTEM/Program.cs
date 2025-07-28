@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Application;
 using Application.Mappings;
+using Identity;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,9 @@ builder.Services.AddDatabaseInfrastructure(builder.Configuration);
 
 // 3) Registrar servicios de aplicación (Application/ServiceRegistration)
 builder.Services.AddApplicationLayer();
+
+// 4) Registrar servicios de Identity
+builder.Services.AddIdentityServices(builder.Configuration);
 
 builder.Services.AddAutoMapper(typeof(GeneralProfile));
 
@@ -35,11 +39,14 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Si luego necesitas autenticación/autorización:
-// app.UseAuthentication();
+// Configurar autenticación y autorización
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Configuración de rutas más específica
+// Ejecutar seeds al iniciar la aplicación
+await app.Services.RunSeedsAsync();
+
+// Configuración de rutas con autenticación
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
@@ -56,6 +63,13 @@ app.MapControllerRoute(
     name: "categories",
     pattern: "Categories/{action=Index}/{id?}",
     defaults: new { controller = "Categories" }
+);
+
+// Ruta para acceso denegado
+app.MapControllerRoute(
+    name: "access-denied",
+    pattern: "Account/AccessDenied",
+    defaults: new { controller = "Account", action = "AccessDenied" }
 );
 
 app.Run();

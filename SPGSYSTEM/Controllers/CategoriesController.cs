@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class CategoriesController : Controller
     {
         private readonly ICategoryService _categoryService;

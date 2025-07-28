@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class SaleDetailsController : Controller
     {
         private readonly ISaleDetailService _saleDetailService;
