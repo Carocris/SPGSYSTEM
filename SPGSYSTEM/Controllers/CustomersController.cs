@@ -3,6 +3,7 @@ using Application.ViewModels.Customer;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace SPGSYSTEM.Controllers

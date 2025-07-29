@@ -4,6 +4,7 @@ using AutoMapper;
 using Database.Entities;
 using Database.Enum;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SPGSYSTEM.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using System.IO;

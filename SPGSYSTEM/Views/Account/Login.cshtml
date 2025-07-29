@@ -1,83 +1,292 @@
 @model Identity.DTOs.AuthenticationRequest
 @{
-    ViewData["Title"] = "Iniciar Sesión";
+    ViewData["Title"] = "Login - InventarioPro";
+    Layout = null;
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-primary text-white text-center">
-                <h4 class="mb-0">
-                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                </h4>
-            </div>
-            <div class="card-body p-4">
-                <form asp-action="Login" method="post">
-                    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InventarioPro - Sistema de Gestión de Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 123, 255, 0.15);
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.6s ease-out;
+        }
+        
+        @@keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-2 sm:p-4 min-h-screen">
+    <div class="container mx-auto max-w-6xl px-4">
+        <div class="grid lg:grid-cols-2 gap-4 lg:gap-8 items-center">
+            <!-- Sección de Información -->
+            <div class="hidden lg:block slide-in">
+                <div class="glass-effect rounded-2xl p-6 lg:p-8 text-white">
+                    <div class="mb-6 lg:mb-8">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-boxes text-3xl lg:text-4xl mr-3 text-blue-300"></i>
+                            <h1 class="text-2xl lg:text-3xl font-bold">InventarioPro</h1>
+                        </div>
+                        <p class="text-base lg:text-lg text-gray-200 leading-relaxed">
+                            Sistema integral de gestión de inventario empresarial. 
+                            Optimiza tus operaciones, reduce costos y mejora la eficiencia de tu negocio.
+                        </p>
+                    </div>
                     
-                    <div class="mb-3">
-                        <label asp-for="UserName" class="form-label">
-                            <i class="fas fa-user me-1"></i>Usuario
-                        </label>
-                        <input asp-for="UserName" class="form-control" placeholder="Ingrese su usuario" />
-                        <span asp-validation-for="UserName" class="text-danger"></span>
+                    <div class="mb-6">
+                        <h3 class="text-lg lg:text-xl font-semibold mb-4 text-blue-200">Características Principales</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-line mr-3 text-green-300"></i>
+                                <span class="text-sm lg:text-base">Gestión de inventario en tiempo real</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-users mr-3 text-green-300"></i>
+                                <span class="text-sm lg:text-base">Control de usuarios y roles</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-chart-bar mr-3 text-green-300"></i>
+                                <span class="text-sm lg:text-base">Reportes y estadísticas avanzadas</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-mobile-alt mr-3 text-green-300"></i>
+                                <span class="text-sm lg:text-base">Acceso desde cualquier dispositivo</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label">
-                            <i class="fas fa-lock me-1"></i>Contraseña
-                        </label>
-                        <input asp-for="Password" type="password" class="form-control" placeholder="Ingrese su contraseña" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                    
+                    <div class="mt-6 lg:mt-8">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 text-xs lg:text-sm">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt mr-2 text-green-300"></i>
+                                <span>Seguridad SSL</span>
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-lock mr-2 text-green-300"></i>
+                                <span>Encriptación AES-256</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                        </button>
-                    </div>
-                </form>
-
-                <hr class="my-4" />
-
-                <div class="text-center">
-                    <small class="text-muted">
-                        ¿No tienes cuenta? 
-                        <a asp-action="Register" class="text-decoration-none">Regístrate aquí</a>
-                    </small>
                 </div>
-
-                <!-- Información de usuarios de prueba -->
-                <div class="mt-4 p-3 bg-light rounded">
-                    <h6 class="text-muted mb-2">
-                        <i class="fas fa-info-circle me-1"></i>Usuarios de Prueba:
-                    </h6>
-                    <div class="row">
-                        <div class="col-6">
-                            <small class="text-muted">Admin:</small><br />
-                            <small><strong>admin</strong> / <strong>Admin123!</strong></small>
+            </div>
+            
+            <!-- Formulario de Login -->
+            <div class="fade-in">
+                <div class="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 w-full max-w-md mx-auto">
+                    <!-- Logo -->
+                    <div class="text-center mb-6 lg:mb-8">
+                        <div class="inline-flex items-center justify-center w-16 h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 pulse-animation">
+                            <i class="fas fa-boxes text-white text-xl lg:text-2xl"></i>
                         </div>
-                        <div class="col-6">
-                            <small class="text-muted">Ventas:</small><br />
-                            <small><strong>sales</strong> / <strong>Sales123!</strong></small>
-                        </div>
+                        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Bienvenido</h2>
+                        <p class="text-sm lg:text-base text-gray-600">Sistema de Gestión de Inventario</p>
                     </div>
-                    <div class="row mt-2">
-                        <div class="col-6">
-                            <small class="text-muted">Inventario:</small><br />
-                            <small><strong>inventory</strong> / <strong>Inventory123!</strong></small>
+                    
+                    <!-- Mensaje de Error -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded">
+                            <div class="flex">
+                                <i class="fas fa-exclamation-triangle text-red-400 mr-3 mt-0.5"></i>
+                                <div>
+                                    <p class="text-sm text-red-700">
+                                        @Html.ValidationSummary(false, "", new { @class = "text-red-700" })
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <small class="text-muted">Auditor:</small><br />
-                            <small><strong>auditor</strong> / <strong>Auditor123!</strong></small>
+                    }
+                    
+                    <!-- Formulario -->
+                    <form asp-controller="Account" asp-action="Login" method="post" class="space-y-4 lg:space-y-6">
+                        <div>
+                            <label for="UserName" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-2 text-blue-500"></i>Usuario
+                            </label>
+                            <div class="relative">
+                                <input type="text" 
+                                       id="UserName" 
+                                       name="UserName" 
+                                       asp-for="UserName"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 input-focus text-sm sm:text-base"
+                                       placeholder="Nombre de usuario">
+                            </div>
+                            <span asp-validation-for="UserName" class="text-red-500 text-xs mt-1"></span>
+                        </div>
+                        
+                        <div>
+                            <label for="Password" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-lock mr-2 text-blue-500"></i>Contraseña
+                            </label>
+                            <div class="relative">
+                                <input type="password" 
+                                       id="Password" 
+                                       name="Password" 
+                                       asp-for="Password"
+                                       class="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 input-focus text-sm sm:text-base"
+                                       placeholder="Su contraseña">
+                                <button type="button" 
+                                        id="togglePassword" 
+                                        class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-red-500 text-xs mt-1"></span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center">
+                                <input type="checkbox" 
+                                       id="RememberMe" 
+                                       name="RememberMe"
+                                       class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                <span class="ml-2 text-sm text-gray-600">Recordar credenciales</span>
+                            </label>
+                            <a href="#" class="text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                                ¿Olvidó su contraseña?
+                            </a>
+                        </div>
+                        
+                        <button type="submit" 
+                                id="loginButton"
+                                class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 btn-hover font-medium">
+                            <span id="buttonText">Iniciar Sesión</span>
+                            <i id="loadingSpinner" class="fas fa-spinner fa-spin hidden ml-2"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="mt-6 space-y-4">
+                        <!-- Separador -->
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-gray-300"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-2 bg-white text-gray-500">O</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Botón de Registro -->
+                        <div class="text-center">
+                            <a asp-controller="Account" asp-action="Register" 
+                               class="inline-flex items-center justify-center w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 font-medium">
+                                <i class="fas fa-user-plus mr-2 text-blue-500"></i>
+                                Regístrate
+                            </a>
+                        </div>
+                        
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">
+                                ¿Necesita ayuda? 
+                                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                                    Contacte al administrador
+                                </a>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-} 
+    
+    <script>
+        // Toggle password visibility
+        const togglePassword = document.getElementById('togglePassword');
+        const password = document.getElementById('Password');
+        
+        togglePassword.addEventListener('click', function() {
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
+        });
+        
+        // Validación en tiempo real
+        const username = document.getElementById('UserName');
+        const passwordError = document.getElementById('Password-error');
+        
+        username.addEventListener('input', function() {
+            if (this.value.length < 3) {
+                this.classList.add('border-red-500');
+            } else {
+                this.classList.remove('border-red-500');
+            }
+        });
+        
+        password.addEventListener('input', function() {
+            if (this.value.length < 6) {
+                this.classList.add('border-red-500');
+            } else {
+                this.classList.remove('border-red-500');
+            }
+        });
+        
+        // Manejo del formulario
+        const loginForm = document.querySelector('form');
+        const loginButton = document.getElementById('loginButton');
+        const buttonText = document.getElementById('buttonText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        loginForm.addEventListener('submit', function() {
+            // Estado de carga
+            loginButton.disabled = true;
+            buttonText.textContent = 'Iniciando sesión...';
+            loadingSpinner.classList.remove('hidden');
+        });
+        
+        // Animaciones al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            document.body.classList.add('fade-in');
+        });
+    </script>
+</body>
+</html> 

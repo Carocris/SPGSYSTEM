@@ -81,8 +81,9 @@ namespace Identity
                 {
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                    var applicationDbContext = services.GetRequiredService<Database.Contexts.ApplicationDbContext>();
 
-                    await SeedData.SeedAsync(userManager, roleManager);
+                    await SeedData.SeedAsync(userManager, roleManager, applicationDbContext);
                 }
                 catch (Exception ex)
                 {

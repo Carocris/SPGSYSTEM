@@ -1,5 +1,6 @@
 using Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using Database.Contexts;
 
 namespace Database.Seeders
 {
@@ -13,7 +14,8 @@ namespace Database.Seeders
         /// </summary>
         /// <param name="userManager">Gestor de usuarios</param>
         /// <param name="roleManager">Gestor de roles</param>
-        public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        /// <param name="applicationDbContext">Contexto de la aplicación</param>
+        public static async Task SeedAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ApplicationDbContext applicationDbContext)
         {
             try
             {
@@ -27,6 +29,9 @@ namespace Database.Seeders
 
                 // 3. Crear usuarios de prueba
                 await DefaultUsers.SeedAsync(userManager);
+
+                // 4. Crear proveedor por defecto
+                await DefaultSupplier.SeedAsync(applicationDbContext);
 
                 Console.WriteLine("Seeds completados exitosamente.");
             }

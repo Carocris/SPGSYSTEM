@@ -3,6 +3,7 @@ using Application.ViewModels.SaleDetail;
 using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SPGSYSTEM.Controllers
 {

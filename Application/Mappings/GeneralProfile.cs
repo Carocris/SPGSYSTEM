@@ -10,6 +10,7 @@ using Application.ViewModels.Product;
 using Application.ViewModels.SaleDetail;
 using Application.ViewModels.Sale;
 using Application.ViewModels.Payment;
+using Application.ViewModels.Notification;
 
 namespace Application.Mappings
 {
@@ -92,6 +93,11 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Sale, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+            // Notification
+            CreateMap<Notification, NotificationViewModel>()
+                .ForMember(dest => dest.SupplierName,
+                           opt => opt.MapFrom(src => src.Supplier.Name))
+                .ReverseMap();
 
         }
 

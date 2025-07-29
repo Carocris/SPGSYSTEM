@@ -13,26 +13,6 @@ namespace Database.Seeders
         {
             try
             {
-                // Usuario Inventory Manager
-                await CreateUserAsync(userManager, 
-                    "inventory", 
-                    "inventory@spgsystem.com", 
-                    "Gestor", 
-                    "Inventario", 
-                    "8095550001", 
-                    "Inventory123!", 
-                    Roles.InventoryManager);
-
-                // Usuario Sales
-                await CreateUserAsync(userManager, 
-                    "sales", 
-                    "sales@spgsystem.com", 
-                    "Vendedor", 
-                    "Sistema", 
-                    "8095550002", 
-                    "Sales123!", 
-                    Roles.SalesUser);
-
                 // Usuario Auditor
                 await CreateUserAsync(userManager, 
                     "auditor", 
@@ -42,6 +22,26 @@ namespace Database.Seeders
                     "8095550003", 
                     "Auditor123!", 
                     Roles.Auditor);
+
+                // Usuario Proveedor
+                await CreateUserAsync(userManager, 
+                    "supplier", 
+                    "supplier@spgsystem.com", 
+                    "Proveedor", 
+                    "Empresa ABC", 
+                    "8095550004", 
+                    "Supplier123!", 
+                    Roles.Supplier);
+
+                // Usuario Cliente
+                await CreateUserAsync(userManager, 
+                    "customer", 
+                    "customer@spgsystem.com", 
+                    "Cliente", 
+                    "Final", 
+                    "8095550005", 
+                    "Customer123!", 
+                    Roles.Customer);
             }
             catch (Exception ex)
             {

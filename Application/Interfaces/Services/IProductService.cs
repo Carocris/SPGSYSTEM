@@ -1,4 +1,5 @@
-﻿using Database.Entities;
+﻿using Application.ViewModels.Product;
+using Database.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,11 @@ namespace Application.Interfaces.Services
 {
     public interface IProductService : IGenericService<Product>
     {
-        Task<Product> GetWithDetailsAsync(int id);
+        Task<List<ProductViewModel>> GetAllViewModelsAsync();
+        Task<ProductViewModel?> GetViewModelByIdAsync(int id);
+        Task<ProductSaveViewModel?> GetSaveViewModelByIdAsync(int id);
+        Task<bool> CreateAsync(ProductSaveViewModel vm);
+        Task<bool> UpdateAsync(ProductSaveViewModel vm);
+        Task<List<Product>> GetBySupplierAsync(int supplierId);
     }
 }

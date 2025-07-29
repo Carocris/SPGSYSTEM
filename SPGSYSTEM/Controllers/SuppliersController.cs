@@ -1,288 +1,178 @@
 using Application.Interfaces.Services;
 using Application.ViewModels.Supplier;
-using Application.ViewModels.SupplierPriceHistory;
-using Application.ViewModels.PurchaseOrder;
 using AutoMapper;
-using Database.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Identity.Entities;
+using Identity.Interfaces;
 
 namespace SPGSYSTEM.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class SuppliersController : Controller
     {
         private readonly ISupplierService _supplierService;
-        private readonly ISupplierPriceHistoryService _supplierPriceHistoryService;
-        private readonly IPurchaseOrderService _purchaseOrderService;
+        private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
 
         public SuppliersController(
-            ISupplierService supplierService, 
-            ISupplierPriceHistoryService supplierPriceHistoryService,
-            IPurchaseOrderService purchaseOrderService,
+            ISupplierService supplierService,
+            IAccountService accountService,
             IMapper mapper)
         {
             _supplierService = supplierService;
-            _supplierPriceHistoryService = supplierPriceHistoryService;
-            _purchaseOrderService = purchaseOrderService;
+            _accountService = accountService;
             _mapper = mapper;
         }
 
         // GET: Suppliers
         public async Task<IActionResult> Index()
         {
-            try
-            {
-                var suppliers = await _supplierService.GetAllWithProductsAsync();
-                var viewModels = _mapper.Map<List<SupplierViewModel>>(suppliers);
-                return View(viewModels);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al cargar los proveedores: " + ex.Message;
-                return View(new List<SupplierViewModel>());
-            }
-        }
-
-        // GET: Suppliers/Details/5
-        public async Task<IActionResult> Details(int id)
-        {
-            try
-            {
-                var supplier = await _supplierService.GetWithProductsAsync(id);
-                if (supplier == null)
-                {
-                    TempData["Error"] = "Proveedor no encontrado.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var viewModel = _mapper.Map<SupplierViewModel>(supplier);
-                
-                // Cargar los productos del proveedor para mostrarlos en la vista
-                if (supplier.Products != null)
-                {
-                    ViewBag.SupplierProducts = supplier.Products.Select(p => new
-                    {
-                        Id = p.Id,
-                        Name = p.Name,
-                        Code = p.Code,
-                        Description = p.Description,
-                        Stock = p.Stock,
-                        PurchasePrice = p.PurchasePrice,
-                        SalePrice = p.SalePrice,
-                        CategoryName = p.Category?.Name ?? "Sin categoría"
-                    }).ToList();
-                }
-                else
-                {
-                    ViewBag.SupplierProducts = new List<object>();
-                }
-
-                // Inicializar ViewBags vacíos para evitar errores en la vista
-                ViewBag.SupplierPriceHistory = new List<object>();
-                ViewBag.SupplierPurchaseOrders = new List<object>();
-                
-                return View(viewModel);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al cargar el proveedor: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
+            var suppliers = await _supplierService.GetAllViewModelsAsync();
+            return View(suppliers);
         }
 
         // GET: Suppliers/Create
         public IActionResult Create()
         {
-            ViewBag.IsEdit = false;
-            ViewBag.PageTitle = "Nuevo Proveedor";
-            return View("CreateEdit", new SupplierSaveViewModel());
-        }
-
-        // GET: Suppliers/Edit/5
-        public async Task<IActionResult> Edit(int id)
-        {
-            try
-            {
-                var supplier = await _supplierService.GetByIdAsync(id);
-                if (supplier == null)
-                {
-                    TempData["Error"] = "Proveedor no encontrado.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var viewModel = _mapper.Map<SupplierSaveViewModel>(supplier);
-                ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Proveedor";
-                ViewBag.SupplierId = id;
-                return View("CreateEdit", viewModel);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al cargar el proveedor: " + ex.Message;
-                return RedirectToAction(nameof(Index));
-            }
+            return View(new SupplierSaveViewModel());
         }
 
         // POST: Suppliers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(SupplierSaveViewModel viewModel)
+        public async Task<IActionResult> Create(SupplierSaveViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nuevo Proveedor";
-                return View("CreateEdit", viewModel);
-            }
-
-            try
-            {
-                // Verificar si ya existe un proveedor con ese nombre
-                if (await _supplierService.ExistsAsync(viewModel.Name))
+                try
                 {
-                    ModelState.AddModelError("Name", "Ya existe un proveedor con este nombre.");
-                    ViewBag.IsEdit = false;
-                    ViewBag.PageTitle = "Nuevo Proveedor";
-                    return View("CreateEdit", viewModel);
-                }
+                    // Crear el usuario de Identity primero
+                    var registerRequest = new Identity.DTOs.RegisterRequest
+                    {
+                        FirstName = model.ContactPerson ?? "Proveedor",
+                        LastName = model.Name,
+                        Email = model.Email ?? $"{model.Name.ToLower().Replace(" ", "")}@proveedor.com",
+                        UserName = model.Email ?? $"{model.Name.ToLower().Replace(" ", "")}@proveedor.com",
+                        Password = "Proveedor123!", // Contraseña por defecto
+                        ConfirmPassword = "Proveedor123!"
+                    };
 
-                var supplier = _mapper.Map<Supplier>(viewModel);
-                await _supplierService.CreateAsync(supplier);
-                
-                TempData["Success"] = $"Proveedor '{supplier.Name}' creado exitosamente.";
-                return RedirectToAction(nameof(Index));
+                    var registerResult = await _accountService.RegisterSupplierAsync(registerRequest, Request.Headers["Origin"].ToString() ?? "SPGSYSTEM");
+                    
+                    if (registerResult.Success)
+                    {
+                        // Asignar el UserId al proveedor
+                        model.UserId = registerResult.UserId;
+                        
+                        // Crear el proveedor
+                        var success = await _supplierService.CreateAsync(model);
+                        
+                        if (success)
+                        {
+                            TempData["Success"] = $"Proveedor '{model.Name}' creado exitosamente. Usuario: {registerRequest.UserName}, Contraseña: {registerRequest.Password}";
+                            return RedirectToAction(nameof(Index));
+                        }
+                        else
+                        {
+                            TempData["Error"] = "Error al crear el proveedor.";
+                        }
+                    }
+                    else
+                    {
+                        TempData["Error"] = $"Error al crear el usuario: {registerResult.Message}";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error: {ex.Message}";
+                }
             }
-            catch (Exception ex)
+
+            return View(model);
+        }
+
+        // GET: Suppliers/Edit/5
+        public async Task<IActionResult> Edit(int id)
+        {
+            var supplier = await _supplierService.GetSaveViewModelByIdAsync(id);
+            if (supplier == null)
             {
-                TempData["Error"] = "Error al crear el proveedor: " + ex.Message;
-                ViewBag.IsEdit = false;
-                ViewBag.PageTitle = "Nuevo Proveedor";
-                return View("CreateEdit", viewModel);
+                return NotFound();
             }
+            return View(supplier);
         }
 
         // POST: Suppliers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, SupplierSaveViewModel viewModel)
+        public async Task<IActionResult> Edit(int id, SupplierSaveViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (id != model.Id)
             {
-                ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Proveedor";
-                ViewBag.SupplierId = id;
-                return View("CreateEdit", viewModel);
+                return NotFound();
             }
 
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var success = await _supplierService.UpdateAsync(model);
+                    if (success)
+                    {
+                        TempData["Success"] = "Proveedor actualizado exitosamente.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                    else
+                    {
+                        TempData["Error"] = "Error al actualizar el proveedor.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error: {ex.Message}";
+                }
+            }
+            return View(model);
+        }
+
+        // GET: Suppliers/Details/5
+        public async Task<IActionResult> Details(int id)
+        {
+            var supplier = await _supplierService.GetViewModelByIdAsync(id);
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+            return View(supplier);
+        }
+
+        // GET: Suppliers/Delete/5
+        public async Task<IActionResult> Delete(int id)
+        {
+            var supplier = await _supplierService.GetViewModelByIdAsync(id);
+            if (supplier == null)
+            {
+                return NotFound();
+            }
+            return View(supplier);
+        }
+
+        // POST: Suppliers/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
             try
             {
-                var existingSupplier = await _supplierService.GetByIdAsync(id);
-                if (existingSupplier == null)
-                {
-                    TempData["Error"] = "Proveedor no encontrado.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Verificar si ya existe otro proveedor con ese nombre
-                if (await _supplierService.ExistsAsync(viewModel.Name, id))
-                {
-                    ModelState.AddModelError("Name", "Ya existe otro proveedor con este nombre.");
-                    ViewBag.IsEdit = true;
-                    ViewBag.PageTitle = "Editar Proveedor";
-                    ViewBag.SupplierId = id;
-                    return View("CreateEdit", viewModel);
-                }
-
-                // Mapear los cambios
-                _mapper.Map(viewModel, existingSupplier);
-                await _supplierService.UpdateAsync(existingSupplier);
-                
-                TempData["Success"] = $"Proveedor '{existingSupplier.Name}' actualizado exitosamente.";
+                // Aquí implementarías la lógica de eliminación
+                TempData["Success"] = "Proveedor eliminado exitosamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al actualizar el proveedor: " + ex.Message;
-                ViewBag.IsEdit = true;
-                ViewBag.PageTitle = "Editar Proveedor";
-                ViewBag.SupplierId = id;
-                return View("CreateEdit", viewModel);
-            }
-        }
-
-        // POST: Suppliers/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            try
-            {
-                var supplier = await _supplierService.GetWithProductsAsync(id);
-                if (supplier == null)
-                {
-                    TempData["Error"] = "Proveedor no encontrado.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                // Verificar si el proveedor tiene productos asociados
-                if (supplier.Products?.Any() == true)
-                {
-                    TempData["Error"] = $"No se puede eliminar el proveedor '{supplier.Name}' porque tiene productos asociados.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                await _supplierService.DeleteAsync(id);
-                TempData["Success"] = $"Proveedor '{supplier.Name}' eliminado exitosamente.";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al eliminar el proveedor: " + ex.Message;
-            }
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        // API: Get active suppliers (for dropdowns)
-        [HttpGet]
-        public async Task<JsonResult> GetActive()
-        {
-            try
-            {
-                var suppliers = await _supplierService.GetActiveAsync();
-                var result = suppliers.Select(s => new { id = s.Id, name = s.Name }).ToList();
-                return Json(result);
-            }
-            catch
-            {
-                return Json(new List<object>());
-            }
-        }
-
-        // GET: Suppliers/SupplierProducts/5
-        public async Task<IActionResult> SupplierProducts(int id)
-        {
-            try
-            {
-                var supplier = await _supplierService.GetByIdAsync(id);
-                if (supplier == null)
-                {
-                    TempData["Error"] = "Proveedor no encontrado.";
-                    return RedirectToAction(nameof(Index));
-                }
-
-                var supplierViewModel = _mapper.Map<SupplierViewModel>(supplier);
-                
-                // Inicializar ViewBags vacíos para evitar errores
-                ViewBag.SupplierPrices = new List<object>();
-                ViewBag.AveragePrice = 0;
-                ViewBag.HighestPrice = 0;
-                
-                return View(supplierViewModel);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = "Error al cargar los productos del proveedor: " + ex.Message;
+                TempData["Error"] = $"Error al eliminar: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
         }

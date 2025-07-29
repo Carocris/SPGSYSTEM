@@ -1,0 +1,158 @@
+@model Application.ViewModels.Supplier.SupplierSaveViewModel
+
+@{
+    ViewData["Title"] = "Editar Proveedor";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-edit me-2"></i>
+                        Editar Proveedor
+                    </h3>
+                    <div class="card-tools">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible">
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["Error"]
+                        </div>
+                    }
+
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="UserId" />
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Name" class="form-label">
+                                        <i class="fas fa-building me-1"></i>
+                                        Nombre de la Empresa *
+                                    </label>
+                                    <input asp-for="Name" class="form-control" placeholder="Ingrese el nombre de la empresa" />
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="ContactPerson" class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        Persona de Contacto
+                                    </label>
+                                    <input asp-for="ContactPerson" class="form-control" placeholder="Nombre de la persona de contacto" />
+                                    <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        Email
+                                    </label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="correo@empresa.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="Phone" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>
+                                        Teléfono
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" placeholder="+1 234 567 8900" />
+                                    <span asp-validation-for="Phone" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="TaxId" class="form-label">
+                                        <i class="fas fa-id-card me-1"></i>
+                                        RUC/NIT/ID Fiscal
+                                    </label>
+                                    <input asp-for="TaxId" class="form-control" placeholder="12345678901" />
+                                    <span asp-validation-for="TaxId" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="Address" class="form-label">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        Dirección
+                                    </label>
+                                    <textarea asp-for="Address" class="form-control" rows="2" placeholder="Dirección completa"></textarea>
+                                    <span asp-validation-for="Address" class="text-danger"></span>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="City" class="form-label">
+                                                <i class="fas fa-city me-1"></i>
+                                                Ciudad
+                                            </label>
+                                            <input asp-for="City" class="form-control" placeholder="Ciudad" />
+                                            <span asp-validation-for="City" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label asp-for="PostalCode" class="form-label">
+                                                <i class="fas fa-mail-bulk me-1"></i>
+                                                Código Postal
+                                            </label>
+                                            <input asp-for="PostalCode" class="form-control" placeholder="12345" />
+                                            <span asp-validation-for="PostalCode" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label asp-for="Country" class="form-label">
+                                        <i class="fas fa-globe me-1"></i>
+                                        País
+                                    </label>
+                                    <input asp-for="Country" class="form-control" placeholder="País" />
+                                    <span asp-validation-for="Country" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <div class="form-check">
+                                        <input asp-for="IsActive" class="form-check-input" />
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Proveedor Activo
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Guardar Cambios
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

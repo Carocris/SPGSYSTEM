@@ -18,6 +18,12 @@ namespace Application.ViewModels.Supplier
         public string? PostalCode { get; set; }
         public string? Country { get; set; }
         public string? TaxId { get; set; }
+        
+        /// <summary>
+        /// ID del usuario de Identity asociado a este proveedor
+        /// </summary>
+        public string? UserId { get; set; }
+        
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         public int ProductCount { get; set; } // Cantidad de productos de este proveedor

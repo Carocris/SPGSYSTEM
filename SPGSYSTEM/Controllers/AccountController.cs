@@ -3,6 +3,7 @@ using Identity.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
 namespace SPGSYSTEM.Controllers
@@ -70,7 +71,7 @@ namespace SPGSYSTEM.Controllers
                     claims.Add(new Claim(ClaimTypes.Role, role));
                 }
 
-                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var claimsIdentity = new ClaimsIdentity(claims, IdentityConstants.ApplicationScheme);
                 var authProperties = new AuthenticationProperties
                 {
                     IsPersistent = true,
@@ -78,7 +79,7 @@ namespace SPGSYSTEM.Controllers
                 };
 
                 await HttpContext.SignInAsync(
-                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    IdentityConstants.ApplicationScheme,
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
@@ -147,7 +148,7 @@ namespace SPGSYSTEM.Controllers
         public async Task<IActionResult> Logout()
         {
             await _accountService.SignOutAsync();
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
 
             TempData["Success"] = "Sesión cerrada exitosamente.";
             return RedirectToAction("Index", "Home");

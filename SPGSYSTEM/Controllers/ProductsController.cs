@@ -8,6 +8,7 @@ using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection; // Added for HttpContext.RequestServices
 
 namespace SPGSYSTEM.Controllers
@@ -19,7 +20,7 @@ namespace SPGSYSTEM.Controllers
         private readonly ICategoryService _categoryService;
         private readonly ISupplierService _supplierService;
         private readonly ISupplierPriceHistoryService _supplierPriceHistoryService;
-        private readonly IInventoryMovementService _inventoryMovementService;
+        private readonly ISaleDetailService _saleDetailService;
         private readonly IMapper _mapper;
 
         public ProductsController(
@@ -27,14 +28,14 @@ namespace SPGSYSTEM.Controllers
             ICategoryService categoryService, 
             ISupplierService supplierService,
             ISupplierPriceHistoryService supplierPriceHistoryService,
-            IInventoryMovementService inventoryMovementService,
+            ISaleDetailService saleDetailService,
             IMapper mapper)
         {
             _productService = productService;
             _categoryService = categoryService;
             _supplierService = supplierService;
             _supplierPriceHistoryService = supplierPriceHistoryService;
-            _inventoryMovementService = inventoryMovementService;
+            _saleDetailService = saleDetailService;
             _mapper = mapper;
         }
 
@@ -42,24 +43,50 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var categories = await _categoryService.GetActiveAsync();
-                var suppliers = await _supplierService.GetActiveAsync();
+                var categories = await _categoryService.GetAllAsync();
+                var suppliers = await _supplierService.GetAllAsync();
 
-                ViewBag.Categories = categories.Select(c => new SelectListItem 
-                { 
-                    Value = c.Id.ToString(), 
-                    Text = c.Name 
+                ViewBag.Categories = categories.Select(c => new SelectListItem
+                {
+                    Value = c.Id.ToString(),
+                    Text = c.Name
                 }).ToList();
-                ViewBag.Suppliers = suppliers.Select(s => new SelectListItem 
-                { 
-                    Value = s.Id.ToString(), 
-                    Text = s.Name 
+
+                ViewBag.Suppliers = suppliers.Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
                 }).ToList();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error cargando datos del ViewBag: {ex.Message}");
+                Console.WriteLine($"Error al cargar datos del ViewBag: {ex.Message}");
+                ViewBag.Categories = new List<SelectListItem>();
+                ViewBag.Suppliers = new List<SelectListItem>();
             }
+        }
+
+        private async Task<string> GenerateProductCodeAsync()
+        {
+            var products = await _productService.GetAllAsync();
+            var maxCode = products
+                .Where(p => !string.IsNullOrEmpty(p.Code) && p.Code.StartsWith("PROD"))
+                .Select(p => p.Code)
+                .OrderByDescending(c => c)
+                .FirstOrDefault();
+
+            if (string.IsNullOrEmpty(maxCode))
+            {
+                return "PROD001";
+            }
+
+            var numberPart = maxCode.Substring(4);
+            if (int.TryParse(numberPart, out int currentNumber))
+            {
+                return $"PROD{(currentNumber + 1):D3}";
+            }
+
+            return "PROD001";
         }
 
         // GET: /Products
@@ -67,7 +94,46 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var products = await _productService.GetAllAsync();
+                List<Product> products;
+                
+                // Filtrar productos según el rol del usuario
+                if (User.IsInRole("Admin"))
+                {
+                    // Admin ve todos los productos
+                    var allProducts = await _productService.GetAllAsync();
+                    products = allProducts.ToList();
+                }
+                else if (User.IsInRole("Auditor"))
+                {
+                    // Auditor ve todos los productos (solo lectura)
+                    var allProducts = await _productService.GetAllAsync();
+                    products = allProducts.ToList();
+                }
+                else if (User.IsInRole("Supplier"))
+                {
+                    // Supplier ve solo sus productos
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier != null)
+                    {
+                        products = await _productService.GetBySupplierAsync(supplier.Id);
+                    }
+                    else
+                    {
+                        products = new List<Product>();
+                    }
+                }
+                else if (User.IsInRole("Customer"))
+                {
+                    // Customer ve solo productos con stock > 0
+                    var allProducts = await _productService.GetAllAsync();
+                    products = allProducts.Where(p => p.Stock > 0).ToList();
+                }
+                else
+                {
+                    // Usuario sin rol específico - no ve nada
+                    products = new List<Product>();
+                }
+                
                 var viewModels = _mapper.Map<List<ProductViewModel>>(products);
                 return View(viewModels);
             }
@@ -83,31 +149,32 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var product = await _productService.GetWithDetailsAsync(id);
+                var product = await _productService.GetByIdAsync(id);
                 if (product == null)
                 {
                     TempData["Error"] = "Producto no encontrado.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                var vm = _mapper.Map<ProductViewModel>(product);
+                // Verificar permisos de acceso
+                if (!CanAccessProduct(product))
+                {
+                    TempData["Error"] = "No tienes permisos para ver este producto.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var viewModel = _mapper.Map<ProductViewModel>(product);
                 
                 // Cargar historial de ventas del producto
                 var salesService = HttpContext.RequestServices.GetService<Application.Interfaces.Services.ISaleService>();
                 if (salesService != null)
                 {
                     var allSales = await salesService.GetAllWithDetailsAsync();
-                    var productSales = allSales
-                        .Where(s => s.Details != null && s.Details.Any(d => d.ProductId == id))
-                        .OrderByDescending(s => s.SaleDate)
-                        .Take(10)
-                        .ToList();
-                    
-                    var productSalesViewModels = _mapper.Map<List<Application.ViewModels.Sale.SaleViewModel>>(productSales);
-                    ViewBag.ProductSales = productSalesViewModels;
+                    var productSales = allSales.Where(s => s.Details.Any(sd => sd.ProductId == id)).ToList();
+                    ViewBag.ProductSales = productSales.Take(5).ToList(); // Solo las últimas 5 ventas
                 }
                 
-                return View(vm);
+                return View(viewModel);
             }
             catch (Exception ex)
             {
@@ -118,7 +185,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/Create
         [HttpGet]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> Create(int? supplierId = null, int? categoryId = null)
         {
             try
@@ -126,28 +193,31 @@ namespace SPGSYSTEM.Controllers
                 await LoadViewBagDataAsync();
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
-                
-                var viewModel = new ProductSaveViewModel();
-                
-                // Si se proporciona un supplierId, preseleccionar el proveedor
-                if (supplierId.HasValue)
+
+                var vm = new ProductSaveViewModel
                 {
-                    viewModel.SupplierId = supplierId.Value;
-                    ViewBag.SelectedSupplierId = supplierId.Value;
-                }
-                
-                // Si se proporciona un categoryId, preseleccionar la categoría
-                if (categoryId.HasValue)
+                    Code = await GenerateProductCodeAsync(),
+                    CategoryId = categoryId,
+                    SupplierId = supplierId
+                };
+
+                // Si es Supplier, forzar que solo pueda crear productos para su proveedor
+                if (User.IsInRole("Supplier"))
                 {
-                    viewModel.CategoryId = categoryId.Value;
-                    ViewBag.SelectedCategoryId = categoryId.Value;
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier != null)
+                    {
+                        vm.SupplierId = supplier.Id;
+                        ViewBag.SupplierId = supplier.Id;
+                        ViewBag.SupplierName = supplier.Name;
+                    }
                 }
-                
-                return View("CreateEdit", viewModel);
+
+                return View("CreateEdit", vm);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al cargar los datos: " + ex.Message;
+                TempData["Error"] = "Error al cargar el formulario: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -155,7 +225,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> Create(ProductSaveViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -168,6 +238,24 @@ namespace SPGSYSTEM.Controllers
 
             try
             {
+                // Si es Supplier, forzar que el producto pertenezca a su proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier != null)
+                    {
+                        vm.SupplierId = supplier.Id;
+                    }
+                    else
+                    {
+                        TempData["Error"] = "No se pudo identificar tu proveedor.";
+                        await LoadViewBagDataAsync();
+                        ViewBag.IsEdit = false;
+                        ViewBag.PageTitle = "Nuevo Producto";
+                        return View("CreateEdit", vm);
+                    }
+                }
+
                 var product = _mapper.Map<Product>(vm);
                 
                 // Asegurar que las relaciones estén limpias y las propiedades de navegación sean null
@@ -220,7 +308,7 @@ namespace SPGSYSTEM.Controllers
         }
         // GET: /Products/Edit/5
         [HttpGet]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> Edit(int id)
         {
             try
@@ -230,6 +318,17 @@ namespace SPGSYSTEM.Controllers
                 {
                     TempData["Error"] = "Producto no encontrado.";
                     return RedirectToAction(nameof(Index));
+                }
+
+                // Si es Supplier, verificar que el producto pertenece a su proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier == null || product.SupplierId != supplier.Id)
+                    {
+                        TempData["Error"] = "No tienes permisos para editar este producto.";
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
 
                 await LoadViewBagDataAsync();
@@ -253,7 +352,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> Edit(int id, ProductSaveViewModel vm)
         {
             if (!ModelState.IsValid)
@@ -267,71 +366,38 @@ namespace SPGSYSTEM.Controllers
 
             try
             {
-                var existing = await _productService.GetByIdAsync(id);
-                if (existing == null)
+                // Verificar que el producto existe
+                var existingProduct = await _productService.GetByIdAsync(id);
+                if (existingProduct == null)
                 {
                     TempData["Error"] = "Producto no encontrado.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // Guardar valores originales para comparar cambios
-                var originalStock = existing.Stock;
-                var originalPurchasePrice = existing.PurchasePrice;
-                var originalSalePrice = existing.SalePrice;
-
-                _mapper.Map(vm, existing);
-                await _productService.UpdateAsync(existing);
-
-                // Registrar cambios de precios si el producto tiene proveedor
-                if (existing.SupplierId.HasValue)
+                // Si es Supplier, verificar que el producto pertenece a su proveedor
+                if (User.IsInRole("Supplier"))
                 {
-                    var priceChanges = new List<string>();
-
-                    // Verificar cambio en precio de compra
-                    if (originalPurchasePrice != existing.PurchasePrice)
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier == null || existingProduct.SupplierId != supplier.Id)
                     {
-                        await _supplierPriceHistoryService.CreateHistoryRecordAsync(
-                            existing.SupplierId.Value,
-                            existing.Id,
-                            originalPurchasePrice,
-                            existing.PurchasePrice,
-                            "Sistema",
-                            $"Actualización de precio de compra desde la edición del producto",
-                            "Actualización manual"
-                        );
-                        priceChanges.Add($"Precio de compra: ${originalPurchasePrice:N2} → ${existing.PurchasePrice:N2}");
+                        TempData["Error"] = "No tienes permisos para editar este producto.";
+                        return RedirectToAction(nameof(Index));
                     }
-
-                    // Verificar cambio en precio de venta
-                    if (originalSalePrice != existing.SalePrice)
-                    {
-                        await _supplierPriceHistoryService.CreateHistoryRecordAsync(
-                            existing.SupplierId.Value,
-                            existing.Id,
-                            originalSalePrice,
-                            existing.SalePrice,
-                            "Sistema",
-                            $"Actualización de precio de venta desde la edición del producto",
-                            "Actualización manual"
-                        );
-                        priceChanges.Add($"Precio de venta: ${originalSalePrice:N2} → ${existing.SalePrice:N2}");
-                    }
-
-                    // Agregar mensaje sobre cambios de precios
-                    if (priceChanges.Any())
-                    {
-                        TempData["Info"] = $"Cambios de precios registrados: {string.Join(", ", priceChanges)}";
-                    }
+                    // Forzar que el producto siga perteneciendo a su proveedor
+                    vm.SupplierId = supplier.Id;
                 }
 
-                var delta = existing.Stock - originalStock;
-                var stockMsg = delta > 0
-                    ? $" Stock incrementado en {delta} unidades (ahora: {existing.Stock})."
-                    : delta < 0
-                        ? $" Stock reducido en {Math.Abs(delta)} unidades (ahora: {existing.Stock})."
-                        : "";
-                TempData["Success"] = $"Producto '{existing.Name}' actualizado exitosamente.{stockMsg}";
+                var product = _mapper.Map<Product>(vm);
+                product.Id = id; // Asegurar que el ID se mantiene
+                
+                // Asegurar que las relaciones estén limpias
+                product.Category = null;
+                product.Supplier = null;
+                product.SaleDetails = null;
+                
+                await _productService.UpdateAsync(product);
 
+                TempData["Success"] = $"Producto '{product.Name}' actualizado exitosamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -348,7 +414,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/AddStock/5
         [HttpGet]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddStock(int id)
         {
             try
@@ -374,7 +440,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/AddStock
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,InventoryManager")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddStock(AddStockViewModel model)
         {
             if (!ModelState.IsValid)
@@ -410,14 +476,14 @@ namespace SPGSYSTEM.Controllers
 
                 // Registrar movimiento de entrada
                 var userName = User.Identity?.Name ?? "Sistema";
-                await _inventoryMovementService.RegisterEntryAsync(
-                    model.ProductId, 
-                    model.QuantityToAdd, 
-                    "Agregado de stock manual", 
-                    null, 
-                    "Manual", 
-                    $"Stock agregado desde la interfaz. Precio anterior: ${originalPurchasePrice:N2}", 
-                    userName);
+                // await _inventoryMovementService.RegisterEntryAsync(
+                //     model.ProductId, 
+                //     model.QuantityToAdd, 
+                //     "Agregado de stock manual", 
+                //     null, 
+                //     "Manual", 
+                //     $"Stock agregado desde la interfaz. Precio anterior: ${originalPurchasePrice:N2}", 
+                //     userName);
 
                 // Mensaje de éxito
                 var successMessage = $"Stock agregado exitosamente. {product.Name}: {before} → {product.Stock} unidades (+{model.QuantityToAdd})";
@@ -451,8 +517,11 @@ namespace SPGSYSTEM.Controllers
                 var product = await _productService.GetByIdAsync(id);
                 if (product != null)
                 {
-                    var withDetails = await _productService.GetWithDetailsAsync(id);
-                    if (withDetails.SaleDetails?.Any() == true)
+                    // Verificar si el producto tiene ventas asociadas
+                    var allSales = await _saleDetailService.GetAllAsync();
+                    var hasSales = allSales.Any(sd => sd.ProductId == id);
+                    
+                    if (hasSales)
                     {
                         TempData["Error"] = $"No se puede eliminar '{product.Name}' porque está asociado a ventas.";
                     }
@@ -477,14 +546,22 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 var products = await _productService.GetAllAsync();
-                var result = products
-                    .Where(p => p.Name.Contains(term ?? "", StringComparison.OrdinalIgnoreCase))
+                var filteredProducts = products
+                    .Where(p => p.Name.ToLower().Contains(term.ToLower()) || 
+                               p.Code.ToLower().Contains(term.ToLower()))
                     .Take(10)
-                    .Select(p => new { id = p.Id, name = p.Name, price = p.Price, stock = p.Stock })
+                    .Select(p => new
+                    {
+                        id = p.Id,
+                        text = $"{p.Code} - {p.Name} (Stock: {p.Stock})",
+                        price = p.Price,
+                        stock = p.Stock
+                    })
                     .ToList();
-                return Json(result);
+
+                return Json(filteredProducts);
             }
-            catch
+            catch (Exception ex)
             {
                 return Json(new List<object>());
             }
@@ -512,13 +589,51 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var suppliers = await _supplierService.GetActiveAsync();
+                var suppliers = await _supplierService.GetAllAsync();
                 var result = suppliers.Select(s => new { id = s.Id, name = s.Name }).ToList();
                 return Json(result);
             }
-            catch
+            catch (Exception ex)
             {
                 return Json(new List<object>());
+            }
+        }
+
+        // Método auxiliar para verificar si el usuario puede acceder a un producto
+        private bool CanAccessProduct(Product product)
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Auditor"))
+                return true;
+            
+            if (User.IsInRole("Supplier"))
+            {
+                // Supplier solo puede ver sus propios productos
+                var supplier = GetSupplierByUserId(User.Identity?.Name).Result;
+                return supplier != null && product.SupplierId == supplier.Id;
+            }
+            
+            if (User.IsInRole("Customer"))
+            {
+                // Customer solo puede ver productos con stock > 0
+                return product.Stock > 0;
+            }
+            
+            return false;
+        }
+
+        // Método auxiliar para obtener el proveedor por userId
+        private async Task<Supplier?> GetSupplierByUserId(string? userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return null;
+
+            try
+            {
+                return await _supplierService.GetByUserIdAsync(userId);
+            }
+            catch
+            {
+                return null;
             }
         }
     }

@@ -18,7 +18,7 @@ namespace Database.Contexts
         public DbSet<Sale> Sales { get; set; }
         public DbSet<SaleDetail> SaleDetails { get; set; }
         public DbSet<Payment> Payments { get; set; }
-        public DbSet<InventoryMovement> InventoryMovements { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,7 +33,7 @@ namespace Database.Contexts
             modelBuilder.Entity<SupplierPriceHistory>().HasKey(sph => sph.Id);
             modelBuilder.Entity<PurchaseOrder>().HasKey(po => po.Id);
             modelBuilder.Entity<PurchaseOrderDetail>().HasKey(pod => pod.Id);
-            modelBuilder.Entity<InventoryMovement>().HasKey(im => im.Id);
+            modelBuilder.Entity<Notification>().HasKey(n => n.Id);
             #endregion
 
             #region Relationships
@@ -114,15 +114,15 @@ namespace Database.Contexts
                 .HasForeignKey(pod => pod.ProductId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // InventoryMovement -> Product
-            modelBuilder.Entity<InventoryMovement>()
-                .HasOne(im => im.Product)
+            // Notification -> Supplier
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.Supplier)
                 .WithMany()
-                .HasForeignKey(im => im.ProductId)
+                .HasForeignKey(n => n.SupplierId)
                 .OnDelete(DeleteBehavior.Cascade);
             #endregion
 
-            #region Property configurations
+            #region Properties
             // Customer
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Name)
@@ -130,10 +130,36 @@ namespace Database.Contexts
                 .IsRequired();
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Email)
-                .HasMaxLength(100);
+                .HasMaxLength(100)
+                .IsRequired();
             modelBuilder.Entity<Customer>()
                 .Property(c => c.Phone)
                 .HasMaxLength(20);
+
+            // Product
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Code)
+                .HasMaxLength(50)
+                .IsRequired();
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Name)
+                .HasMaxLength(100)
+                .IsRequired();
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Description)
+                .HasMaxLength(500);
+            modelBuilder.Entity<Product>()
+                .Property(p => p.PurchasePrice)
+                .HasColumnType("decimal(10,2)");
+            modelBuilder.Entity<Product>()
+                .Property(p => p.SalePrice)
+                .HasColumnType("decimal(10,2)");
+            modelBuilder.Entity<Product>()
+                .Property(p => p.Stock)
+                .IsRequired();
+            modelBuilder.Entity<Product>()
+                .Property(p => p.MinimumStock)
+                .IsRequired();
 
             // Category
             modelBuilder.Entity<Category>()
@@ -150,58 +176,76 @@ namespace Database.Contexts
                 .HasMaxLength(100)
                 .IsRequired();
             modelBuilder.Entity<Supplier>()
-                .Property(s => s.ContactPerson)
-                .HasMaxLength(100);
+                .Property(s => s.Email)
+                .HasMaxLength(100)
+                .IsRequired();
             modelBuilder.Entity<Supplier>()
                 .Property(s => s.Phone)
                 .HasMaxLength(20);
             modelBuilder.Entity<Supplier>()
-                .Property(s => s.Email)
-                .HasMaxLength(100);
-            modelBuilder.Entity<Supplier>()
                 .Property(s => s.Address)
                 .HasMaxLength(200);
-            modelBuilder.Entity<Supplier>()
-                .Property(s => s.City)
-                .HasMaxLength(50);
-            modelBuilder.Entity<Supplier>()
-                .Property(s => s.PostalCode)
-                .HasMaxLength(20);
-            modelBuilder.Entity<Supplier>()
-                .Property(s => s.Country)
-                .HasMaxLength(50);
-            modelBuilder.Entity<Supplier>()
-                .Property(s => s.TaxId)
-                .HasMaxLength(20);
 
-            // Product
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Code)
-                .HasMaxLength(20)
-                .IsRequired();
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Name)
-                .HasMaxLength(100)
-                .IsRequired();
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Description)
-                .HasMaxLength(500);
-            modelBuilder.Entity<Product>()
-                .Property(p => p.PurchasePrice)
+            // SupplierPriceHistory
+            modelBuilder.Entity<SupplierPriceHistory>()
+                .Property(sph => sph.OldPrice)
                 .HasColumnType("decimal(10,2)")
                 .IsRequired();
-            modelBuilder.Entity<Product>()
-                .Property(p => p.SalePrice)
+            modelBuilder.Entity<SupplierPriceHistory>()
+                .Property(sph => sph.NewPrice)
                 .HasColumnType("decimal(10,2)")
                 .IsRequired();
-            modelBuilder.Entity<Product>()
-                .Property(p => p.Stock)
-                .IsRequired();
-            modelBuilder.Entity<Product>()
-                .Property(p => p.MinimumStock)
+            modelBuilder.Entity<SupplierPriceHistory>()
+                .Property(sph => sph.ChangeDate)
                 .IsRequired();
 
-            // Unique constraints
+            // PurchaseOrder
+            modelBuilder.Entity<PurchaseOrder>()
+                .Property(po => po.OrderNumber)
+                .HasMaxLength(50)
+                .IsRequired();
+            modelBuilder.Entity<PurchaseOrder>()
+                .Property(po => po.OrderDate)
+                .IsRequired();
+            modelBuilder.Entity<PurchaseOrder>()
+                .Property(po => po.TotalAmount)
+                .HasColumnType("decimal(10,2)");
+            modelBuilder.Entity<PurchaseOrder>()
+                .Property(po => po.Status)
+                .HasMaxLength(50)
+                .IsRequired();
+
+            // PurchaseOrderDetail
+            modelBuilder.Entity<PurchaseOrderDetail>()
+                .Property(pod => pod.Quantity)
+                .IsRequired();
+            modelBuilder.Entity<PurchaseOrderDetail>()
+                .Property(pod => pod.UnitPrice)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            // Notification
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Title)
+                .HasMaxLength(200)
+                .IsRequired();
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Message)
+                .HasMaxLength(1000)
+                .IsRequired();
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Type)
+                .HasMaxLength(50)
+                .IsRequired();
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.ProductName)
+                .HasMaxLength(200);
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.CustomerName)
+                .HasMaxLength(200);
+            #endregion
+
+            #region Unique constraints
             modelBuilder.Entity<Product>()
                 .HasIndex(p => p.Code)
                 .IsUnique();
@@ -259,44 +303,8 @@ namespace Database.Contexts
             modelBuilder.Entity<Payment>()
                 .Property(p => p.TransferReceiptPath)
                 .HasMaxLength(255);
-
-            // InventoryMovement
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.MovementType)
-                .HasMaxLength(50)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.Quantity)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.StockBefore)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.StockAfter)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.Reason)
-                .HasMaxLength(200)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.Notes)
-                .HasMaxLength(500);
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.ReferenceNumber)
-                .HasMaxLength(100);
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.ReferenceType)
-                .HasMaxLength(50);
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.MovementDate)
-                .IsRequired();
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.CreatedBy)
-                .HasMaxLength(100);
-            modelBuilder.Entity<InventoryMovement>()
-                .Property(im => im.CreatedDate)
-                .IsRequired();
             #endregion
         }
     }
 }
+

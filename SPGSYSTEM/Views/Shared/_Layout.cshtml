@@ -22,13 +22,18 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">
-                                <i class="fas fa-tachometer-alt me-1"></i>Dashboard
-                            </a>
-                        </li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Auditor"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                                </a>
+                            </li>
+                        }
                         
-                        <!-- Dropdown Inventario -->
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <!-- Dropdown Inventario - SOLO ADMIN -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-boxes me-1"></i>Inventario
@@ -52,7 +57,7 @@
                             </ul>
                         </li>
 
-                        <!-- Dropdown Ventas -->
+                            <!-- Dropdown Ventas - SOLO ADMIN -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-shopping-cart me-1"></i>Ventas
@@ -71,27 +76,89 @@
                             </ul>
                         </li>
 
-                        <!-- Clientes -->
+                            <!-- Clientes - SOLO ADMIN -->
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Customers" asp-action="Index">
                                 <i class="fas fa-users me-1"></i>Clientes
                             </a>
                         </li>
 
-                        <!-- Pagos -->
+                            <!-- Pagos - SOLO ADMIN -->
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Payments" asp-action="Index">
                                 <i class="fas fa-credit-card me-1"></i>Pagos
                             </a>
                         </li>
+                        }
 
-                        <!-- Movimientos de Inventario -->
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="InventoryMovements" asp-action="Index">
-                                <i class="fas fa-exchange-alt me-1"></i>Movimientos
-                            </a>
-                        </li>
+                        @if (User.IsInRole("Auditor"))
+                        {
+                            <!-- Menú para Auditor - SOLO LECTURA -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-chart-line me-1"></i>Reportes
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Products" asp-action="Index">
+                                            <i class="fas fa-box me-2"></i>Productos (Solo Ver)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Categories" asp-action="Index">
+                                            <i class="fas fa-tags me-2"></i>Categorías (Solo Ver)
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Sales" asp-action="Index">
+                                            <i class="fas fa-receipt me-2"></i>Ventas (Solo Ver)
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
 
+                        @if (User.IsInRole("Supplier"))
+                        {
+                            <!-- Menú para Proveedores -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-boxes me-1"></i>Mis Productos
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="SupplierPortal" asp-action="Index">
+                                            <i class="fas fa-box me-2"></i>Ver Productos
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="Products" asp-action="Create">
+                                            <i class="fas fa-plus me-2"></i>Agregar Producto
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Notifications" asp-action="Index">
+                                    <i class="fas fa-bell me-1"></i>Notificaciones
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("Customer"))
+                        {
+                            <!-- Menú para Clientes -->
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="CustomerPortal" asp-action="Index">
+                                    <i class="fas fa-shopping-bag me-1"></i>Catálogo
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="CustomerPortal" asp-action="MyOrders">
+                                    <i class="fas fa-shopping-cart me-1"></i>Mis Compras
+                                </a>
+                            </li>
+                        }
                     </ul>
 
                     <!-- Usuario y Autenticación -->
@@ -101,6 +168,12 @@
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-user me-1"></i>@User.Identity.Name
+                                    <span class="badge bg-secondary ms-1">
+                                        @if (User.IsInRole("Admin")) { <text>Admin</text> }
+                                        else if (User.IsInRole("Auditor")) { <text>Auditor</text> }
+                                        else if (User.IsInRole("Supplier")) { <text>Proveedor</text> }
+                                        else if (User.IsInRole("Customer")) { <text>Cliente</text> }
+                                    </span>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end">
                                     <li>

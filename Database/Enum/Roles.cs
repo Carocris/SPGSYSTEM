@@ -6,13 +6,13 @@ namespace Database.Enum
         /// Administrador del sistema - Acceso completo
         Admin,
 
-        /// Gestor de inventario - Gestión de productos, categorías, proveedores
-        InventoryManager,
-
-        /// Vendedor - Gestión de ventas y clientes
-        SalesUser,
-
         /// Auditor - Solo consultas y reportes
-        Auditor
+        Auditor,
+
+        /// Proveedor - Solo puede ver y gestionar sus productos
+        Supplier,
+
+        /// Cliente - Solo puede ver productos y realizar compras
+        Customer
     }
 } 

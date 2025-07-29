@@ -9,6 +9,8 @@ namespace Application.ViewModels.Supplier
 {
     public class SupplierSaveViewModel
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "El nombre es requerido")]
         [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
         public string Name { get; set; }
@@ -38,6 +40,12 @@ namespace Application.ViewModels.Supplier
 
         [StringLength(20, ErrorMessage = "El ID fiscal no puede exceder 20 caracteres")]
         public string? TaxId { get; set; }
+
+        /// <summary>
+        /// ID del usuario de Identity asociado a este proveedor
+        /// </summary>
+        [StringLength(450)]
+        public string? UserId { get; set; }
 
         public bool IsActive { get; set; } = true;
     }

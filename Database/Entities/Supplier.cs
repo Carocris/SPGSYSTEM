@@ -45,6 +45,12 @@ namespace Database.Entities
         [StringLength(20)]
         public string? TaxId { get; set; } // RUC/NIT/Tax ID
 
+        /// <summary>
+        /// ID del usuario de Identity asociado a este proveedor
+        /// </summary>
+        [StringLength(450)]
+        public string? UserId { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;

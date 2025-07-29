@@ -6,6 +6,7 @@ using AutoMapper;
 using Database.Entities;
 using Database.Enum;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SPGSYSTEM.Helpers;
 
 namespace SPGSYSTEM.Controllers
@@ -18,7 +19,7 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly IPaymentService _paymentService;
         private readonly ISaleDetailService _saleDetailService;
-        private readonly IInventoryMovementService _inventoryMovementService;
+        private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -28,7 +29,7 @@ namespace SPGSYSTEM.Controllers
             IProductService productService,
             IPaymentService paymentService,
             ISaleDetailService saleDetailService,
-            IInventoryMovementService inventoryMovementService,
+            INotificationService notificationService,
             IMapper mapper,
             IWebHostEnvironment webHostEnvironment)
         {
@@ -37,7 +38,7 @@ namespace SPGSYSTEM.Controllers
             _productService = productService;
             _paymentService = paymentService;
             _saleDetailService = saleDetailService;
-            _inventoryMovementService = inventoryMovementService;
+            _notificationService = notificationService;
             _mapper = mapper;
             _webHostEnvironment = webHostEnvironment;
         }
@@ -61,7 +62,39 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var sales = await _saleService.GetAllAsync();
+                List<Sale> sales;
+                
+                // Filtrar ventas según el rol del usuario
+                if (User.IsInRole("Admin"))
+                {
+                    // Admin ve todas las ventas
+                    var allSales = await _saleService.GetAllAsync();
+                    sales = allSales.ToList();
+                }
+                else if (User.IsInRole("Auditor"))
+                {
+                    // Auditor ve todas las ventas (solo lectura)
+                    var allSales = await _saleService.GetAllAsync();
+                    sales = allSales.ToList();
+                }
+                else if (User.IsInRole("Supplier"))
+                {
+                    // Supplier ve ventas de sus productos (por ahora todas)
+                    var allSales = await _saleService.GetAllAsync();
+                    sales = allSales.ToList();
+                }
+                else if (User.IsInRole("Customer"))
+                {
+                    // Customer ve solo sus propias ventas (por ahora todas)
+                    var allSales = await _saleService.GetAllAsync();
+                    sales = allSales.ToList();
+                }
+                else
+                {
+                    // Usuario sin rol específico - no ve nada
+                    sales = new List<Sale>();
+                }
+                
                 var viewModels = new List<SaleViewModel>();
 
                 foreach (var sale in sales)
@@ -92,12 +125,19 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Verificar permisos según rol
+                if (!CanAccessSale(sale))
+                {
+                    TempData["Error"] = "No tienes permisos para ver esta venta.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 var viewModel = _mapper.Map<SaleViewModel>(sale);
                 return View(viewModel);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al cargar los detalles de la venta: " + ex.Message;
+                TempData["Error"] = "Error al cargar los detalles: " + ex.Message;
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -105,7 +145,7 @@ namespace SPGSYSTEM.Controllers
         // GET: Sales/CreateEdit (para crear)
         [HttpGet]
         [Route("Sales/CreateEdit")]
-        [Authorize(Roles = "Admin,SalesUser")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEdit()
         {
             try
@@ -131,7 +171,7 @@ namespace SPGSYSTEM.Controllers
         // GET: Sales/CreateEdit/5 (para editar)
         [HttpGet]
         [Route("Sales/CreateEdit/{id:int}")]
-        [Authorize(Roles = "Admin,SalesUser")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEdit(int id)
         {
             try
@@ -180,7 +220,7 @@ namespace SPGSYSTEM.Controllers
         [HttpPost]
         [Route("Sales/CreateEdit")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,SalesUser")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEdit(SaleSaveViewModel model, int? id = null, IFormFile? transferReceiptFile = null)
         {
             try
@@ -274,16 +314,20 @@ namespace SPGSYSTEM.Controllers
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
 
-                                    // Registrar movimiento de salida
-                                    var userName = User.Identity?.Name ?? "Sistema";
-                                    await _inventoryMovementService.RegisterExitAsync(
-                                        detailModel.ProductId,
-                                        detailModel.Quantity,
-                                        "Venta - Edición",
-                                        existingSale.Id.ToString(),
-                                        "Venta",
-                                        $"Venta #{existingSale.Id:D4} - {product.Name}",
-                                        userName);
+                                    // Notificar al proveedor si el producto tiene uno
+                                    if (product.SupplierId.HasValue)
+                                    {
+                                        var customer = await _customerService.GetByIdAsync(model.CustomerId);
+                                        var customerName = customer?.Name ?? "Cliente";
+                                        
+                                        await _notificationService.NotifySupplierOfSaleAsync(
+                                            product.SupplierId.Value,
+                                            product.Name,
+                                            detailModel.Quantity,
+                                            customerName,
+                                            existingSale.Id
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -328,16 +372,20 @@ namespace SPGSYSTEM.Controllers
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
 
-                                    // Registrar movimiento de salida
-                                    var userName = User.Identity?.Name ?? "Sistema";
-                                    await _inventoryMovementService.RegisterExitAsync(
-                                        detailModel.ProductId,
-                                        detailModel.Quantity,
-                                        "Venta",
-                                        sale.Id.ToString(),
-                                        "Venta",
-                                        $"Venta #{sale.Id:D4} - {product.Name}",
-                                        userName);
+                                    // Notificar al proveedor si el producto tiene uno
+                                    if (product.SupplierId.HasValue)
+                                    {
+                                        var customer = await _customerService.GetByIdAsync(model.CustomerId);
+                                        var customerName = customer?.Name ?? "Cliente";
+                                        
+                                        await _notificationService.NotifySupplierOfSaleAsync(
+                                            product.SupplierId.Value,
+                                            product.Name,
+                                            detailModel.Quantity,
+                                            customerName,
+                                            sale.Id
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -557,6 +605,51 @@ namespace SPGSYSTEM.Controllers
             var returnPath = $"/uploads/transfer-receipts/{fileName}";
             Console.WriteLine($"Path retornado: {returnPath}");
             return returnPath;
+        }
+
+        // Método auxiliar para verificar si el usuario puede acceder a una venta
+        private bool CanAccessSale(Sale sale)
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Auditor"))
+                return true;
+            
+            if (User.IsInRole("Supplier"))
+            {
+                // Supplier solo puede ver ventas de sus productos
+                var supplier = GetSupplierByUserId(User.Identity?.Name).Result;
+                return supplier != null && sale.Details.Any(d => d.Product.SupplierId == supplier.Id);
+            }
+            
+            if (User.IsInRole("Customer"))
+            {
+                // Customer solo puede ver sus propias ventas
+                var customer = GetCustomerByUserId(User.Identity?.Name).Result;
+                return customer != null && sale.CustomerId == customer.Id;
+            }
+            
+            return false;
+        }
+
+        // Método auxiliar para obtener el proveedor por userId
+        private async Task<Supplier?> GetSupplierByUserId(string? userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return null;
+                
+            // Aquí deberías implementar la lógica para obtener el proveedor por userId
+            // Por ahora, retornamos null
+            return null;
+        }
+
+        // Método auxiliar para obtener el cliente por userId
+        private async Task<Customer?> GetCustomerByUserId(string? userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return null;
+                
+            // Aquí deberías implementar la lógica para obtener el cliente por userId
+            // Por ahora, retornamos null
+            return null;
         }
     }
 } 

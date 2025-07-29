@@ -1,0 +1,131 @@
+@model List<Application.ViewModels.Notification.NotificationViewModel>
+
+@{
+    ViewData["Title"] = "Mis Notificaciones";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-bell me-2"></i>Mis Notificaciones
+                    </h3>
+                    <div>
+                        <a href="@Url.Action("Unread")" class="btn btn-warning btn-sm">
+                            <i class="fas fa-eye me-1"></i>No Leídas
+                        </a>
+                        <form method="post" action="@Url.Action("MarkAllAsRead")" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('¿Marcar todas como leídas?')">
+                                <i class="fas fa-check-double me-1"></i>Marcar Todas como Leídas
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No tienes notificaciones</h5>
+                            <p class="text-muted">Cuando recibas notificaciones sobre ventas de tus productos, aparecerán aquí.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Estado</th>
+                                        <th>Título</th>
+                                        <th>Mensaje</th>
+                                        <th>Producto</th>
+                                        <th>Cantidad</th>
+                                        <th>Cliente</th>
+                                        <th>Fecha</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var notification in Model)
+                                    {
+                                        <tr class="@(notification.IsRead ? "" : "table-warning")">
+                                            <td>
+                                                @if (notification.IsRead)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="fas fa-check me-1"></i>Leída
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">
+                                                        <i class="fas fa-exclamation me-1"></i>Nueva
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <strong>@notification.Title</strong>
+                                            </td>
+                                            <td>@notification.Message</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(notification.ProductName))
+                                                {
+                                                    <span class="badge bg-info">@notification.ProductName</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (notification.Quantity.HasValue)
+                                                {
+                                                    <span class="badge bg-primary">@notification.Quantity</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(notification.CustomerName))
+                                                {
+                                                    <span class="badge bg-secondary">@notification.CustomerName</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @notification.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                @if (!notification.IsRead)
+                                                {
+                                                    <form method="post" action="@Url.Action("MarkAsRead", new { id = notification.Id })" style="display: inline;">
+                                                        <button type="submit" class="btn btn-success btn-sm">
+                                                            <i class="fas fa-check me-1"></i>Marcar como Leída
+                                                        </button>
+                                                    </form>
+                                                }
+                                                @if (notification.SaleId.HasValue)
+                                                {
+                                                    <a href="@Url.Action("Details", "Sales", new { id = notification.SaleId })" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-eye me-1"></i>Ver Venta
+                                                    </a>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-refresh cada 30 segundos para nuevas notificaciones
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+} 

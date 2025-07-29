@@ -13,9 +13,14 @@ namespace Identity.Interfaces
         Task<AuthenticationResponse> AuthenticateAsync(AuthenticationRequest request);
 
         /// <summary>
-        /// Registra un nuevo usuario
+        /// Registra un nuevo usuario (solo para clientes - registro público)
         /// </summary>
         Task<RegisterResponse> RegisterBasicAsync(RegisterRequest request, string origin);
+
+        /// <summary>
+        /// Registra un nuevo proveedor (solo para administradores)
+        /// </summary>
+        Task<RegisterResponse> RegisterSupplierAsync(RegisterRequest request, string origin);
 
         /// <summary>
         /// Obtiene todos los usuarios

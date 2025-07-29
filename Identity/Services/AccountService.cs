@@ -115,7 +115,7 @@ namespace Identity.Services
         }
 
         /// <summary>
-        /// Registra un nuevo usuario
+        /// Registra un nuevo usuario (solo para clientes - registro público)
         /// </summary>
         public async Task<RegisterResponse> RegisterBasicAsync(RegisterRequest request, string origin)
         {
@@ -159,6 +159,76 @@ namespace Identity.Services
                 return response;
             }
 
+            // Asignar automáticamente el rol "Customer" para registros públicos
+            var roleResult = await _userManager.AddToRoleAsync(user, "Customer");
+            if (!roleResult.Succeeded)
+            {
+                response.HasError = true;
+                response.Error = $"Usuario creado pero error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                return response;
+            }
+
+            response.UserId = user.Id;
+            response.Message = "Usuario registrado exitosamente.";
+            return response;
+        }
+
+        /// <summary>
+        /// Registra un nuevo proveedor (solo para administradores)
+        /// </summary>
+        public async Task<RegisterResponse> RegisterSupplierAsync(RegisterRequest request, string origin)
+        {
+            RegisterResponse response = new()
+            {
+                HasError = false
+            };
+
+            var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
+
+            if (userWithSameUserName != null)
+            {
+                response.HasError = true;
+                response.Error = $"El nombre de usuario {request.UserName} ya está en uso.";
+                return response;
+            }
+
+            var userWithSameUserEmail = await _userManager.FindByEmailAsync(request.Email);
+            if (userWithSameUserEmail != null)
+            {
+                response.HasError = true;
+                response.Error = $"El email {request.Email} ya está registrado.";
+                return response;
+            }
+
+            var user = new ApplicationUser
+            {
+                Email = request.Email,
+                UserName = request.UserName,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                PhoneNumber = request.PhoneNumber,
+            };
+
+            var result = await _userManager.CreateAsync(user, request.Password);
+
+            if (!result.Succeeded)
+            {
+                response.HasError = true;
+                response.Error = $"Ocurrió un error al registrar el proveedor.";
+                return response;
+            }
+
+            // Asignar automáticamente el rol "Supplier" para proveedores
+            var roleResult = await _userManager.AddToRoleAsync(user, "Supplier");
+            if (!roleResult.Succeeded)
+            {
+                response.HasError = true;
+                response.Error = $"Proveedor creado pero error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                return response;
+            }
+
+            response.UserId = user.Id;
+            response.Message = "Proveedor registrado exitosamente.";
             return response;
         }
 

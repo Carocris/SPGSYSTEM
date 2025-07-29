@@ -1,145 +1,165 @@
 @model Application.ViewModels.Supplier.SupplierViewModel
+
 @{
-    ViewData["Title"] = "Detalles de Proveedor";
+    ViewData["Title"] = "Detalles del Proveedor";
 }
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <!-- Navegación -->
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="@Url.Action("Index", "Home")">Inicio</a>
-                    </li>
-                    <li class="breadcrumb-item">
-                        <a href="@Url.Action("Index")">Proveedores</a>
-                    </li>
-                    <li class="breadcrumb-item active">@Model.Name</li>
-                </ol>
-            </nav>
-
-            <!-- Información del proveedor -->
             <div class="card">
                 <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <i class="fas fa-truck me-2"></i>
-                            @Model.Name
-                        </h3>
-                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-2"></i>Volver
+                    <h3 class="card-title">
+                        <i class="fas fa-truck me-2"></i>
+                        Detalles del Proveedor
+                    </h3>
+                    <div class="card-tools">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Volver
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                            <i class="fas fa-edit me-1"></i>
+                            Editar
                         </a>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <!-- Información General -->
                         <div class="col-md-6">
-                            <h5>Información General</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>ID:</strong></td>
-                                    <td>@Model.Id</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Nombre:</strong></td>
-                                    <td>@Model.Name</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Persona de Contacto:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.ContactPerson) ? "Sin contacto" : Model.ContactPerson)</td>
-                                </tr>
-                                <tr>
-                                                                    <td><strong>ID Fiscal / RUC / RNC:</strong></td>
-                                <td>@(string.IsNullOrWhiteSpace(Model.TaxId) ? "Sin ID fiscal" : Model.TaxId)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Estado:</strong></td>
-                                    <td>
-                                        @if (Model.IsActive)
-                                        {
-                                            <span class="badge bg-success">Activo</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-secondary">Inactivo</span>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Fecha de Creación:</strong></td>
-                                    <td>@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                </tr>
-                            </table>
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-building me-2"></i>
+                                Información de la Empresa
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Nombre:</label>
+                                <p class="form-control-plaintext">@Model.Name</p>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.TaxId))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">RUC/NIT:</label>
+                                    <p class="form-control-plaintext">@Model.TaxId</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.ContactPerson))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Persona de Contacto:</label>
+                                    <p class="form-control-plaintext">@Model.ContactPerson</p>
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado:</label>
+                                <p>
+                                    @if (Model.IsActive)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    }
+                                </p>
+                            </div>
                         </div>
 
-                        <!-- Información de Contacto -->
                         <div class="col-md-6">
-                            <h5>Información de Contacto</h5>
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Teléfono:</strong></td>
-                                    <td>
-                                        @if (!string.IsNullOrWhiteSpace(Model.Phone))
-                                        {
-                                            <a href="tel:@Model.Phone" class="text-decoration-none">
-                                                <i class="fas fa-phone me-1"></i>@Model.Phone
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Sin teléfono</span>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Email:</strong></td>
-                                    <td>
-                                        @if (!string.IsNullOrWhiteSpace(Model.Email))
-                                        {
-                                            <a href="mailto:@Model.Email" class="text-decoration-none">
-                                                <i class="fas fa-envelope me-1"></i>@Model.Email
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">Sin email</span>
-                                        }
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Dirección:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.Address) ? "Sin dirección" : Model.Address)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Ciudad:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.City) ? "Sin ciudad" : Model.City)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Código Postal:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.PostalCode) ? "Sin código postal" : Model.PostalCode)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>País:</strong></td>
-                                    <td>@(string.IsNullOrWhiteSpace(Model.Country) ? "Sin país" : Model.Country)</td>
-                                </tr>
-                            </table>
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-address-book me-2"></i>
+                                Información de Contacto
+                            </h5>
+
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Email:</label>
+                                    <p class="form-control-plaintext">
+                                        <a href="mailto:@Model.Email">@Model.Email</a>
+                                    </p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Phone))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Teléfono:</label>
+                                    <p class="form-control-plaintext">
+                                        <a href="tel:@Model.Phone">@Model.Phone</a>
+                                    </p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Address))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Dirección:</label>
+                                    <p class="form-control-plaintext">@Model.Address</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.City))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Ciudad:</label>
+                                    <p class="form-control-plaintext">@Model.City</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.Country))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">País:</label>
+                                    <p class="form-control-plaintext">@Model.Country</p>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(Model.PostalCode))
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Código Postal:</label>
+                                    <p class="form-control-plaintext">@Model.PostalCode</p>
+                                </div>
+                            }
                         </div>
                     </div>
 
-                    <!-- Estadísticas -->
                     <div class="row mt-4">
                         <div class="col-12">
-                            <h5>Estadísticas</h5>
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-calendar me-2"></i>
+                                Información del Sistema
+                            </h5>
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="card bg-light">
-                                        <div class="card-body text-center">
-                                            <i class="fas fa-box fa-2x text-primary mb-2"></i>
-                                            <h4 class="mb-0">@Model.ProductCount</h4>
-                                            <small class="text-muted">Productos suministrados</small>
-                                        </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">ID del Proveedor:</label>
+                                        <p class="form-control-plaintext">@Model.Id</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Fecha de Creación:</label>
+                                        <p class="form-control-plaintext">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Usuario Asociado:</label>
+                                        <p class="form-control-plaintext">
+                                            @if (!string.IsNullOrEmpty(Model.UserId))
+                                            {
+                                                <span class="badge bg-info">Usuario Configurado</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning">Sin Usuario</span>
+                                            }
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -147,254 +167,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Productos del proveedor -->
-            @if (Model.ProductCount > 0)
-            {
-                <div class="card mt-4">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-boxes me-2"></i>
-                            Productos de este Proveedor
-                        </h5>
-                        <a href="@Url.Action("Create", "Products", new { supplierId = Model.Id })" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus me-1"></i>Agregar Producto
-                        </a>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th><i class="fas fa-barcode me-1"></i>Código</th>
-                                        <th><i class="fas fa-tag me-1"></i>Nombre</th>
-                                        <th><i class="fas fa-tags me-1"></i>Categoría</th>
-                                        <th><i class="fas fa-boxes me-1"></i>Stock</th>
-                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Compra</th>
-                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Venta</th>
-                                        <th><i class="fas fa-cogs me-1"></i>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (ViewBag.SupplierProducts != null)
-                                    {
-                                        @foreach (var product in ViewBag.SupplierProducts)
-                                        {
-                                            <tr>
-                                                <td>
-                                                    <span class="badge bg-secondary">@product.Code</span>
-                                                </td>
-                                                <td>
-                                                    <div>
-                                                        <strong>@product.Name</strong>
-                                                        @if (!string.IsNullOrEmpty(product.Description))
-                                                        {
-                                                            <br><small class="text-muted">@product.Description</small>
-                                                        }
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-info">@product.CategoryName</span>
-                                                </td>
-                                                <td>
-                                                    @if (product.Stock > 0)
-                                                    {
-                                                        <span class="badge bg-success">@product.Stock unidades</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning">Sin stock</span>
-                                                    }
-                                                </td>
-                                                <td>
-                                                    <span class="text-primary fw-bold">$@product.PurchasePrice.ToString("N2")</span>
-                                                </td>
-                                                <td>
-                                                    <span class="text-success fw-bold">$@product.SalePrice.ToString("N2")</span>
-                                                </td>
-                                                <td>
-                                                    <div class="btn-group btn-group-sm" role="group">
-                                                        <a href="@Url.Action("Details", "Products", new { id = product.Id })" 
-                                                           class="btn btn-outline-primary" title="Ver detalles">
-                                                            <i class="fas fa-eye"></i>
-                                                        </a>
-                                                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="btn btn-outline-warning" title="Editar">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                        <a href="@Url.Action("AddStock", "Products", new { id = product.Id })" 
-                                                           class="btn btn-outline-info" title="Agregar stock">
-                                                            <i class="fas fa-plus"></i>
-                                                        </a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="card mt-4">
-                    <div class="card-body text-center py-4">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No hay productos de este proveedor</h5>
-                        <p class="text-muted">Puedes agregar productos y asignar este proveedor desde el módulo de productos.</p>
-                        <a href="@Url.Action("Create", "Products", new { supplierId = Model.Id })" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Agregar Producto
-                        </a>
-                    </div>
-                </div>
-            }
-
-            <!-- Historial de Precios -->
-            @if (ViewBag.SupplierPriceHistory != null && ViewBag.SupplierPriceHistory.Count > 0)
-            {
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history me-2"></i>
-                            Historial de Cambios de Precios
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th><i class="fas fa-calendar me-1"></i>Fecha</th>
-                                        <th><i class="fas fa-box me-1"></i>Producto</th>
-                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Anterior</th>
-                                        <th><i class="fas fa-dollar-sign me-1"></i>Precio Nuevo</th>
-                                        <th><i class="fas fa-chart-line me-1"></i>Cambio</th>
-                                        <th><i class="fas fa-user me-1"></i>Responsable</th>
-                                        <th><i class="fas fa-comment me-1"></i>Notas</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var history in ViewBag.SupplierPriceHistory)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <small>@history.ChangeDate.ToString("dd/MM/yyyy")</small>
-                                                <br><small class="text-muted">@history.ChangeDate.ToString("HH:mm")</small>
-                                            </td>
-                                            <td>
-                                                <small class="fw-medium">@history.ProductName</small>
-                                                <br><small class="text-muted">@history.ProductCode</small>
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">$@history.OldPrice.ToString("N2")</small>
-                                            </td>
-                                            <td>
-                                                <small class="fw-bold text-success">$@history.NewPrice.ToString("N2")</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge @history.PriceChangeBadgeClass small">
-                                                    @history.PriceChangeDirection
-                                                </span>
-                                                <br><small class="text-muted">@history.PriceChangePercentage.ToString("F1")%</small>
-                                            </td>
-                                            <td>
-                                                <small>@history.ChangedBy</small>
-                                            </td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(history.Notes))
-                                                {
-                                                    <small class="text-muted" title="@history.Notes">@(history.Notes.Length > 30 ? history.Notes.Substring(0, 30) + "..." : history.Notes)</small>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
-
-            <!-- Historial de Órdenes de Compra -->
-            @if (ViewBag.SupplierPurchaseOrders != null && ViewBag.SupplierPurchaseOrders.Count > 0)
-            {
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-shopping-cart me-2"></i>
-                            Historial de Órdenes de Compra
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th><i class="fas fa-hashtag me-1"></i>Orden</th>
-                                        <th><i class="fas fa-calendar me-1"></i>Fecha</th>
-                                        <th><i class="fas fa-cube me-1"></i>Items</th>
-                                        <th><i class="fas fa-dollar-sign me-1"></i>Total</th>
-                                        <th><i class="fas fa-circle me-1"></i>Estado</th>
-                                        <th><i class="fas fa-truck me-1"></i>Entrega</th>
-                                        <th><i class="fas fa-cogs me-1"></i>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var order in ViewBag.SupplierPurchaseOrders)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <small class="fw-medium">@order.OrderNumber</small>
-                                            </td>
-                                            <td>
-                                                <small>@order.OrderDate.ToString("dd/MM/yyyy")</small>
-                                                <br><small class="text-muted">@order.OrderDate.ToString("HH:mm")</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">@order.Details.Count</span>
-                                            </td>
-                                            <td>
-                                                <small class="fw-bold text-success">$@order.TotalAmount.ToString("N2")</small>
-                                            </td>
-                                            <td>
-                                                <span class="badge @order.StatusBadgeClass small">@order.StatusDisplay</span>
-                                            </td>
-                                            <td>
-                                                @if (order.ExpectedDeliveryDate.HasValue)
-                                                {
-                                                    <small>@order.ExpectedDeliveryDate.Value.ToString("dd/MM/yyyy")</small>
-                                                    @if (order.ActualDeliveryDate.HasValue)
-                                                    {
-                                                        <br><small class="text-success">Entregado: @order.ActualDeliveryDate.Value.ToString("dd/MM/yyyy")</small>
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    <small class="text-muted">Sin fecha</small>
-                                                }
-                                            </td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary btn-sm" title="Ver detalles">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
-                                                    @if (order.CanEdit)
-                                                    {
-                                                        <button type="button" class="btn btn-outline-warning btn-sm" title="Editar">
-                                                            <i class="fas fa-edit"></i>
-                                                        </button>
-                                                    }
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            }
         </div>
     </div>
 </div> 

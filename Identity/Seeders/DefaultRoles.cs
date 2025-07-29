@@ -1,5 +1,6 @@
 using Database.Enum;
 using Microsoft.AspNetCore.Identity;
+using System;
 
 namespace Database.Seeders
 {
@@ -13,7 +14,7 @@ namespace Database.Seeders
             try
             {
                 // Crear todos los roles del sistema
-                var roles = Enum.GetValues(typeof(Roles)).Cast<Roles>();
+                var roles = System.Enum.GetValues(typeof(Roles)).Cast<Roles>();
 
                 foreach (var role in roles)
                 {

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using SPGSYSTEM.Models;
 using Application.Interfaces.Services;
 using Application.ViewModels.Dashboard;
@@ -10,6 +11,7 @@ using Database.Entities;
 
 namespace SPGSYSTEM.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -39,6 +41,34 @@ namespace SPGSYSTEM.Controllers
         }
 
         public async Task<IActionResult> Index()
+        {
+            // Redirigir según el rol del usuario
+            if (User.IsInRole("Supplier"))
+            {
+                return RedirectToAction("Index", "SupplierPortal");
+            }
+            else if (User.IsInRole("Customer"))
+            {
+                return RedirectToAction("Index", "CustomerPortal");
+            }
+            else if (User.IsInRole("Auditor"))
+            {
+                // El auditor puede ver el dashboard pero solo en modo lectura
+                return await ShowDashboardAsync();
+            }
+            else if (User.IsInRole("Admin"))
+            {
+                // Solo el admin ve el dashboard completo
+                return await ShowDashboardAsync();
+            }
+            else
+            {
+                // Usuario sin rol específico - redirigir al login
+                return RedirectToAction("Login", "Account");
+            }
+        }
+
+        private async Task<IActionResult> ShowDashboardAsync()
         {
             try
             {
@@ -147,7 +177,7 @@ namespace SPGSYSTEM.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading dashboard data");
+                _logger.LogError(ex, "Error al cargar el dashboard");
                 TempData["Error"] = "Error al cargar el dashboard: " + ex.Message;
                 return View(new DashboardViewModel());
             }
