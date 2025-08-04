@@ -131,24 +131,41 @@
                             <span asp-validation-for="CategoryId" class="text-danger small"></span>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="SupplierId" class="form-label fw-medium">
-                                <i class="fas fa-truck text-primary me-2"></i>Proveedor
-                            </label>
-                            <select asp-for="SupplierId" class="form-select form-select-lg">
-                                <option value="">-- Seleccionar Proveedor --</option>
-                                @if (ViewBag.Suppliers != null)
-                                {
-                                    @foreach (var supplier in ViewBag.Suppliers)
+                        @if (!User.IsInRole("Supplier"))
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="SupplierId" class="form-label fw-medium">
+                                    <i class="fas fa-truck text-primary me-2"></i>Proveedor
+                                </label>
+                                <select asp-for="SupplierId" class="form-select form-select-lg">
+                                    <option value="">-- Seleccionar Proveedor --</option>
+                                    @if (ViewBag.Suppliers != null)
                                     {
-                                        var isSelected = ViewBag.SelectedSupplierId != null && 
-                                                       ViewBag.SelectedSupplierId.ToString() == supplier.Value;
-                                        <option value="@supplier.Value" selected="@isSelected">@supplier.Text</option>
+                                        @foreach (var supplier in ViewBag.Suppliers)
+                                        {
+                                            var isSelected = ViewBag.SelectedSupplierId != null && 
+                                                           ViewBag.SelectedSupplierId.ToString() == supplier.Value;
+                                            <option value="@supplier.Value" selected="@isSelected">@supplier.Text</option>
+                                        }
                                     }
-                                }
-                            </select>
-                            <span asp-validation-for="SupplierId" class="text-danger small"></span>
-                        </div>
+                                </select>
+                                <span asp-validation-for="SupplierId" class="text-danger small"></span>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Campo oculto para proveedores -->
+                            <input type="hidden" asp-for="SupplierId" value="@ViewBag.SupplierId" />
+                            <div class="col-md-6">
+                                <label class="form-label fw-medium">
+                                    <i class="fas fa-truck text-primary me-2"></i>Proveedor
+                                </label>
+                                <div class="form-control form-control-lg bg-light">
+                                    <i class="fas fa-check-circle text-success me-2"></i>@ViewBag.SupplierName
+                                    <small class="text-muted d-block mt-1">Tu proveedor (asignado automáticamente)</small>
+                                </div>
+                            </div>
+                        }
 
                         <!-- Purchase Price and Sale Price Row -->
                         <div class="col-md-6">

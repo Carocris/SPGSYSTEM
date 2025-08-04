@@ -14,5 +14,6 @@ namespace Application.Interfaces.Repositories
         Task<IReadOnlyList<Supplier>> GetActiveAsync();
         Task<IReadOnlyList<Supplier>> GetAllWithProductsAsync();
         Task<bool> ExistsAsync(string name, int? excludeId = null);
+        Task<IReadOnlyList<Product>> GetProductsBySupplierIdAsync(int supplierId);
     }
 } 

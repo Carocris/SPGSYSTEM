@@ -17,6 +17,7 @@ namespace Application.Interfaces.Services
         Task<SupplierSaveViewModel?> GetSaveViewModelByIdAsync(int id);
         Task<bool> CreateAsync(SupplierSaveViewModel vm);
         Task<bool> UpdateAsync(SupplierSaveViewModel vm);
+        Task<bool> DeleteSupplierAsync(int id);
         
         // Métodos adicionales para SuppliersController
         Task<List<Supplier>> GetAllWithProductsAsync();

@@ -9,7 +9,8 @@ namespace Database
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=SPGSYSTEM;Trusted_Connection=true;MultipleActiveResultSets=true");
+            // CAMBIADO PARA USAR SQL SERVER EXPRESS EN LUGAR DE LOCALDB
+            optionsBuilder.UseSqlServer("Server=DESKTOP-EU4BPTQ\\SQLEXPRESS;Database=SPGSYSTEM;Trusted_Connection=True;TrustServerCertificate=true;MultipleActiveResultSets=true;");
 
             return new ApplicationDbContext(optionsBuilder.Options);
         }

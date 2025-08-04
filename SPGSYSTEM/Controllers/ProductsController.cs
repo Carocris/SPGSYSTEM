@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection; // Added for HttpContext.RequestServices
+using Microsoft.AspNetCore.Identity; // Added for UserManager
+using Identity.Entities; // Added for ApplicationUser
 
 namespace SPGSYSTEM.Controllers
 {
@@ -112,13 +114,23 @@ namespace SPGSYSTEM.Controllers
                 else if (User.IsInRole("Supplier"))
                 {
                     // Supplier ve solo sus productos
-                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
-                    if (supplier != null)
+                    try
                     {
-                        products = await _productService.GetBySupplierAsync(supplier.Id);
+                        var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                        if (supplier != null)
+                        {
+                            products = await _productService.GetBySupplierAsync(supplier.Id);
+                        }
+                        else
+                        {
+                            TempData["Warning"] = "No se encontró información de proveedor asociada a tu cuenta.";
+                            products = new List<Product>();
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
+                        Console.WriteLine($"Error obteniendo productos del proveedor: {ex.Message}");
+                        TempData["Warning"] = "Error al cargar tus productos. Contacta al administrador.";
                         products = new List<Product>();
                     }
                 }
@@ -139,7 +151,8 @@ namespace SPGSYSTEM.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error al cargar los productos: " + ex.Message;
+                Console.WriteLine($"Error en ProductsController.Index: {ex.Message}");
+                TempData["Error"] = "Error al cargar los productos. Por favor, intenta de nuevo.";
                 return View(new List<ProductViewModel>());
             }
         }
@@ -233,6 +246,18 @@ namespace SPGSYSTEM.Controllers
                 await LoadViewBagDataAsync();
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
+                
+                // Si es Supplier, establecer información del proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier != null)
+                    {
+                        ViewBag.SupplierId = supplier.Id;
+                        ViewBag.SupplierName = supplier.Name;
+                    }
+                }
+                
                 return View("CreateEdit", vm);
             }
 
@@ -252,6 +277,18 @@ namespace SPGSYSTEM.Controllers
                         await LoadViewBagDataAsync();
                         ViewBag.IsEdit = false;
                         ViewBag.PageTitle = "Nuevo Producto";
+                        
+                        // Si es Supplier, establecer información del proveedor
+                        if (User.IsInRole("Supplier"))
+                        {
+                            var currentSupplier = await GetSupplierByUserId(User.Identity?.Name);
+                            if (currentSupplier != null)
+                            {
+                                ViewBag.SupplierId = currentSupplier.Id;
+                                ViewBag.SupplierName = currentSupplier.Name;
+                            }
+                        }
+                        
                         return View("CreateEdit", vm);
                     }
                 }
@@ -329,6 +366,9 @@ namespace SPGSYSTEM.Controllers
                         TempData["Error"] = "No tienes permisos para editar este producto.";
                         return RedirectToAction(nameof(Index));
                     }
+                    // Establecer información del proveedor para la vista
+                    ViewBag.SupplierId = supplier.Id;
+                    ViewBag.SupplierName = supplier.Name;
                 }
 
                 await LoadViewBagDataAsync();
@@ -361,6 +401,18 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Producto";
                 ViewBag.ProductId = id;
+                
+                // Si es Supplier, establecer información del proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier != null)
+                    {
+                        ViewBag.SupplierId = supplier.Id;
+                        ViewBag.SupplierName = supplier.Name;
+                    }
+                }
+                
                 return View("CreateEdit", vm);
             }
 
@@ -629,10 +681,23 @@ namespace SPGSYSTEM.Controllers
 
             try
             {
+                // Obtener el UserId real del usuario autenticado
+                var userManager = HttpContext.RequestServices.GetService<Microsoft.AspNetCore.Identity.UserManager<Identity.Entities.ApplicationUser>>();
+                if (userManager != null)
+                {
+                    var user = await userManager.FindByNameAsync(userId);
+                    if (user != null)
+                    {
+                        return await _supplierService.GetByUserIdAsync(user.Id);
+                    }
+                }
+                
+                // Fallback: intentar buscar directamente por username
                 return await _supplierService.GetByUserIdAsync(userId);
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error en GetSupplierByUserId: {ex.Message}");
                 return null;
             }
         }

@@ -27,41 +27,65 @@ namespace Identity.Services
         {
             AuthenticationResponse response = new();
 
+            Console.WriteLine($"AccountService.AuthenticateAsync: Intentando autenticar con: {request.UserName}");
+
+            // Intentar buscar por UserName primero
             var user = await _userManager.FindByNameAsync(request.UserName);
+            Console.WriteLine($"AccountService.AuthenticateAsync: Búsqueda por UserName '{request.UserName}': {(user != null ? "ENCONTRADO" : "NO ENCONTRADO")}");
+
+            // Si no se encuentra por UserName, intentar por Email
+            if (user == null)
+            {
+                Console.WriteLine($"AccountService.AuthenticateAsync: Intentando búsqueda por Email: {request.UserName}");
+                user = await _userManager.FindByEmailAsync(request.UserName);
+                Console.WriteLine($"AccountService.AuthenticateAsync: Búsqueda por Email '{request.UserName}': {(user != null ? "ENCONTRADO" : "NO ENCONTRADO")}");
+            }
 
             if (user == null)
             {
                 response.HasError = true;
-                response.Error = $"No hay cuenta registrada con {request.UserName}";
+                response.Error = $"No hay cuenta registrada con el usuario o email: {request.UserName}";
+                Console.WriteLine($"AccountService.AuthenticateAsync: Usuario no encontrado. Error: {response.Error}");
                 return response;
             }
 
+            Console.WriteLine($"AccountService.AuthenticateAsync: Usuario encontrado. UserName: {user.UserName}, Email: {user.Email}, EmailConfirmed: {user.EmailConfirmed}");
+
             var result = await _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false);
+
+            Console.WriteLine($"AccountService.AuthenticateAsync: Resultado de sign in: {result.Succeeded}");
 
             if (!result.Succeeded)
             {
                 response.HasError = true;
                 response.Error = $"Credenciales inválidas para {request.UserName}";
+                Console.WriteLine($"AccountService.AuthenticateAsync: Credenciales inválidas. Error: {response.Error}");
                 return response;
             }
 
-            if (!user.EmailConfirmed)
-            {
-                response.HasError = true;
-                response.Error = $"Cuenta no confirmada para {request.UserName}";
-                return response;
-            }
+            // Comentamos esta validación ya que configuramos Identity para no requerir confirmación de email
+            // if (!user.EmailConfirmed)
+            // {
+            //     response.HasError = true;
+            //     response.Error = $"Cuenta no confirmada para {request.UserName}";
+            //     Console.WriteLine($"AccountService.AuthenticateAsync: Email no confirmado. Error: {response.Error}");
+            //     return response;
+            // }
 
             response.Id = user.Id;
             response.Email = user.Email;
             response.UserName = user.UserName;
-            response.FirstName = user.FirstName;
-            response.LastName = user.LastName;
+            response.CompanyName = user.CompanyName;
+            response.ContactName = user.ContactName;
             response.PhoneNumber = user.PhoneNumber;
 
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
+
+            Console.WriteLine($"AccountService.AuthenticateAsync: Autenticación exitosa. Usuario: {user.UserName}, Roles: {string.Join(", ", response.Roles)}");
+            Console.WriteLine($"AccountService.AuthenticateAsync: CompanyName: {user.CompanyName}, ContactName: {user.ContactName}");
+            Console.WriteLine($"AccountService.AuthenticateAsync: EmailConfirmed: {user.EmailConfirmed}, PhoneNumberConfirmed: {user.PhoneNumberConfirmed}");
 
             return response;
         }
@@ -77,8 +101,8 @@ namespace Identity.Services
             {
                 Id = user.Id,
                 UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                CompanyName = user.CompanyName,
+                ContactName = user.ContactName,
                 Email = user.Email,
                 IsVerified = user.EmailConfirmed,
                 HasError = false
@@ -103,8 +127,35 @@ namespace Identity.Services
             {
                 Id = user.Id,
                 UserName = user.UserName,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
+                CompanyName = user.CompanyName,
+                ContactName = user.ContactName,
+                PhoneNumber = user.PhoneNumber,
+                Email = user.Email,
+                IsVerified = user.EmailConfirmed,
+                HasError = false,
+            };
+
+            return response;
+        }
+
+        /// <summary>
+        /// Obtiene un usuario por ID
+        /// </summary>
+        public async Task<AuthenticationResponse> GetUserByIdAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            AuthenticationResponse response = new AuthenticationResponse
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                CompanyName = user.CompanyName,
+                ContactName = user.ContactName,
                 PhoneNumber = user.PhoneNumber,
                 Email = user.Email,
                 IsVerified = user.EmailConfirmed,
@@ -145,8 +196,8 @@ namespace Identity.Services
             {
                 Email = request.Email,
                 UserName = request.UserName,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                CompanyName = request.CompanyName,
+                ContactName = request.ContactName,
                 PhoneNumber = request.PhoneNumber,
             };
 
@@ -183,52 +234,110 @@ namespace Identity.Services
                 HasError = false
             };
 
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Iniciando registro de proveedor");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: UserName: {request.UserName}");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Email: {request.Email}");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: CompanyName: {request.CompanyName}");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: ContactName: {request.ContactName}");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: PhoneNumber: {request.PhoneNumber}");
+
+            // Validar que los campos requeridos no estén vacíos
+            if (string.IsNullOrWhiteSpace(request.UserName))
+            {
+                response.HasError = true;
+                response.Error = "El nombre de usuario no puede estar vacío.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - UserName vacío");
+                return response;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email))
+            {
+                response.HasError = true;
+                response.Error = "El email no puede estar vacío.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - Email vacío");
+                return response;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CompanyName))
+            {
+                response.HasError = true;
+                response.Error = "El nombre de la empresa no puede estar vacío.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - CompanyName vacío");
+                return response;
+            }
+
+            if (string.IsNullOrWhiteSpace(request.ContactName))
+            {
+                response.HasError = true;
+                response.Error = "La persona de contacto no puede estar vacía.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - ContactName vacío");
+                return response;
+            }
+
             var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Verificando UserName '{request.UserName}': {(userWithSameUserName != null ? "YA EXISTE" : "DISPONIBLE")}");
 
             if (userWithSameUserName != null)
             {
                 response.HasError = true;
                 response.Error = $"El nombre de usuario {request.UserName} ya está en uso.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - UserName ya existe");
                 return response;
             }
 
             var userWithSameUserEmail = await _userManager.FindByEmailAsync(request.Email);
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Verificando Email '{request.Email}': {(userWithSameUserEmail != null ? "YA EXISTE" : "DISPONIBLE")}");
+
             if (userWithSameUserEmail != null)
             {
                 response.HasError = true;
                 response.Error = $"El email {request.Email} ya está registrado.";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error - Email ya existe");
                 return response;
             }
 
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Creando ApplicationUser");
             var user = new ApplicationUser
             {
                 Email = request.Email,
                 UserName = request.UserName,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
+                CompanyName = request.CompanyName,
+                ContactName = request.ContactName,
                 PhoneNumber = request.PhoneNumber,
+                EmailConfirmed = true, // Confirmar automáticamente el email para proveedores
+                PhoneNumberConfirmed = true // Confirmar automáticamente el teléfono para proveedores
             };
 
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: ApplicationUser creado - UserName: {user.UserName}, Email: {user.Email}");
+
             var result = await _userManager.CreateAsync(user, request.Password);
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Resultado de creación: {result.Succeeded}");
 
             if (!result.Succeeded)
             {
                 response.HasError = true;
-                response.Error = $"Ocurrió un error al registrar el proveedor.";
+                response.Error = $"Ocurrió un error al registrar el proveedor: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error en creación - {response.Error}");
                 return response;
             }
 
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Usuario creado exitosamente. ID: {user.Id}");
+
             // Asignar automáticamente el rol "Supplier" para proveedores
             var roleResult = await _userManager.AddToRoleAsync(user, "Supplier");
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Resultado de asignación de rol: {roleResult.Succeeded}");
+
             if (!roleResult.Succeeded)
             {
                 response.HasError = true;
                 response.Error = $"Proveedor creado pero error al asignar rol: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}";
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Error en asignación de rol - {response.Error}");
                 return response;
             }
 
             response.UserId = user.Id;
             response.Message = "Proveedor registrado exitosamente.";
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Proveedor registrado exitosamente. UserId: {user.Id}");
             return response;
         }
 
@@ -253,8 +362,8 @@ namespace Identity.Services
             }
 
             user.UserName = vm.UserName;
-            user.FirstName = vm.FirstName;
-            user.LastName = vm.LastName;
+            user.CompanyName = vm.CompanyName;
+            user.ContactName = vm.ContactName;
             user.Email = vm.Email;
             user.PhoneNumber = vm.PhoneNumber;
 
@@ -278,8 +387,8 @@ namespace Identity.Services
             if (result.Succeeded)
             {
                 vm.UserName = user.UserName;
-                vm.FirstName = user.FirstName;
-                vm.LastName = user.LastName;
+                vm.CompanyName = user.CompanyName;
+                vm.ContactName = user.ContactName;
                 vm.Email = user.Email;
                 vm.PhoneNumber = user.PhoneNumber;
 

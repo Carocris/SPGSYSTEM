@@ -60,9 +60,9 @@ namespace SPGSYSTEM.Controllers
                     new Claim(ClaimTypes.NameIdentifier, response.Id),
                     new Claim(ClaimTypes.Name, response.UserName),
                     new Claim(ClaimTypes.Email, response.Email),
-                    new Claim("FirstName", response.FirstName),
-                    new Claim("LastName", response.LastName),
-                    new Claim("FullName", $"{response.FirstName} {response.LastName}")
+                    new Claim("CompanyName", response.CompanyName),
+                    new Claim("ContactName", response.ContactName),
+                    new Claim("FullName", $"{response.CompanyName} - {response.ContactName}")
                 };
 
                 // Agregar roles como claims
@@ -83,7 +83,7 @@ namespace SPGSYSTEM.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
-                TempData["Success"] = $"Bienvenido, {response.FirstName} {response.LastName}!";
+                TempData["Success"] = $"Bienvenido, {response.CompanyName} - {response.ContactName}!";
 
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {

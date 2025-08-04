@@ -25,13 +25,13 @@ namespace Identity.Contexts
                 entity.ToTable(name: "Users");
                 
                 // Configurar propiedades adicionales del ApplicationUser
-                entity.Property(e => e.FirstName)
-                    .IsRequired()
-                    .HasMaxLength(50);
-                
-                entity.Property(e => e.LastName)
-                    .IsRequired()
-                    .HasMaxLength(50);
+                            entity.Property(e => e.CompanyName)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ContactName)
+                .IsRequired()
+                .HasMaxLength(100);
             });
 
             // Configurar la tabla de roles

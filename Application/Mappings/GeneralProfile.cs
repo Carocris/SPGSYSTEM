@@ -11,6 +11,8 @@ using Application.ViewModels.SaleDetail;
 using Application.ViewModels.Sale;
 using Application.ViewModels.Payment;
 using Application.ViewModels.Notification;
+using Application.ViewModels.Category; // AGREGADO
+using Application.ViewModels.Supplier; // AGREGADO
 
 namespace Application.Mappings
 {
@@ -24,6 +26,21 @@ namespace Application.Mappings
                 .ReverseMap();  
 
             CreateMap<CustomerSaveViewModel, Customer>()
+                .ReverseMap();
+
+            // Category - AGREGADO EL MAPEO QUE FALTABA
+            CreateMap<Category, CategoryViewModel>()
+                .ForMember(dest => dest.ProductCount, opt => opt.MapFrom(src => src.Products != null ? src.Products.Count : 0))
+                .ReverseMap();
+
+            CreateMap<CategorySaveViewModel, Category>()
+                .ReverseMap();
+
+            // Supplier - AGREGADO EL MAPEO QUE FALTABA
+            CreateMap<Supplier, SupplierViewModel>()
+                .ReverseMap();
+
+            CreateMap<SupplierSaveViewModel, Supplier>()
                 .ReverseMap();
 
             // Product

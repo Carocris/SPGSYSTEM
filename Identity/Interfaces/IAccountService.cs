@@ -33,6 +33,11 @@ namespace Identity.Interfaces
         Task<AuthenticationResponse> GetUserByNameAsync(string userName);
 
         /// <summary>
+        /// Obtiene un usuario por ID
+        /// </summary>
+        Task<AuthenticationResponse> GetUserByIdAsync(string userId);
+
+        /// <summary>
         /// Actualiza un usuario
         /// </summary>
         Task<AuthenticationResponse> UpdateUser(AuthenticationResponse vm);

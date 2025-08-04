@@ -14,11 +14,11 @@ namespace Identity.DTOs
         [EmailAddress(ErrorMessage = "El formato del email no es válido")]
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El nombre es requerido")]
-        public string FirstName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "El nombre de la empresa es requerido")]
+        public string CompanyName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "El apellido es requerido")]
-        public string LastName { get; set; } = string.Empty;
+        [Required(ErrorMessage = "La persona de contacto es requerida")]
+        public string ContactName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El teléfono es requerido")]
         public string PhoneNumber { get; set; } = string.Empty;

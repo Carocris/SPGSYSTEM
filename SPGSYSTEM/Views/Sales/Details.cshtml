@@ -36,15 +36,18 @@
                 </div>
                 
                 <div class="d-flex gap-2 flex-wrap">
-                    <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
-                        <i class="fas fa-edit me-1"></i>Editar
-                    </a>
+                    @if (!User.IsInRole("Auditor"))
+                    {
+                        <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit me-1"></i>Editar
+                        </a>
+                        <button type="button" class="btn btn-danger btn-sm" 
+                                onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
+                            <i class="fas fa-trash me-1"></i>Eliminar
+                        </button>
+                    }
                     <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
                         <i class="fas fa-print me-1"></i>Imprimir
-                    </button>
-                    <button type="button" class="btn btn-danger btn-sm" 
-                            onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
-                        <i class="fas fa-trash me-1"></i>Eliminar
                     </button>
                 </div>
             </div>
@@ -349,10 +352,13 @@
                             <i class="fas fa-exclamation-triangle me-2"></i>
                             Sin pago procesado
                         </div>
-                        <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" 
-                           class="btn btn-success btn-sm">
-                            <i class="fas fa-credit-card me-2"></i>Procesar Pago
-                        </a>
+                        @if (!User.IsInRole("Auditor"))
+                        {
+                            <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" 
+                               class="btn btn-success btn-sm">
+                                <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                            </a>
+                        }
                     </div>
                 </div>
             }
@@ -399,16 +405,23 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
-                            <i class="fas fa-edit me-2"></i>Editar Venta
-                        </a>
-                        @if (Model.Payment == null)
+                        @if (!User.IsInRole("Auditor"))
                         {
-                            <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-success btn-sm">
-                                <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                            <a asp-action="CreateEdit" asp-route-id="@Model.Id" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit me-2"></i>Editar Venta
                             </a>
+                            @if (Model.Payment == null)
+                            {
+                                <a asp-controller="Payments" asp-action="SimulatePayment" asp-route-saleId="@Model.Id" class="btn btn-success btn-sm">
+                                    <i class="fas fa-credit-card me-2"></i>Procesar Pago
+                                </a>
+                            }
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
+                                <i class="fas fa-trash me-2"></i>Eliminar
+                            </button>
                         }
-                        else
+                        @if (Model.Payment != null)
                         {
                             <a asp-controller="Payments" asp-action="Details" asp-route-id="@Model.Payment.Id" class="btn btn-primary btn-sm">
                                 <i class="fas fa-credit-card me-2"></i>Ver Pago
@@ -420,10 +433,6 @@
                         <a asp-action="Index" class="btn btn-secondary btn-sm">
                             <i class="fas fa-list me-2"></i>Ver Todas
                         </a>
-                        <button type="button" class="btn btn-danger btn-sm" 
-                                onclick="confirmDelete(@Model.Id, '@Model.Id.ToString("D4")')">
-                            <i class="fas fa-trash me-2"></i>Eliminar
-                        </button>
                     </div>
                 </div>
             </div>

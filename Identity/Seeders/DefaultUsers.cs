@@ -54,8 +54,8 @@ namespace Database.Seeders
             UserManager<ApplicationUser> userManager,
             string userName,
             string email,
-            string firstName,
-            string lastName,
+            string companyName,
+            string contactName,
             string phoneNumber,
             string password,
             Roles role)
@@ -67,8 +67,8 @@ namespace Database.Seeders
                 {
                     UserName = userName,
                     Email = email,
-                    FirstName = firstName,
-                    LastName = lastName,
+                    CompanyName = companyName,
+                    ContactName = contactName,
                     PhoneNumber = phoneNumber,
                     EmailConfirmed = true,
                     PhoneNumberConfirmed = true
@@ -77,8 +77,16 @@ namespace Database.Seeders
                 var result = await userManager.CreateAsync(newUser, password);
                 if (result.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(newUser, role.ToString());
-                    Console.WriteLine($"Usuario '{userName}' creado exitosamente con rol '{role}'.");
+                    var roleResult = await userManager.AddToRoleAsync(newUser, role.ToString());
+                    if (roleResult.Succeeded)
+                    {
+                        Console.WriteLine($"Usuario '{userName}' creado exitosamente con rol '{role}'.");
+                        Console.WriteLine($"Usuario '{userName}' - Email: {email}, CompanyName: {companyName}, ContactName: {contactName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Error asignando rol '{role}' al usuario '{userName}': {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+                    }
                 }
                 else
                 {

@@ -4,14 +4,10 @@ namespace Identity.Entities
 {
     public class ApplicationUser : IdentityUser
     {
-        /// <summary>
-        /// Nombre del usuario
-        /// </summary>
-        public string FirstName { get; set; } = string.Empty;
+        /// Nombre de la empresa
+        public string CompanyName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Apellido del usuario
-        /// </summary>
-        public string LastName { get; set; } = string.Empty;
+        /// Persona de contacto
+        public string ContactName { get; set; } = string.Empty;
     }
 } 

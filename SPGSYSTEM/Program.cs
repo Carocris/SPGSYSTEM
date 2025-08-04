@@ -52,19 +52,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 
-// Rutas específicas para evitar ambigüedad
-app.MapControllerRoute(
-    name: "suppliers",
-    pattern: "Suppliers/{action=Index}/{id?}",
-    defaults: new { controller = "Suppliers" }
-);
-
-app.MapControllerRoute(
-    name: "categories",
-    pattern: "Categories/{action=Index}/{id?}",
-    defaults: new { controller = "Categories" }
-);
-
 // Ruta para acceso denegado
 app.MapControllerRoute(
     name: "access-denied",

@@ -53,5 +53,13 @@ namespace Database.Repositories
             
             return await query.AnyAsync();
         }
+
+        public async Task<IReadOnlyList<Product>> GetProductsBySupplierIdAsync(int supplierId)
+        {
+            return await _db.Products
+                            .Where(p => p.SupplierId == supplierId)
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
     }
 } 

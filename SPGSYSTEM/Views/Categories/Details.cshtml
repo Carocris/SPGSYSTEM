@@ -95,9 +95,12 @@
                             <i class="fas fa-boxes me-2"></i>
                             Productos en esta Categoría
                         </h5>
-                        <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus me-1"></i>Agregar Producto
-                        </a>
+                        @if (!User.IsInRole("Auditor"))
+                        {
+                            <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus me-1"></i>Agregar Producto
+                            </a>
+                        }
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -156,13 +159,16 @@
                                                            class="btn btn-outline-primary" title="Ver detalles">
                                                             <i class="fas fa-eye"></i>
                                                         </a>
-                                                        <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="btn btn-outline-warning" title="Editar">
-                                                            <i class="fas fa-edit"></i>
-                                                        </a>
-                                                        <a href="@Url.Action("AddStock", "Products", new { id = product.Id })" 
-                                                           class="btn btn-outline-info" title="Agregar stock">
-                                                            <i class="fas fa-plus"></i>
-                                                        </a>
+                                                        @if (!User.IsInRole("Auditor"))
+                                                        {
+                                                            <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" class="btn btn-outline-warning" title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="@Url.Action("AddStock", "Products", new { id = product.Id })" 
+                                                               class="btn btn-outline-info" title="Agregar stock">
+                                                                <i class="fas fa-plus"></i>
+                                                            </a>
+                                                        }
                                                     </div>
                                                 </td>
                                             </tr>
@@ -181,9 +187,12 @@
                         <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">No hay productos en esta categoría</h5>
                         <p class="text-muted">Puedes agregar productos y asignarlos a esta categoría desde el módulo de productos.</p>
-                        <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Agregar Producto
-                        </a>
+                        @if (!User.IsInRole("Auditor"))
+                        {
+                            <a href="@Url.Action("Create", "Products", new { categoryId = Model.Id })" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Agregar Producto
+                            </a>
+                        }
                     </div>
                 </div>
             }

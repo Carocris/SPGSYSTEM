@@ -20,8 +20,8 @@ namespace Database.Seeders
                 ApplicationUser defaultUser = new();
                 defaultUser.UserName = "admin";
                 defaultUser.Email = "admin@spgsystem.com";
-                defaultUser.FirstName = "Admin";
-                defaultUser.LastName = "Sistema";
+                            defaultUser.CompanyName = "Admin";
+            defaultUser.ContactName = "Sistema";
                 defaultUser.PhoneNumber = "8095550000";
                 defaultUser.EmailConfirmed = true;
                 defaultUser.PhoneNumberConfirmed = true;

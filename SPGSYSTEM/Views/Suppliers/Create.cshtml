@@ -58,7 +58,7 @@
                                     </label>
                                     <input asp-for="Email" type="email" class="form-control" placeholder="correo@empresa.com" />
                                     <span asp-validation-for="Email" class="text-danger"></span>
-                                    <small class="form-text text-muted">Si no se proporciona, se generará automáticamente</small>
+                                    <small class="form-text text-muted">Si no se proporciona, se generará automáticamente basado en el nombre de la empresa</small>
                                 </div>
 
                                 <div class="form-group mb-3">
@@ -137,7 +137,8 @@
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Nota:</strong> Al crear el proveedor, se generará automáticamente un usuario con rol "Supplier" 
-                            que podrá acceder al portal de proveedores. Las credenciales se mostrarán al finalizar la creación.
+                            que podrá acceder al portal de proveedores. Si no se proporciona email, se generará automáticamente 
+                            basado en el nombre de la empresa. Las credenciales se mostrarán al finalizar la creación.
                         </div>
 
                         <div class="form-group">

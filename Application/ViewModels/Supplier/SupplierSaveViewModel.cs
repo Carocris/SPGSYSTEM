@@ -13,7 +13,7 @@ namespace Application.ViewModels.Supplier
 
         [Required(ErrorMessage = "El nombre es requerido")]
         [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [StringLength(100, ErrorMessage = "El nombre de contacto no puede exceder 100 caracteres")]
         public string? ContactPerson { get; set; }

@@ -63,13 +63,20 @@ namespace Application.Services
         {
             try
             {
+                Console.WriteLine($"SupplierService.CreateAsync: Creando proveedor {vm.Name} con UserId: {vm.UserId}");
                 var supplier = _mapper.Map<Supplier>(vm);
+                Console.WriteLine($"SupplierService.CreateAsync: Mapeo completado. Supplier.Name: {supplier.Name}, Supplier.UserId: {supplier.UserId}");
+                
                 await _supplierRepository.AddAsync(supplier);
                 await _supplierRepository.SaveChangesAsync();
+                
+                Console.WriteLine($"SupplierService.CreateAsync: Proveedor {vm.Name} creado exitosamente");
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"SupplierService.CreateAsync: Error creando proveedor {vm.Name}: {ex.Message}");
+                Console.WriteLine($"SupplierService.CreateAsync: Stack trace: {ex.StackTrace}");
                 return false;
             }
         }
@@ -89,13 +96,78 @@ namespace Application.Services
             }
         }
 
+        public async Task<bool> DeleteSupplierAsync(int id)
+        {
+            try
+            {
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: Intentando eliminar proveedor con ID: {id}");
+                
+                var supplier = await _supplierRepository.GetByIdAsync(id);
+                if (supplier == null)
+                {
+                    Console.WriteLine($"SupplierService.DeleteSupplierAsync: Proveedor con ID {id} no encontrado");
+                    return false;
+                }
+
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: Proveedor encontrado - Nombre: {supplier.Name}");
+                
+                // Verificar si el proveedor tiene productos asociados
+                try
+                {
+                    var products = await _supplierRepository.GetProductsBySupplierIdAsync(id);
+                    Console.WriteLine($"SupplierService.DeleteSupplierAsync: Productos encontrados para el proveedor: {products.Count}");
+                    
+                    if (products.Any())
+                    {
+                        Console.WriteLine($"SupplierService.DeleteSupplierAsync: El proveedor tiene {products.Count} productos asociados. No se puede eliminar.");
+                        return false;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"SupplierService.DeleteSupplierAsync: Error verificando productos: {ex.Message}");
+                    return false;
+                }
+
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: El proveedor no tiene productos asociados. Procediendo a eliminar.");
+                
+                _supplierRepository.Delete(supplier);
+                await _supplierRepository.SaveChangesAsync();
+                
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: Proveedor {supplier.Name} eliminado exitosamente");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: Error eliminando proveedor con ID {id}: {ex.Message}");
+                Console.WriteLine($"SupplierService.DeleteSupplierAsync: Stack trace: {ex.StackTrace}");
+                return false;
+            }
+        }
+
         // Métodos adicionales para SuppliersController
         public async Task<List<Supplier>> GetAllWithProductsAsync()
         {
-            var suppliers = await _supplierRepository.GetAllAsync();
-            // Por ahora retornamos todos los proveedores
-            // En una implementación real, cargaríamos los productos relacionados
-            return suppliers.ToList();
+            try
+            {
+                // Obtener todos los proveedores con sus productos relacionados
+                var suppliers = await _supplierRepository.GetAllAsync();
+                
+                // Para cada proveedor, cargar sus productos
+                foreach (var supplier in suppliers)
+                {
+                    // Cargar los productos del proveedor
+                    var products = await _supplierRepository.GetProductsBySupplierIdAsync(supplier.Id);
+                    supplier.Products = products.ToList();
+                }
+                
+                return suppliers.ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupplierService.GetAllWithProductsAsync: Error cargando proveedores con productos: {ex.Message}");
+                return new List<Supplier>();
+            }
         }
 
         public async Task<Supplier> GetWithProductsAsync(int id)

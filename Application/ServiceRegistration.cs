@@ -15,6 +15,9 @@ namespace Application
     {
         public static void AddApplicationLayer(this IServiceCollection services)
         {
+            // AutoMapper configuration
+            services.AddAutoMapper(typeof(Mappings.GeneralProfile));
+
             // Generic service
             services.AddTransient(typeof(IGenericService<>), typeof(GenericService<>));
 

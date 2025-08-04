@@ -41,7 +41,20 @@ namespace Identity
 
             #region Identity
 
-            services.AddIdentityCore<ApplicationUser>()
+            services.AddIdentityCore<ApplicationUser>(options =>
+            {
+                // Configurar opciones de validación
+                options.SignIn.RequireConfirmedEmail = false;
+                options.SignIn.RequireConfirmedPhoneNumber = false;
+                options.SignIn.RequireConfirmedAccount = false;
+                
+                // Configurar opciones de contraseña
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 6;
+            })
                     .AddRoles<IdentityRole>()
                     .AddSignInManager()
                     .AddEntityFrameworkStores<IdentityContext>()
