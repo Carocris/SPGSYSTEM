@@ -77,7 +77,7 @@ namespace SPGSYSTEM.Controllers
                     IsPersistent = true,
                     ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
                 };
-
+                
                 await HttpContext.SignInAsync(
                     IdentityConstants.ApplicationScheme,
                     new ClaimsPrincipal(claimsIdentity),

@@ -51,26 +51,17 @@ namespace Identity.Services
 
             Console.WriteLine($"AccountService.AuthenticateAsync: Usuario encontrado. UserName: {user.UserName}, Email: {user.Email}, EmailConfirmed: {user.EmailConfirmed}");
 
-            var result = await _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false);
+            // Verificar la contraseña usando UserManager
+            var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+            Console.WriteLine($"AccountService.AuthenticateAsync: Verificación de contraseña: {passwordValid}");
 
-            Console.WriteLine($"AccountService.AuthenticateAsync: Resultado de sign in: {result.Succeeded}");
-
-            if (!result.Succeeded)
+            if (!passwordValid)
             {
                 response.HasError = true;
                 response.Error = $"Credenciales inválidas para {request.UserName}";
                 Console.WriteLine($"AccountService.AuthenticateAsync: Credenciales inválidas. Error: {response.Error}");
                 return response;
             }
-
-            // Comentamos esta validación ya que configuramos Identity para no requerir confirmación de email
-            // if (!user.EmailConfirmed)
-            // {
-            //     response.HasError = true;
-            //     response.Error = $"Cuenta no confirmada para {request.UserName}";
-            //     Console.WriteLine($"AccountService.AuthenticateAsync: Email no confirmado. Error: {response.Error}");
-            //     return response;
-            // }
 
             response.Id = user.Id;
             response.Email = user.Email;
@@ -82,10 +73,6 @@ namespace Identity.Services
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
-
-            Console.WriteLine($"AccountService.AuthenticateAsync: Autenticación exitosa. Usuario: {user.UserName}, Roles: {string.Join(", ", response.Roles)}");
-            Console.WriteLine($"AccountService.AuthenticateAsync: CompanyName: {user.CompanyName}, ContactName: {user.ContactName}");
-            Console.WriteLine($"AccountService.AuthenticateAsync: EmailConfirmed: {user.EmailConfirmed}, PhoneNumberConfirmed: {user.PhoneNumberConfirmed}");
 
             return response;
         }
@@ -319,6 +306,14 @@ namespace Identity.Services
                 response.Error = $"Ocurrió un error al registrar el proveedor: {string.Join(", ", result.Errors.Select(e => e.Description))}";
                 Console.WriteLine($"AccountService.RegisterSupplierAsync: Error en creación - {response.Error}");
                 return response;
+            }
+
+            // Verificar que el usuario se creó correctamente
+            var createdUser = await _userManager.FindByNameAsync(request.UserName);
+            Console.WriteLine($"AccountService.RegisterSupplierAsync: Usuario creado verificado: {(createdUser != null ? "ENCONTRADO" : "NO ENCONTRADO")}");
+            if (createdUser != null)
+            {
+                Console.WriteLine($"AccountService.RegisterSupplierAsync: Usuario encontrado - ID: {createdUser.Id}, UserName: {createdUser.UserName}, Email: {createdUser.Email}");
             }
 
             Console.WriteLine($"AccountService.RegisterSupplierAsync: Usuario creado exitosamente. ID: {user.Id}");

@@ -297,6 +297,8 @@ namespace SPGSYSTEM.Controllers
             return View(supplier);
         }
 
+
+
         // POST: Suppliers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

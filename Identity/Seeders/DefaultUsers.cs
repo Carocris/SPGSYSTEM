@@ -27,8 +27,8 @@ namespace Database.Seeders
                 await CreateUserAsync(userManager, 
                     "supplier", 
                     "supplier@spgsystem.com", 
-                    "Proveedor", 
                     "Empresa ABC", 
+                    "Proveedor", 
                     "8095550004", 
                     "Supplier123!", 
                     Roles.Supplier);
