@@ -38,6 +38,33 @@ body {
   .table-responsive {
     font-size: 0.875rem;
   }
+  
+  /* Mejorar navegación en móviles */
+  .navbar-nav {
+    padding-top: 0.5rem;
+  }
+  
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  }
+  
+  /* Optimizar filtros en móviles */
+  .input-group {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Mejorar legibilidad de tablas */
+  .table th,
+  .table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Ocultar columnas menos importantes en móviles */
+  .d-none-mobile {
+    display: none !important;
+  }
 }
 
 @media (max-width: 576px) {
@@ -62,6 +89,29 @@ body {
   .h6 {
     font-size: 1rem;
   }
+  
+  /* Mejorar espaciado en móviles */
+  .row {
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+  }
+  
+  .col, .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12 {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  /* Optimizar botones de acción */
+  .btn-group-sm > .btn,
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  /* Mejorar badges en móviles */
+  .badge {
+    font-size: 0.75rem;
+  }
 }
 
 /* Mejorar la altura de las tarjetas en dispositivos móviles */
@@ -73,6 +123,15 @@ body {
   .card {
     margin-bottom: 1rem;
   }
+  
+  /* Optimizar iconos en móviles */
+  .fa-lg {
+    font-size: 1.25em;
+  }
+  
+  .fa-2x {
+    font-size: 1.5em;
+  }
 }
 
 /* Optimizar el espacio en pantallas grandes */
@@ -80,5 +139,51 @@ body {
   .container-fluid {
     max-width: 1400px;
     margin: 0 auto;
+  }
+}
+
+/* Mejoras adicionales para tablets */
+@media (min-width: 577px) and (max-width: 991px) {
+  .table-responsive {
+    font-size: 0.9rem;
+  }
+  
+  .card-body {
+    padding: 1.25rem !important;
+  }
+  
+  /* Optimizar filtros en tablets */
+  .form-select,
+  .form-control {
+    font-size: 0.9rem;
+  }
+}
+
+/* Mejoras para pantallas muy grandes */
+@media (min-width: 1400px) {
+  .container-fluid {
+    max-width: 1600px;
+  }
+  
+  .card-body {
+    padding: 1.5rem !important;
+  }
+}
+
+/* Optimizaciones para impresión */
+@media print {
+  .navbar,
+  .btn,
+  .dropdown-menu {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+  }
+  
+  .table {
+    font-size: 0.8rem;
   }
 }

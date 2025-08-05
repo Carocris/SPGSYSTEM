@@ -58,5 +58,4 @@ app.MapControllerRoute(
     pattern: "Account/AccessDenied",
     defaults: new { controller = "Account", action = "AccessDenied" }
 );
-
 app.Run();

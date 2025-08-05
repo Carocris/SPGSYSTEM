@@ -4,10 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Database.Seeders
 {
+    /// <summary>
     /// Seeder para crear el proveedor por defecto asociado al usuario supplier
+    /// </summary>
     public static class DefaultSupplier
     {
+        /// <summary>
         /// Crea el proveedor por defecto asociado al usuario supplier
+        /// </summary>
         /// <param name="context">Contexto de la base de datos</param>
         public static async Task SeedAsync(ApplicationDbContext context)
         {

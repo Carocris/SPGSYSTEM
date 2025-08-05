@@ -26,17 +26,59 @@ namespace Application.Services
         {
             try
             {
+                Console.WriteLine($"SupplierService.GetByUserIdAsync: Buscando proveedor para userId: {userId}");
+                
                 if (string.IsNullOrEmpty(userId))
+                {
+                    Console.WriteLine("SupplierService.GetByUserIdAsync: userId es null o vacío");
                     return null;
+                }
 
                 // Obtener todos los proveedores
                 var suppliers = await _supplierRepository.GetAllAsync();
+                Console.WriteLine($"SupplierService.GetByUserIdAsync: Total de proveedores encontrados: {suppliers.Count}");
                 
                 // Buscar el proveedor que tenga el UserId especificado
-                return suppliers.FirstOrDefault(s => s.UserId == userId);
+                var supplier = suppliers.FirstOrDefault(s => s.UserId == userId);
+                Console.WriteLine($"SupplierService.GetByUserIdAsync: Proveedor encontrado: {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}, UserId: {supplier.UserId}" : "null")}");
+                
+                return supplier;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"SupplierService.GetByUserIdAsync: Error - {ex.Message}");
+                Console.WriteLine($"SupplierService.GetByUserIdAsync: Stack trace - {ex.StackTrace}");
+                return null;
+            }
+        }
+
+        public async Task<Supplier?> GetByUserNameAsync(string userName)
+        {
+            try
+            {
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Buscando proveedor para userName: {userName}");
+                
+                if (string.IsNullOrEmpty(userName))
+                {
+                    Console.WriteLine("SupplierService.GetByUserNameAsync: userName es null o vacío");
+                    return null;
+                }
+
+                // Obtener todos los proveedores
+                var suppliers = await _supplierRepository.GetAllAsync();
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Total de proveedores encontrados: {suppliers.Count}");
+                
+                // Buscar el proveedor que tenga el UserId que corresponde al userName del sistema de autenticación
+                // El userName del sistema de autenticación es el mismo que el UserId en la entidad Supplier
+                var supplier = suppliers.FirstOrDefault(s => s.UserId == userName);
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Proveedor encontrado: {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}, UserId: {supplier.UserId}" : "null")}");
+                
+                return supplier;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Error - {ex.Message}");
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Stack trace - {ex.StackTrace}");
                 return null;
             }
         }

@@ -16,7 +16,7 @@ namespace Database.Repositories
             _db = db;
         }
 
-        public async Task AddAsync(T entity)
+        public virtual async Task AddAsync(T entity)
         {
             await _db.Set<T>().AddAsync(entity);
         }

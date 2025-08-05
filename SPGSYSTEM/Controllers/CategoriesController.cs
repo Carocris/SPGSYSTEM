@@ -4,6 +4,7 @@ using AutoMapper;
 using Database.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -24,7 +25,20 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var categories = await _categoryService.GetAllWithProductsAsync();
+                IReadOnlyList<Category> categories;
+                
+                // Si es un proveedor, mostrar solo sus categorías
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    categories = await _categoryService.GetCategoriesBySupplierUserIdAsync(currentUserId);
+                }
+                else
+                {
+                    // Si es admin, mostrar todas las categorías
+                    categories = await _categoryService.GetAllWithProductsAsync();
+                }
+                
                 var viewModels = _mapper.Map<List<CategoryViewModel>>(categories);
                 return View(viewModels);
             }
@@ -98,6 +112,19 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Si es un proveedor, verificar que la categoría pertenezca a él
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var supplierCategories = await _categoryService.GetCategoriesBySupplierUserIdAsync(currentUserId);
+                    
+                    if (!supplierCategories.Any(c => c.Id == id))
+                    {
+                        TempData["Error"] = "No tienes permisos para editar esta categoría.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
                 var viewModel = _mapper.Map<CategorySaveViewModel>(category);
                 ViewBag.IsEdit = true;
                 ViewBag.PageTitle = "Editar Categoría";
@@ -135,7 +162,18 @@ namespace SPGSYSTEM.Controllers
                 }
 
                 var category = _mapper.Map<Category>(viewModel);
-                await _categoryService.CreateAsync(category);
+                
+                // Si es un proveedor, asociar la categoría a su proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    await _categoryService.CreateCategoryForSupplierAsync(category, currentUserId);
+                }
+                else
+                {
+                    // Si es admin, crear categoría sin proveedor específico
+                    await _categoryService.CreateAsync(category);
+                }
                 
                 TempData["Success"] = $"Categoría '{category.Name}' creada exitosamente.";
                 return RedirectToAction(nameof(Index));
@@ -169,6 +207,19 @@ namespace SPGSYSTEM.Controllers
                 {
                     TempData["Error"] = "Categoría no encontrada.";
                     return RedirectToAction(nameof(Index));
+                }
+
+                // Si es un proveedor, verificar que la categoría pertenezca a él
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var supplierCategories = await _categoryService.GetCategoriesBySupplierUserIdAsync(currentUserId);
+                    
+                    if (!supplierCategories.Any(c => c.Id == id))
+                    {
+                        TempData["Error"] = "No tienes permisos para editar esta categoría.";
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
 
                 // Verificar si ya existe otra categoría con ese nombre
@@ -212,6 +263,19 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Si es un proveedor, verificar que la categoría pertenezca a él
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var supplierCategories = await _categoryService.GetCategoriesBySupplierUserIdAsync(currentUserId);
+                    
+                    if (!supplierCategories.Any(c => c.Id == id))
+                    {
+                        TempData["Error"] = "No tienes permisos para eliminar esta categoría.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
                 // Verificar si la categoría tiene productos asociados
                 if (category.Products?.Any() == true)
                 {
@@ -236,7 +300,21 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var categories = await _categoryService.GetActiveAsync();
+                IReadOnlyList<Category> categories;
+                
+                // Si es un proveedor, mostrar solo sus categorías activas
+                if (User.IsInRole("Supplier"))
+                {
+                    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    var allSupplierCategories = await _categoryService.GetCategoriesBySupplierUserIdAsync(currentUserId);
+                    categories = allSupplierCategories.Where(c => c.IsActive).ToList();
+                }
+                else
+                {
+                    // Si es admin, mostrar todas las categorías activas
+                    categories = await _categoryService.GetActiveAsync();
+                }
+                
                 var result = categories.Select(c => new { id = c.Id, name = c.Name }).ToList();
                 return Json(result);
             }

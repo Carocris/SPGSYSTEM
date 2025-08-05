@@ -58,7 +58,8 @@ namespace Identity
                     .AddRoles<IdentityRole>()
                     .AddSignInManager()
                     .AddEntityFrameworkStores<IdentityContext>()
-                    .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>(TokenOptions.DefaultProvider);
+                    .AddTokenProvider<DataProtectorTokenProvider<ApplicationUser>>(TokenOptions.DefaultProvider)
+                    .AddDefaultTokenProviders();
 
             services.Configure<DataProtectionTokenProviderOptions>(opt =>
             {

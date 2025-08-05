@@ -29,6 +29,8 @@ namespace Application.Services
         {
             try
             {
+                Console.WriteLine($"Creando notificación para proveedor {supplierId}");
+                
                 var notification = new Notification
                 {
                     SupplierId = supplierId,
@@ -43,15 +45,19 @@ namespace Application.Services
                     CustomerName = customerName
                 };
 
+                Console.WriteLine($"Notificación creada: {notification.Title} - {notification.Message}");
+                
                 await _notificationRepository.AddAsync(notification);
                 await _notificationRepository.SaveChangesAsync();
 
+                Console.WriteLine($"Notificación guardada exitosamente en la base de datos");
                 return true;
             }
             catch (Exception ex)
             {
                 // En un sistema real, esto iría a un sistema de logging
                 Console.WriteLine($"Error al enviar notificación al proveedor {supplierId}: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return false;
             }
         }

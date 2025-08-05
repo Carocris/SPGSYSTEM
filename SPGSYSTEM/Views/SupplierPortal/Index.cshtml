@@ -1,33 +1,24 @@
 @model IEnumerable<Application.ViewModels.Product.ProductViewModel>
-
 @{
     ViewData["Title"] = "Mis Productos - Portal de Proveedor";
 }
 
+<div class="container-fluid">
 <div class="row">
     <div class="col-12">
-        <!-- Header Section -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h3 class="h4 text-primary mb-1">
-                    <i class="fas fa-boxes me-2"></i>Mis Productos
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="fas fa-boxes me-2"></i>
+                            Mis Productos
                 </h3>
-                <p class="text-muted mb-0 small">
-                    @if (ViewBag.SupplierName != null)
-                    {
-                        <text>Gestiona los productos de @ViewBag.SupplierName</text>
-                    }
-                    else
-                    {
-                        <text>Gestiona tus productos en el sistema</text>
-                    }
-                </p>
-            </div>
-            <a asp-controller="Products" asp-action="Create" class="btn btn-success btn-sm">
-                <i class="fas fa-plus me-2"></i>Agregar Producto
+                        <a href="@Url.Action("Create", "Products")" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
         </div>
-
+                </div>
+                <div class="card-body">
         <!-- Alert Messages -->
         @if (TempData["Success"] != null)
         {
@@ -45,22 +36,34 @@
             </div>
         }
 
-        @if (Model.Any())
-        {
-            <!-- Products Table -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="fas fa-list me-2"></i>Lista de Productos
-                        </h5>
-                        <span class="badge bg-primary">@Model.Count() productos</span>
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" id="searchInput" class="form-control" placeholder="Buscar por nombre o código...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select id="statusFilter" class="form-select">
+                                <option value="">Todos los estados</option>
+                                <option value="true">Activos</option>
+                                <option value="false">Inactivos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" id="clearFilters" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Limpiar Filtros
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="card-body p-0">
+
+                    <!-- Tabla de productos -->
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Código</th>
                                     <th>Producto</th>
@@ -69,15 +72,15 @@
                                     <th>Precio Compra</th>
                                     <th>Precio Venta</th>
                                     <th>Estado</th>
-                                    <th>Acciones</th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="productsTableBody">
                                 @foreach (var product in Model)
                                 {
-                                    <tr>
+                                    <tr data-name="@product.Name.ToLower()" data-code="@product.Code.ToLower()" data-status="@product.IsActive.ToString().ToLower()">
                                         <td>
-                                            <span class="fw-bold text-primary">@product.Code</span>
+                                            <strong class="text-primary">@product.Code</strong>
                                         </td>
                                         <td>
                                             <div>
@@ -119,18 +122,20 @@
                                                 <span class="badge bg-secondary">Inactivo</span>
                                             }
                                         </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm" role="group">
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
                                                 <a asp-controller="Products" asp-action="Details" asp-route-id="@product.Id" 
-                                                   class="btn btn-outline-info" title="Ver Detalles">
+                                                   class="btn btn-outline-info btn-sm" title="Ver Detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                                 <a asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id" 
-                                                   class="btn btn-outline-warning" title="Editar">
+                                                   class="btn btn-outline-warning btn-sm" title="Editar">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger" 
-                                                        onclick="confirmDelete(@product.Id, '@product.Name')" title="Eliminar">
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-btn" 
+                                                        data-id="@product.Id" 
+                                                        data-name="@product.Name"
+                                                        title="Eliminar">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             </div>
@@ -139,79 +144,43 @@
                                 }
                             </tbody>
                         </table>
-                    </div>
-                </div>
             </div>
 
-            <!-- Statistics Section -->
-            <div class="row mt-4">
-                <div class="col-12">
-                    <div class="card bg-light">
-                        <div class="card-body">
-                            <div class="row text-center">
-                                <div class="col-md-3">
-                                    <div class="stat-item">
-                                        <h4 class="text-primary mb-1">@Model.Count()</h4>
-                                        <small class="text-muted">Total Productos</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="stat-item">
-                                        <h4 class="text-success mb-1">@Model.Count(p => p.Stock > 0)</h4>
-                                        <small class="text-muted">En Stock</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="stat-item">
-                                        <h4 class="text-warning mb-1">@Model.Count(p => p.IsLowStock)</h4>
-                                        <small class="text-muted">Stock Bajo</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="stat-item">
-                                        <h4 class="text-danger mb-1">@Model.Count(p => p.Stock <= 0)</h4>
-                                        <small class="text-muted">Sin Stock</small>
-                                    </div>
-                                </div>
-                            </div>
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No tienes productos registrados</h5>
+                            <p class="text-muted">Haz clic en "Nuevo Producto" para agregar tu primer producto.</p>
                         </div>
-                    </div>
+                    }
                 </div>
             </div>
-        }
-        else
-        {
-            <!-- Empty State -->
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fas fa-box-open text-muted" style="font-size: 4rem;"></i>
-                </div>
-                <h4 class="text-muted mb-3">No tienes productos registrados</h4>
-                <p class="text-muted mb-4">Comienza agregando tu primer producto al sistema</p>
-                <a asp-controller="Products" asp-action="Create" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus me-2"></i>Agregar Primer Producto
-                </a>
             </div>
-        }
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>¿Estás seguro de que quieres eliminar el producto <strong id="productName"></strong>?</p>
-                <p class="text-danger"><small>Esta acción no se puede deshacer.</small></p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="deleteMessage"></span>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <form id="deleteForm" method="post" style="display: inline;">
-                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Eliminar
+                    </button>
                 </form>
             </div>
         </div>
@@ -220,10 +189,62 @@
 
 @section Scripts {
     <script>
-        function confirmDelete(productId, productName) {
-            document.getElementById('productName').textContent = productName;
-            document.getElementById('deleteForm').action = `/Products/Delete/${productId}`;
-            new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
+        $(document).ready(function() {
+            // Filtro de búsqueda en tiempo real
+            $('#searchInput').on('keyup', function() {
+                filterTable();
+            });
+
+            // Filtro de estado
+            $('#statusFilter').on('change', function() {
+                filterTable();
+            });
+
+            // Limpiar filtros
+            $('#clearFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#statusFilter').val('');
+                filterTable();
+            });
+
+            // Función para filtrar la tabla
+            function filterTable() {
+                const searchText = $('#searchInput').val().toLowerCase();
+                const statusFilter = $('#statusFilter').val();
+
+                $('#productsTableBody tr').each(function() {
+                    const $row = $(this);
+                    const name = $row.data('name');
+                    const code = $row.data('code');
+                    const status = $row.data('status').toString();
+
+                    let showRow = true;
+
+                    // Filtro de búsqueda
+                    if (searchText && !name.includes(searchText) && !code.includes(searchText)) {
+                        showRow = false;
+                    }
+
+                    // Filtro de estado
+                    if (statusFilter && status !== statusFilter) {
+                        showRow = false;
+                    }
+
+                    $row.toggle(showRow);
+                });
+            }
+
+            // Manejo del modal de eliminación
+            $('.delete-btn').on('click', function() {
+                const productId = $(this).data('id');
+                const productName = $(this).data('name');
+
+                const message = `¿Está seguro que desea eliminar el producto "<strong>${productName}</strong>"?`;
+
+                $('#deleteMessage').html(message);
+                $('#deleteForm').attr('action', '@Url.Action("Delete", "Products")/' + productId);
+                $('#deleteModal').modal('show');
+            });
+        });
     </script>
 } 

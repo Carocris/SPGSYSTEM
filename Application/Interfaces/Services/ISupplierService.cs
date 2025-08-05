@@ -12,6 +12,7 @@ namespace Application.Interfaces.Services
     public interface ISupplierService : IGenericService<Supplier>
     {
         Task<Supplier?> GetByUserIdAsync(string userId);
+        Task<Supplier?> GetByUserNameAsync(string userName);
         Task<List<SupplierViewModel>> GetAllViewModelsAsync();
         Task<SupplierViewModel?> GetViewModelByIdAsync(int id);
         Task<SupplierSaveViewModel?> GetSaveViewModelByIdAsync(int id);

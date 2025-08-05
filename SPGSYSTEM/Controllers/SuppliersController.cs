@@ -1,5 +1,7 @@
 using Application.Interfaces.Services;
 using Application.ViewModels.Supplier;
+using Application.ViewModels.Product;
+using Application.ViewModels.Sale;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -13,15 +15,21 @@ namespace SPGSYSTEM.Controllers
     public class SuppliersController : Controller
     {
         private readonly ISupplierService _supplierService;
+        private readonly IProductService _productService;
+        private readonly ISaleService _saleService;
         private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
 
         public SuppliersController(
             ISupplierService supplierService,
+            IProductService productService,
+            ISaleService saleService,
             IAccountService accountService,
             IMapper mapper)
         {
             _supplierService = supplierService;
+            _productService = productService;
+            _saleService = saleService;
             _accountService = accountService;
             _mapper = mapper;
         }
@@ -238,6 +246,17 @@ namespace SPGSYSTEM.Controllers
             {
                 return NotFound();
             }
+
+            // Obtener los productos específicos de este proveedor
+            var supplierProducts = await _productService.GetBySupplierAsync(id);
+            var productViewModels = _mapper.Map<List<ProductViewModel>>(supplierProducts);
+            ViewBag.SupplierProducts = productViewModels;
+
+            // Obtener las ventas del proveedor
+            var supplierSales = await _saleService.GetSalesBySupplierAsync(id);
+            var saleViewModels = _mapper.Map<List<SaleViewModel>>(supplierSales);
+            ViewBag.SupplierSales = saleViewModels;
+
             return View(supplier);
         }
 

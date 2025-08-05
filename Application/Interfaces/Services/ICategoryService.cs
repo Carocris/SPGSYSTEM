@@ -14,5 +14,7 @@ namespace Application.Interfaces.Services
         Task<IReadOnlyList<Category>> GetActiveAsync();
         Task<IReadOnlyList<Category>> GetAllWithProductsAsync();
         Task<bool> ExistsAsync(string name, int? excludeId = null);
+        Task<IReadOnlyList<Category>> GetCategoriesBySupplierUserIdAsync(string userId);
+        Task<Category> CreateCategoryForSupplierAsync(Category category, string userId);
     }
 } 

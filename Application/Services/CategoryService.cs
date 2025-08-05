@@ -37,5 +37,15 @@ namespace Application.Services
         {
             return await _categoryRepository.ExistsAsync(name, excludeId);
         }
+
+        public async Task<IReadOnlyList<Category>> GetCategoriesBySupplierUserIdAsync(string userId)
+        {
+            return await _categoryRepository.GetCategoriesBySupplierUserIdAsync(userId);
+        }
+
+        public async Task<Category> CreateCategoryForSupplierAsync(Category category, string userId)
+        {
+            return await _categoryRepository.CreateCategoryForSupplierAsync(category, userId);
+        }
     }
 } 

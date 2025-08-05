@@ -170,10 +170,10 @@
                                             <span class="badge bg-primary rounded-pill">@detail.Quantity</span>
                                         </td>
                                         <td class="text-end">
-                                            <span class="text-muted">$@(detail.Subtotal / detail.Quantity).ToString("N2")</span>
+                                            <span class="text-muted">$@((detail.Subtotal / detail.Quantity).ToString("N2"))</span>
                                         </td>
                                         <td class="text-end pe-4">
-                                            <span class="fw-bold text-success">$@detail.Subtotal</span>
+                                            <span class="fw-bold text-success">$@detail.Subtotal.ToString("N2")</span>
                                         </td>
                                     </tr>
                                 }

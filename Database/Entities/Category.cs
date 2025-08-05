@@ -27,7 +27,13 @@ namespace Database.Entities
 
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
+        // Foreign Key para el proveedor que creó la categoría
+        public int? SupplierId { get; set; }
+
         // Navigation: Una categoría puede tener muchos productos
         public ICollection<Product> Products { get; set; }
+
+        // Navigation: El proveedor que creó la categoría
+        public Supplier? Supplier { get; set; }
     }
 } 

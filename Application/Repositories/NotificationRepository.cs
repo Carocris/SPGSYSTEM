@@ -40,5 +40,12 @@ namespace Database.Repositories
                 await _db.SaveChangesAsync();
             }
         }
+
+        public override async Task AddAsync(Notification entity)
+        {
+            Console.WriteLine($"Agregando notificación: {entity.Title} para proveedor {entity.SupplierId}");
+            await base.AddAsync(entity);
+            Console.WriteLine($"Notificación agregada con ID: {entity.Id}");
+        }
     }
 } 

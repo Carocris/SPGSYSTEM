@@ -33,6 +33,9 @@ namespace Database.Seeders
                 // 4. Crear proveedor por defecto
                 await DefaultSupplier.SeedAsync(applicationDbContext);
 
+                // 5. Asignar productos a proveedores
+                await ProductSupplierSeeder.SeedAsync(applicationDbContext);
+
                 Console.WriteLine("Seeds completados exitosamente.");
             }
             catch (Exception ex)

@@ -57,5 +57,8 @@ namespace Database.Entities
 
         // Navigation: Un proveedor puede proveer muchos productos
         public ICollection<Product> Products { get; set; }
+
+        // Navigation: Un proveedor puede crear muchas categorías
+        public ICollection<Category> Categories { get; set; } = new List<Category>();
     }
 } 

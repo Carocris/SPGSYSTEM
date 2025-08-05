@@ -311,22 +311,31 @@ namespace SPGSYSTEM.Controllers
                                     await _saleDetailService.CreateAsync(saleDetail);
 
                                     // Actualizar stock del producto
+                                    Console.WriteLine($"Actualizando stock del producto {product.Id}: {product.Stock} -> {product.Stock - detailModel.Quantity}");
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
+                                    Console.WriteLine($"Stock actualizado: {product.Stock}");
 
                                     // Notificar al proveedor si el producto tiene uno
+                                    Console.WriteLine($"Producto {product.Id} - SupplierId: {product.SupplierId}");
                                     if (product.SupplierId.HasValue)
                                     {
                                         var customer = await _customerService.GetByIdAsync(model.CustomerId);
                                         var customerName = customer?.Name ?? "Cliente";
                                         
-                                        await _notificationService.NotifySupplierOfSaleAsync(
+                                        Console.WriteLine($"Enviando notificación al proveedor {product.SupplierId.Value} sobre venta de {detailModel.Quantity} unidades de {product.Name}");
+                                        var notificationResult = await _notificationService.NotifySupplierOfSaleAsync(
                                             product.SupplierId.Value,
                                             product.Name,
                                             detailModel.Quantity,
                                             customerName,
                                             existingSale.Id
                                         );
+                                        Console.WriteLine($"Resultado de notificación: {notificationResult}");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"El producto {product.Name} no tiene proveedor asignado");
                                     }
                                 }
                             }
@@ -369,22 +378,31 @@ namespace SPGSYSTEM.Controllers
                                     await _saleDetailService.CreateAsync(saleDetail);
 
                                     // Actualizar stock del producto
+                                    Console.WriteLine($"Actualizando stock del producto {product.Id}: {product.Stock} -> {product.Stock - detailModel.Quantity}");
                                     product.Stock -= detailModel.Quantity;
                                     await _productService.UpdateAsync(product);
+                                    Console.WriteLine($"Stock actualizado: {product.Stock}");
 
                                     // Notificar al proveedor si el producto tiene uno
+                                    Console.WriteLine($"Producto {product.Id} - SupplierId: {product.SupplierId}");
                                     if (product.SupplierId.HasValue)
                                     {
                                         var customer = await _customerService.GetByIdAsync(model.CustomerId);
                                         var customerName = customer?.Name ?? "Cliente";
                                         
-                                        await _notificationService.NotifySupplierOfSaleAsync(
+                                        Console.WriteLine($"Enviando notificación al proveedor {product.SupplierId.Value} sobre venta de {detailModel.Quantity} unidades de {product.Name}");
+                                        var notificationResult = await _notificationService.NotifySupplierOfSaleAsync(
                                             product.SupplierId.Value,
                                             product.Name,
                                             detailModel.Quantity,
                                             customerName,
                                             sale.Id
                                         );
+                                        Console.WriteLine($"Resultado de notificación: {notificationResult}");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine($"El producto {product.Name} no tiene proveedor asignado");
                                     }
                                 }
                             }

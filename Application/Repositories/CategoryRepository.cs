@@ -56,5 +56,39 @@ namespace Database.Repositories
             
             return await query.AnyAsync();
         }
+
+        public async Task<IReadOnlyList<Category>> GetCategoriesBySupplierUserIdAsync(string userId)
+        {
+            return await _db.Categories
+                            .Include(c => c.Products)
+                                .ThenInclude(p => p.Supplier)
+                            .Include(c => c.Supplier)
+                            .Where(c => c.Supplier.UserId == userId)
+                            .OrderBy(c => c.Name)
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
+
+        public async Task<Category> CreateCategoryForSupplierAsync(Category category, string userId)
+        {
+            // Buscar el proveedor por userId
+            var supplier = await _db.Suppliers
+                                   .FirstOrDefaultAsync(s => s.UserId == userId);
+            
+            if (supplier == null)
+            {
+                throw new InvalidOperationException("Proveedor no encontrado para el usuario especificado.");
+            }
+
+            // Asignar el proveedor a la categoría
+            category.SupplierId = supplier.Id;
+            category.Supplier = supplier;
+
+            // Guardar la categoría
+            await _db.Categories.AddAsync(category);
+            await _db.SaveChangesAsync();
+
+            return category;
+        }
     }
 } 

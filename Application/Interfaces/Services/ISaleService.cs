@@ -13,6 +13,7 @@ namespace Application.Interfaces.Services
         Task<Sale> CreateSaleAsync(Sale sale);
         Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync();
         Task<IReadOnlyList<Sale>> GetSalesWithoutPaymentAsync();
+        Task<IReadOnlyList<Sale>> GetSalesBySupplierAsync(int supplierId);
     }
 
 }
