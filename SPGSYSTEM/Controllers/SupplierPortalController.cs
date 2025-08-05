@@ -15,17 +15,20 @@ namespace SPGSYSTEM.Controllers
         private readonly IProductService _productService;
         private readonly ISupplierService _supplierService;
         private readonly ICategoryService _categoryService;
+        private readonly ISaleService _saleService;
         private readonly IMapper _mapper;
 
         public SupplierPortalController(
             IProductService productService,
             ISupplierService supplierService,
             ICategoryService categoryService,
+            ISaleService saleService,
             IMapper mapper)
         {
             _productService = productService;
             _supplierService = supplierService;
             _categoryService = categoryService;
+            _saleService = saleService;
             _mapper = mapper;
         }
 
@@ -176,6 +179,43 @@ namespace SPGSYSTEM.Controllers
             catch (Exception ex)
             {
                 TempData["Error"] = "Error al cargar estadísticas: " + ex.Message;
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        /// <summary>
+        /// Ver las ventas de los productos del proveedor
+        /// </summary>
+        public async Task<IActionResult> Sales()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var supplier = await GetSupplierByUserId(userIdClaim);
+                if (supplier == null)
+                {
+                    TempData["Error"] = "No se encontró información del proveedor.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Obtener las ventas del proveedor usando el servicio de ventas
+                var sales = await _saleService.GetSalesBySupplierAsync(supplier.Id);
+                
+                // Convertir a ViewModels para mostrar en la vista
+                var saleViewModels = _mapper.Map<List<Application.ViewModels.Sale.SaleViewModel>>(sales);
+
+                ViewBag.SupplierName = supplier.Name;
+                ViewBag.SupplierId = supplier.Id;
+                ViewBag.TotalSales = saleViewModels.Count;
+                ViewBag.TotalRevenue = saleViewModels.Sum(s => s.TotalAmount);
+
+                return View(saleViewModels);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en SupplierPortalController.Sales: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                TempData["Error"] = "Error al cargar las ventas.";
                 return RedirectToAction(nameof(Index));
             }
         }

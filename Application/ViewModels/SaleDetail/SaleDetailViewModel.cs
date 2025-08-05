@@ -11,6 +11,8 @@ namespace Application.ViewModels.SaleDetail
         public int Id { get; set; }
         public int ProductId { get; set; }
         public string ProductName { get; set; }
+        public int? SupplierId { get; set; }
+        public string SupplierName { get; set; }
         public int SaleId { get; set; }
         public string SaleNumber { get; set; }
         public string CustomerName { get; set; }
