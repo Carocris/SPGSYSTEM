@@ -12,5 +12,6 @@ namespace Application.Interfaces.Repositories
         Task<Sale> GetFullSaleAsync(int id);
         Task<IReadOnlyList<Sale>> GetAllWithDetailsAsync();
         Task<IReadOnlyList<Sale>> GetSalesWithoutPaymentAsync();
+        Task<IReadOnlyList<Sale>> GetSalesBySupplierAsync(int supplierId);
     }
 }

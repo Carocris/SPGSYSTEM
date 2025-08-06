@@ -68,27 +68,52 @@ namespace SPGSYSTEM.Controllers
             }
         }
 
-        private async Task<string> GenerateProductCodeAsync()
+        private async Task<string> GenerateProductCodeAsync(int? supplierId = null)
         {
-            var products = await _productService.GetAllAsync();
-            var maxCode = products
-                .Where(p => !string.IsNullOrEmpty(p.Code) && p.Code.StartsWith("PROD"))
+            // Si no se especifica proveedor, usar lógica global
+            if (!supplierId.HasValue)
+            {
+                var products = await _productService.GetAllAsync();
+                var maxCode = products
+                    .Where(p => !string.IsNullOrEmpty(p.Code) && p.Code.StartsWith("PROD"))
+                    .Select(p => p.Code)
+                    .OrderByDescending(c => c)
+                    .FirstOrDefault();
+
+                if (string.IsNullOrEmpty(maxCode))
+                {
+                    return "PROD001";
+                }
+
+                var numberPart = maxCode.Substring(4);
+                if (int.TryParse(numberPart, out int currentNumber))
+                {
+                    return $"PROD{(currentNumber + 1):D3}";
+                }
+
+                return "PROD001";
+            }
+
+            // Lógica específica por proveedor
+            var supplierProducts = await _productService.GetBySupplierAsync(supplierId.Value);
+            var maxSupplierCode = supplierProducts
+                .Where(p => !string.IsNullOrEmpty(p.Code) && p.Code.StartsWith($"SUP{supplierId.Value:D3}"))
                 .Select(p => p.Code)
                 .OrderByDescending(c => c)
                 .FirstOrDefault();
 
-            if (string.IsNullOrEmpty(maxCode))
+            if (string.IsNullOrEmpty(maxSupplierCode))
             {
-                return "PROD001";
+                return $"SUP{supplierId.Value:D3}001";
             }
 
-            var numberPart = maxCode.Substring(4);
-            if (int.TryParse(numberPart, out int currentNumber))
+            var supplierNumberPart = maxSupplierCode.Substring(6); // Saltar "SUP" + 3 dígitos del ID
+            if (int.TryParse(supplierNumberPart, out int currentSupplierNumber))
             {
-                return $"PROD{(currentNumber + 1):D3}";
+                return $"SUP{supplierId.Value:D3}{(currentSupplierNumber + 1):D3}";
             }
 
-            return "PROD001";
+            return $"SUP{supplierId.Value:D3}001";
         }
 
         // GET: /Products
@@ -207,24 +232,26 @@ namespace SPGSYSTEM.Controllers
                 ViewBag.IsEdit = false;
                 ViewBag.PageTitle = "Nuevo Producto";
 
-                var vm = new ProductSaveViewModel
-                {
-                    Code = await GenerateProductCodeAsync(),
-                    CategoryId = categoryId,
-                    SupplierId = supplierId
-                };
-
                 // Si es Supplier, forzar que solo pueda crear productos para su proveedor
+                int? currentSupplierId = null;
                 if (User.IsInRole("Supplier"))
                 {
                     var supplier = await GetSupplierByUserId(User.Identity?.Name);
                     if (supplier != null)
                     {
-                        vm.SupplierId = supplier.Id;
+                        currentSupplierId = supplier.Id;
+                        supplierId = supplier.Id;
                         ViewBag.SupplierId = supplier.Id;
                         ViewBag.SupplierName = supplier.Name;
                     }
                 }
+
+                var vm = new ProductSaveViewModel
+                {
+                    Code = await GenerateProductCodeAsync(currentSupplierId),
+                    CategoryId = categoryId,
+                    SupplierId = supplierId
+                };
 
                 return View("CreateEdit", vm);
             }
@@ -291,6 +318,28 @@ namespace SPGSYSTEM.Controllers
                         
                         return View("CreateEdit", vm);
                     }
+                }
+
+                // Verificar si ya existe un producto con el mismo nombre SOLO para el mismo proveedor
+                if (await _productService.ExistsByNameAsync(vm.Name, null, vm.SupplierId))
+                {
+                    TempData["Error"] = $"Ya existe un producto con el nombre '{vm.Name}' en tu inventario. Por favor, elige un nombre diferente.";
+                    await LoadViewBagDataAsync();
+                    ViewBag.IsEdit = false;
+                    ViewBag.PageTitle = "Nuevo Producto";
+                    
+                    // Si es Supplier, establecer información del proveedor
+                    if (User.IsInRole("Supplier"))
+                    {
+                        var currentSupplier = await GetSupplierByUserId(User.Identity?.Name);
+                        if (currentSupplier != null)
+                        {
+                            ViewBag.SupplierId = currentSupplier.Id;
+                            ViewBag.SupplierName = currentSupplier.Name;
+                        }
+                    }
+                    
+                    return View("CreateEdit", vm);
                 }
 
                 var product = _mapper.Map<Product>(vm);
@@ -439,17 +488,43 @@ namespace SPGSYSTEM.Controllers
                     vm.SupplierId = supplier.Id;
                 }
 
-                var product = _mapper.Map<Product>(vm);
-                product.Id = id; // Asegurar que el ID se mantiene
-                
-                // Asegurar que las relaciones estén limpias
-                product.Category = null;
-                product.Supplier = null;
-                product.SaleDetails = null;
-                
-                await _productService.UpdateAsync(product);
+                // Verificar si ya existe otro producto con el mismo nombre SOLO para el mismo proveedor (excluyendo el actual)
+                if (await _productService.ExistsByNameAsync(vm.Name, id, vm.SupplierId))
+                {
+                    TempData["Error"] = $"Ya existe otro producto con el nombre '{vm.Name}' en tu inventario. Por favor, elige un nombre diferente.";
+                    await LoadViewBagDataAsync();
+                    ViewBag.IsEdit = true;
+                    ViewBag.PageTitle = "Editar Producto";
+                    ViewBag.ProductId = id;
+                    
+                    // Si es Supplier, establecer información del proveedor
+                    if (User.IsInRole("Supplier"))
+                    {
+                        var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                        if (supplier != null)
+                        {
+                            ViewBag.SupplierId = supplier.Id;
+                            ViewBag.SupplierName = supplier.Name;
+                        }
+                    }
+                    
+                    return View("CreateEdit", vm);
+                }
 
-                TempData["Success"] = $"Producto '{product.Name}' actualizado exitosamente.";
+                vm.Id = id; // Asegurar que el ID se mantiene
+                
+                var success = await _productService.UpdateAsync(vm);
+                if (!success)
+                {
+                    TempData["Error"] = "Error al actualizar el producto. Verifica que el nombre no esté duplicado.";
+                    await LoadViewBagDataAsync();
+                    ViewBag.IsEdit = true;
+                    ViewBag.PageTitle = "Editar Producto";
+                    ViewBag.ProductId = id;
+                    return View("CreateEdit", vm);
+                }
+
+                TempData["Success"] = $"Producto '{vm.Name}' actualizado exitosamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
@@ -466,7 +541,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: /Products/AddStock/5
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> AddStock(int id)
         {
             try
@@ -476,6 +551,17 @@ namespace SPGSYSTEM.Controllers
                 {
                     TempData["Error"] = "Producto no encontrado.";
                     return RedirectToAction(nameof(Index));
+                }
+
+                // Si es Supplier, verificar que el producto pertenece a su proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier == null || product.SupplierId != supplier.Id)
+                    {
+                        TempData["Error"] = "No tienes permisos para agregar stock a este producto.";
+                        return RedirectToAction(nameof(Index));
+                    }
                 }
 
                 ViewBag.Product = product;
@@ -492,7 +578,7 @@ namespace SPGSYSTEM.Controllers
         // POST: /Products/AddStock
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Supplier")]
         public async Task<IActionResult> AddStock(AddStockViewModel model)
         {
             if (!ModelState.IsValid)
@@ -512,19 +598,29 @@ namespace SPGSYSTEM.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Si es Supplier, verificar que el producto pertenece a su proveedor
+                if (User.IsInRole("Supplier"))
+                {
+                    var supplier = await GetSupplierByUserId(User.Identity?.Name);
+                    if (supplier == null || product.SupplierId != supplier.Id)
+                    {
+                        TempData["Error"] = "No tienes permisos para agregar stock a este producto.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
                 var before = product.Stock;
                 var originalPurchasePrice = product.PurchasePrice;
                 
-                // Actualizar stock
-                product.Stock += model.QuantityToAdd;
-                
-                // Actualizar precio de compra si se especificó un valor válido
-                if (model.NewPurchasePrice.HasValue && model.NewPurchasePrice.Value > 0)
+                // Usar el método específico para actualizar stock
+                var success = await _productService.UpdateStockAsync(model.ProductId, model.QuantityToAdd, model.NewPurchasePrice);
+                if (!success)
                 {
-                    product.PurchasePrice = model.NewPurchasePrice.Value;
+                    TempData["Error"] = "Error al actualizar el stock del producto.";
+                    ViewBag.Product = product;
+                    ViewBag.CurrentStock = product.Stock;
+                    return View(model);
                 }
-                
-                await _productService.UpdateAsync(product);
 
                 // Registrar movimiento de entrada
                 var userName = User.Identity?.Name ?? "Sistema";
@@ -673,27 +769,16 @@ namespace SPGSYSTEM.Controllers
             return false;
         }
 
-        // Método auxiliar para obtener el proveedor por userId
-        private async Task<Supplier?> GetSupplierByUserId(string? userId)
+        // Método auxiliar para obtener el proveedor por userName
+        private async Task<Supplier?> GetSupplierByUserId(string? userName)
         {
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userName))
                 return null;
 
             try
             {
-                // Obtener el UserId real del usuario autenticado
-                var userManager = HttpContext.RequestServices.GetService<Microsoft.AspNetCore.Identity.UserManager<Identity.Entities.ApplicationUser>>();
-                if (userManager != null)
-                {
-                    var user = await userManager.FindByNameAsync(userId);
-                    if (user != null)
-                    {
-                        return await _supplierService.GetByUserIdAsync(user.Id);
-                    }
-                }
-                
-                // Fallback: intentar buscar directamente por username
-                return await _supplierService.GetByUserIdAsync(userId);
+                // Usar el mismo método que funciona en SupplierPortalController
+                return await _supplierService.GetByUserNameAsync(userName);
             }
             catch (Exception ex)
             {

@@ -2,7 +2,7 @@ using Identity.Contexts;
 using Identity.Entities;
 using Identity.Services;
 using Identity.Interfaces;
-using Database.Seeders;
+using Identity.Seeders;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

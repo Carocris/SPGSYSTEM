@@ -108,6 +108,20 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Sale, opt => opt.Ignore())
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
+            // Agregar mapeo de Payment a PaymentSaveViewModel
+            CreateMap<Payment, PaymentSaveViewModel>()
+                .ForMember(dest => dest.SaleId, opt => opt.MapFrom(src => src.SaleId))
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.CardNumber, opt => opt.MapFrom(src => src.CardNumber))
+                .ForMember(dest => dest.CardHolderName, opt => opt.MapFrom(src => src.CardHolderName))
+                .ForMember(dest => dest.CardExpiryDate, opt => opt.MapFrom(src => src.CardExpiryDate))
+                .ForMember(dest => dest.CardCVV, opt => opt.MapFrom(src => src.CardCVV))
+                .ForMember(dest => dest.TransferReference, opt => opt.MapFrom(src => src.TransferReference))
+                .ForMember(dest => dest.BankAccount, opt => opt.MapFrom(src => src.BankAccount))
+                .ForMember(dest => dest.TransferReceiptPath, opt => opt.MapFrom(src => src.TransferReceiptPath));
+
             // Notification
             CreateMap<Notification, NotificationViewModel>()
                 .ForMember(dest => dest.SupplierName,

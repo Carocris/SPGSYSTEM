@@ -43,17 +43,8 @@ namespace Application.Services
 
         public async Task<IReadOnlyList<Sale>> GetSalesBySupplierAsync(int supplierId)
         {
-            // Obtener todas las ventas con detalles
-            var allSales = await _saleRepository.GetAllWithDetailsAsync();
-            
-            // Filtrar ventas que contengan productos del proveedor específico
-            var supplierSales = allSales.Where(sale => 
-                sale.Details.Any(detail => 
-                    detail.Product.SupplierId == supplierId
-                )
-            ).ToList();
-            
-            return supplierSales;
+            // Usar el método del repositorio para obtener ventas filtradas por proveedor
+            return await _saleRepository.GetSalesBySupplierAsync(supplierId);
         }
     }
 }

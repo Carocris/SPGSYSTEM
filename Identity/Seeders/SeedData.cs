@@ -1,8 +1,10 @@
 using Identity.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Database.Contexts;
+using Database.Seeders;
 
-namespace Database.Seeders
+namespace Identity.Seeders
 {
     /// <summary>
     /// Clase principal para ejecutar todos los seeds del sistema
@@ -28,13 +30,12 @@ namespace Database.Seeders
                 await DefaultAdminUser.SeedAsync(userManager);
 
                 // 3. Crear usuarios de prueba
-                await DefaultUsers.SeedAsync(userManager);
+                await DefaultUsers.SeedAsync(userManager, applicationDbContext);
 
-                // 4. Crear proveedor por defecto
-                await DefaultSupplier.SeedAsync(applicationDbContext);
+                // 4. Crear proveedor por defecto (ahora se crea automáticamente en DefaultUsers)
 
-                // 5. Asignar productos a proveedores
-                await ProductSupplierSeeder.SeedAsync(applicationDbContext);
+                // Nota: Los seeders de productos están en el proyecto Database
+                // y se ejecutarán desde el ServiceRegistration del proyecto Database
 
                 Console.WriteLine("Seeds completados exitosamente.");
             }

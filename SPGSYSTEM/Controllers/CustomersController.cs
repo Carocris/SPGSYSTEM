@@ -76,6 +76,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: Customers/Create
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             ViewBag.IsEdit = false;
@@ -85,6 +86,7 @@ namespace SPGSYSTEM.Controllers
 
         // GET: Customers/Edit/5
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             try
@@ -112,6 +114,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Customers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CustomerSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
@@ -145,6 +148,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Customers/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, CustomerSaveViewModel viewModel)
         {
             if (!ModelState.IsValid)
@@ -184,6 +188,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Customers/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

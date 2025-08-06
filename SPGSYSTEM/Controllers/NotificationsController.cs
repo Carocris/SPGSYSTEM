@@ -151,9 +151,30 @@ namespace SPGSYSTEM.Controllers
             try
             {
                 Console.WriteLine($"GetSupplierByUserId: Buscando proveedor para userId: {userId}");
+                
+                // Primero intentar con GetByUserIdAsync
                 var supplier = await _supplierService.GetByUserIdAsync(userId);
-                Console.WriteLine($"GetSupplierByUserId: Resultado - {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}" : "null")}");
-                return supplier;
+                if (supplier != null)
+                {
+                    Console.WriteLine($"GetSupplierByUserId: Resultado con GetByUserIdAsync - ID: {supplier.Id}, Name: {supplier.Name}");
+                    return supplier;
+                }
+                
+                // Si no se encuentra, intentar con GetByUserNameAsync
+                var userName = User.Identity?.Name;
+                if (!string.IsNullOrEmpty(userName))
+                {
+                    Console.WriteLine($"GetSupplierByUserId: Intentando con GetByUserNameAsync para userName: {userName}");
+                    supplier = await _supplierService.GetByUserNameAsync(userName);
+                    if (supplier != null)
+                    {
+                        Console.WriteLine($"GetSupplierByUserId: Resultado con GetByUserNameAsync - ID: {supplier.Id}, Name: {supplier.Name}");
+                        return supplier;
+                    }
+                }
+                
+                Console.WriteLine("GetSupplierByUserId: No se encontró proveedor");
+                return null;
             }
             catch (Exception ex)
             {

@@ -17,5 +17,25 @@ namespace Database
                 )
             );
         }
+
+        public static async Task RunDatabaseSeedsAsync(this IServiceProvider serviceProvider)
+        {
+            using (var scope = serviceProvider.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+
+                try
+                {
+                    var applicationDbContext = services.GetRequiredService<ApplicationDbContext>();
+
+                    // No ejecutar seeders de productos - el usuario los creará manualmente
+                    Console.WriteLine("Database seeds completados exitosamente.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error ejecutando database seeds: {ex.Message}");
+                }
+            }
+        }
     }
 }

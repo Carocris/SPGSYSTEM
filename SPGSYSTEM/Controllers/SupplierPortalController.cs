@@ -5,6 +5,8 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Identity.Interfaces;
+using Identity.DTOs;
 
 namespace SPGSYSTEM.Controllers
 {
@@ -16,6 +18,7 @@ namespace SPGSYSTEM.Controllers
         private readonly ISupplierService _supplierService;
         private readonly ICategoryService _categoryService;
         private readonly ISaleService _saleService;
+        private readonly IAccountService _accountService;
         private readonly IMapper _mapper;
 
         public SupplierPortalController(
@@ -23,12 +26,14 @@ namespace SPGSYSTEM.Controllers
             ISupplierService supplierService,
             ICategoryService categoryService,
             ISaleService saleService,
+            IAccountService accountService,
             IMapper mapper)
         {
             _productService = productService;
             _supplierService = supplierService;
             _categoryService = categoryService;
             _saleService = saleService;
+            _accountService = accountService;
             _mapper = mapper;
         }
 
@@ -41,34 +46,61 @@ namespace SPGSYSTEM.Controllers
                 Console.WriteLine($"SupplierPortalController.Index: User.Identity?.Name = {User.Identity?.Name}");
                 Console.WriteLine($"SupplierPortalController.Index: User.Identity?.IsAuthenticated = {User.Identity?.IsAuthenticated}");
                 
-                // Obtener el UserId del usuario autenticado (no el UserName)
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                // Obtener el UserName del usuario autenticado
+                var userName = User.Identity?.Name;
                 
-                Console.WriteLine($"SupplierPortalController.Index: userIdClaim = {userIdClaim}");
+                Console.WriteLine($"SupplierPortalController.Index: userName = {userName}");
                 
-                if (string.IsNullOrEmpty(userIdClaim))
+                if (string.IsNullOrEmpty(userName))
                 {
-                    Console.WriteLine("SupplierPortalController.Index: No se pudo obtener el ID del usuario");
+                    Console.WriteLine("SupplierPortalController.Index: No se pudo obtener el nombre del usuario");
                     TempData["Error"] = "Usuario no identificado.";
                     return View(new List<ProductViewModel>());
                 }
                 
-                Console.WriteLine($"SupplierPortalController.Index: Usando userIdClaim: {userIdClaim}");
-                var supplier = await GetSupplierByUserId(userIdClaim);
-                if (supplier == null)
+                Console.WriteLine($"SupplierPortalController.Index: Usando userName: {userName}");
+                
+                // El usuario autenticado ES el proveedor, no necesitamos buscar una entidad Supplier separada
+                // Solo verificamos que tenga el rol Supplier
+                if (!User.IsInRole("Supplier"))
                 {
-                    Console.WriteLine("SupplierPortalController.Index: No se pudo identificar el proveedor");
-                    TempData["Error"] = "No se pudo identificar tu proveedor.";
-                    return View(new List<ProductViewModel>());
+                    Console.WriteLine("SupplierPortalController.Index: Usuario no tiene rol Supplier");
+                    TempData["Error"] = "Acceso denegado. Solo proveedores pueden acceder a este portal.";
+                    return RedirectToAction("Index", "Home");
                 }
 
-                Console.WriteLine($"SupplierPortalController.Index: Proveedor encontrado - ID: {supplier.Id}, Name: {supplier.Name}");
+                Console.WriteLine($"SupplierPortalController.Index: Usuario autenticado como proveedor: {userName}");
+                
+                // Obtener productos que pertenecen a este proveedor (usuario)
                 var products = await _productService.GetAllAsync();
-                var supplierProducts = products.Where(p => p.SupplierId == supplier.Id).ToList();
-                var productViewModels = _mapper.Map<List<ProductViewModel>>(supplierProducts);
-
-                Console.WriteLine($"SupplierPortalController.Index: Productos encontrados: {productViewModels.Count}");
-                return View(productViewModels);
+                Console.WriteLine($"SupplierPortalController.Index: Total de productos en BD: {products.Count}");
+                
+                // Debug: Mostrar todos los productos y sus suplidores
+                foreach (var product in products.Take(5))
+                {
+                    Console.WriteLine($"Producto: {product.Name}, SupplierId: {product.SupplierId}, Supplier?.UserId: {product.Supplier?.UserId}, Supplier?.Name: {product.Supplier?.Name}");
+                }
+                
+                // Obtener el proveedor por userName para obtener su ID
+                var supplier = await _supplierService.GetByUserNameAsync(userName);
+                Console.WriteLine($"SupplierPortalController.Index: Proveedor encontrado para {userName}: {(supplier != null ? $"ID: {supplier.Id}, UserId: {supplier.UserId}" : "null")}");
+                
+                if (supplier != null)
+                {
+                    // Filtrar productos por el ID del proveedor
+                    var supplierProducts = products.Where(p => p.SupplierId == supplier.Id).ToList();
+                    Console.WriteLine($"SupplierPortalController.Index: Productos filtrados para proveedor ID {supplier.Id}: {supplierProducts.Count}");
+                    
+                    var productViewModels = _mapper.Map<List<ProductViewModel>>(supplierProducts);
+                    Console.WriteLine($"SupplierPortalController.Index: Productos encontrados: {productViewModels.Count}");
+                    return View(productViewModels);
+                }
+                else
+                {
+                    Console.WriteLine($"SupplierPortalController.Index: No se encontró proveedor para {userName}");
+                    TempData["Error"] = "No se encontró información de proveedor asociada a tu cuenta. Contacta al administrador.";
+                    return View(new List<ProductViewModel>());
+                }
             }
             catch (Exception ex)
             {
@@ -85,16 +117,24 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var supplier = await GetSupplierByUserId(userIdClaim);
-                if (supplier == null)
+                var userName = User.Identity?.Name;
+                
+                // Verificar que el usuario tenga rol Supplier
+                if (!User.IsInRole("Supplier"))
                 {
-                    TempData["Error"] = "No se encontró información del proveedor.";
+                    TempData["Error"] = "Acceso denegado. Solo proveedores pueden agregar productos.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                if (string.IsNullOrEmpty(userName))
+                {
+                    TempData["Error"] = "No se pudo identificar el usuario.";
                     return RedirectToAction(nameof(Index));
                 }
 
                 var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = categories;
+                ViewBag.UserName = userName; // Pasar el nombre de usuario para usarlo en el formulario
 
                 return View(new ProductSaveViewModel());
             }
@@ -114,15 +154,61 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var supplier = await GetSupplierByUserId(userIdClaim);
-                if (supplier == null)
+                var userName = User.Identity?.Name;
+                
+                // Verificar que el usuario tenga rol Supplier
+                if (!User.IsInRole("Supplier"))
                 {
-                    TempData["Error"] = "No se encontró información del proveedor.";
+                    TempData["Error"] = "Acceso denegado. Solo proveedores pueden agregar productos.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                if (string.IsNullOrEmpty(userName))
+                {
+                    TempData["Error"] = "No se pudo identificar el usuario.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                model.SupplierId = supplier.Id;
+                // Buscar el proveedor por el nombre de usuario
+                var supplier = await _supplierService.GetByUserNameAsync(userName);
+                if (supplier == null)
+                {
+                    // Si no existe el proveedor, crearlo automáticamente
+                    var user = await _accountService.GetUserByNameAsync(userName);
+                    if (user != null)
+                    {
+                        var supplierModel = new Application.ViewModels.Supplier.SupplierSaveViewModel
+                        {
+                            Name = user.CompanyName ?? $"Empresa de {userName}",
+                            ContactPerson = user.ContactName ?? "Proveedor",
+                            Email = user.Email,
+                            Phone = user.PhoneNumber,
+                            UserId = user.Id,
+                            IsActive = true,
+                            Address = "Dirección por definir",
+                            City = "Ciudad por definir",
+                            Country = "República Dominicana",
+                            PostalCode = "00000",
+                            TaxId = "00000000000"
+                        };
+                        
+                        var success = await _supplierService.CreateAsync(supplierModel);
+                        if (success)
+                        {
+                            supplier = await _supplierService.GetByUserNameAsync(userName);
+                        }
+                    }
+                }
+
+                if (supplier != null)
+                {
+                    model.SupplierId = supplier.Id;
+                }
+                else
+                {
+                    TempData["Error"] = "No se pudo crear la información del proveedor.";
+                    return RedirectToAction(nameof(Index));
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -157,8 +243,8 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var supplier = await GetSupplierByUserId(userIdClaim);
+                var userName = User.Identity?.Name;
+                var supplier = await GetSupplierByUserName(userName);
                 if (supplier == null)
                 {
                     TempData["Error"] = "No se encontró información del proveedor.";
@@ -190,8 +276,8 @@ namespace SPGSYSTEM.Controllers
         {
             try
             {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var supplier = await GetSupplierByUserId(userIdClaim);
+                var userName = User.Identity?.Name;
+                var supplier = await GetSupplierByUserName(userName);
                 if (supplier == null)
                 {
                     TempData["Error"] = "No se encontró información del proveedor.";
@@ -276,11 +362,20 @@ namespace SPGSYSTEM.Controllers
 
                 // Obtener el proveedor usando el servicio
                 var supplier = await _supplierService.GetByUserNameAsync(userName);
-                Console.WriteLine($"GetSupplierByUserName: Resultado del servicio - supplier: {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}" : "null")}");
+                Console.WriteLine($"GetSupplierByUserName: Resultado del servicio - supplier: {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}, UserId: {supplier.UserId}" : "null")}");
                 
                 if (supplier == null)
                 {
                     Console.WriteLine("GetSupplierByUserName: No se encontró proveedor en el servicio");
+                    
+                    // Intentar buscar directamente en la base de datos
+                    var allSuppliers = await _supplierService.GetAllAsync();
+                    Console.WriteLine($"GetSupplierByUserName: Total de proveedores en BD: {allSuppliers.Count}");
+                    foreach (var s in allSuppliers)
+                    {
+                        Console.WriteLine($"- ID: {s.Id}, Name: {s.Name}, UserId: '{s.UserId}'");
+                    }
+                    
                     return null;
                 }
 
@@ -299,14 +394,14 @@ namespace SPGSYSTEM.Controllers
         }
 
         /// <summary>
-        /// Método de prueba para verificar la base de datos
+        /// Método de diagnóstico para verificar usuarios y suplidores
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> TestDatabase()
+        public async Task<IActionResult> Diagnostico()
         {
             try
             {
-                Console.WriteLine("=== PRUEBA DE BASE DE DATOS ===");
+                Console.WriteLine("=== DIAGNÓSTICO DE USUARIOS Y SUPLIDORES ===");
                 
                 // Obtener todos los proveedores
                 var allSuppliers = await _supplierService.GetAllAsync();
@@ -318,22 +413,146 @@ namespace SPGSYSTEM.Controllers
                 }
                 
                 // Obtener información del usuario actual
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var userName = User.Identity?.Name;
-                Console.WriteLine($"Usuario actual - NameIdentifier: '{userIdClaim}', Name: '{userName}'");
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userRoles = User.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value);
                 
-                // Buscar específicamente el proveedor con el UserId del usuario actual
-                if (!string.IsNullOrEmpty(userIdClaim))
+                Console.WriteLine($"Usuario actual - Name: '{userName}'");
+                Console.WriteLine($"Usuario actual - NameIdentifier: '{userIdClaim}'");
+                Console.WriteLine($"Usuario actual - Roles: {string.Join(", ", userRoles)}");
+                
+                // Buscar específicamente el proveedor con el UserName del usuario actual
+                if (!string.IsNullOrEmpty(userName))
                 {
-                    var supplierWithUserId = allSuppliers.FirstOrDefault(s => s.UserId == userIdClaim);
-                    Console.WriteLine($"Proveedor con UserId '{userIdClaim}': {(supplierWithUserId != null ? $"ID: {supplierWithUserId.Id}, Name: {supplierWithUserId.Name}" : "NO ENCONTRADO")}");
+                    var supplierWithUserName = allSuppliers.FirstOrDefault(s => s.UserId == userName);
+                    Console.WriteLine($"Proveedor con UserId '{userName}': {(supplierWithUserName != null ? $"ID: {supplierWithUserName.Id}, Name: {supplierWithUserName.Name}" : "NO ENCONTRADO")}");
                 }
                 
-                return Content($"Prueba completada. Revisa los logs en la consola.");
+                // Probar el método GetByUserNameAsync directamente
+                if (!string.IsNullOrEmpty(userName))
+                {
+                    var supplierFromService = await _supplierService.GetByUserNameAsync(userName);
+                    Console.WriteLine($"Resultado de GetByUserNameAsync('{userName}'): {(supplierFromService != null ? $"ID: {supplierFromService.Id}, Name: {supplierFromService.Name}" : "null")}");
+                }
+                
+                // Verificar productos por suplidor
+                Console.WriteLine("=== PRODUCTOS POR SUPLIDOR ===");
+                foreach (var supplier in allSuppliers)
+                {
+                    var products = await _productService.GetAllAsync();
+                    var supplierProducts = products.Where(p => p.SupplierId == supplier.Id).ToList();
+                    Console.WriteLine($"Suplidor '{supplier.Name}' (ID: {supplier.Id}): {supplierProducts.Count} productos");
+                    
+                    foreach (var product in supplierProducts.Take(3)) // Mostrar solo los primeros 3
+                    {
+                        Console.WriteLine($"  - Producto: {product.Name} (Stock: {product.Stock})");
+                    }
+                }
+                
+                // Verificar usuarios de Identity
+                Console.WriteLine("=== USUARIOS DE IDENTITY ===");
+                var allUsers = await _accountService.GetAllUsersAsync();
+                Console.WriteLine($"Total de usuarios en Identity: {allUsers.Count}");
+                
+                foreach (var user in allUsers)
+                {
+                    Console.WriteLine($"- ID: '{user.Id}', UserName: '{user.UserName}', CompanyName: '{user.CompanyName}', Roles: {string.Join(", ", user.Roles ?? new List<string>())}");
+                }
+                
+                return Content($"Diagnóstico completado. Revisa los logs en la consola. Usuario: {userName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en TestDatabase: {ex.Message}");
+                Console.WriteLine($"Error en Diagnostico: {ex.Message}");
+                return Content($"Error: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Método para verificar la estructura de usuarios del sistema
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> VerificarUsuarios()
+        {
+            try
+            {
+                Console.WriteLine("=== VERIFICACIÓN DE ESTRUCTURA DE USUARIOS ===");
+                
+                // Obtener todos los usuarios de Identity
+                var allUsers = await _accountService.GetAllUsersAsync();
+                Console.WriteLine($"Total de usuarios en Identity: {allUsers.Count}");
+                
+                // Categorizar usuarios por rol
+                var admins = new List<AuthenticationResponse>();
+                var auditors = new List<AuthenticationResponse>();
+                var suppliers = new List<AuthenticationResponse>();
+                var customers = new List<AuthenticationResponse>();
+                
+                foreach (var user in allUsers)
+                {
+                    if (user.Roles != null)
+                    {
+                        if (user.Roles.Contains("Admin"))
+                            admins.Add(user);
+                        else if (user.Roles.Contains("Auditor"))
+                            auditors.Add(user);
+                        else if (user.Roles.Contains("Supplier"))
+                            suppliers.Add(user);
+                        else if (user.Roles.Contains("Customer"))
+                            customers.Add(user);
+                    }
+                }
+                
+                Console.WriteLine($"=== RESUMEN DE USUARIOS ===");
+                Console.WriteLine($"- Admins: {admins.Count}");
+                foreach (var admin in admins)
+                {
+                    Console.WriteLine($"  * {admin.UserName} ({admin.CompanyName})");
+                }
+                
+                Console.WriteLine($"- Auditors: {auditors.Count}");
+                foreach (var auditor in auditors)
+                {
+                    Console.WriteLine($"  * {auditor.UserName} ({auditor.CompanyName})");
+                }
+                
+                Console.WriteLine($"- Suppliers: {suppliers.Count}");
+                foreach (var supplier in suppliers)
+                {
+                    Console.WriteLine($"  * {supplier.UserName} ({supplier.CompanyName})");
+                }
+                
+                Console.WriteLine($"- Customers: {customers.Count}");
+                foreach (var customer in customers)
+                {
+                    Console.WriteLine($"  * {customer.UserName} ({customer.CompanyName})");
+                }
+                
+                // Verificar productos por suplidor
+                Console.WriteLine($"=== PRODUCTOS POR SUPLIDOR ===");
+                var products = await _productService.GetAllAsync();
+                
+                foreach (var supplier in suppliers)
+                {
+                    // Buscar productos que tengan el UserName del suplidor como SupplierId
+                    var supplierProducts = products.Where(p => p.Supplier?.UserId == supplier.UserName || p.Supplier?.Name == supplier.UserName).ToList();
+                    Console.WriteLine($"Suplidor '{supplier.UserName}' ({supplier.CompanyName}): {supplierProducts.Count} productos");
+                    
+                    foreach (var product in supplierProducts.Take(3)) // Mostrar solo los primeros 3
+                    {
+                        Console.WriteLine($"  - Producto: {product.Name} (Stock: {product.Stock})");
+                    }
+                }
+                
+                return Content($"Verificación completada. Revisa los logs en la consola.\n\n" +
+                             $"Admins: {admins.Count}\n" +
+                             $"Auditors: {auditors.Count}\n" +
+                             $"Suppliers: {suppliers.Count}\n" +
+                             $"Customers: {customers.Count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en VerificarUsuarios: {ex.Message}");
                 return Content($"Error: {ex.Message}");
             }
         }

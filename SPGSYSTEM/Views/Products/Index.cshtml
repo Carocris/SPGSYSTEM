@@ -375,6 +375,8 @@
         // Load categories and suppliers for filters
         document.addEventListener('DOMContentLoaded', function() {
             loadCategoriesAndSuppliers();
+            // Aplicar filtro inicial por defecto (En stock)
+            filterProducts();
         });
 
         function loadCategoriesAndSuppliers() {

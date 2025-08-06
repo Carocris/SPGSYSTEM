@@ -48,5 +48,19 @@ namespace Database.Repositories
                             .AsNoTracking()
                             .ToListAsync();
         }
+
+        public async Task<IReadOnlyList<Sale>> GetSalesBySupplierAsync(int supplierId)
+        {
+            // Obtener todas las ventas que contengan productos del proveedor específico
+            return await _db.Sales
+                            .Include(s => s.Customer)
+                            .Include(s => s.Details)
+                                .ThenInclude(d => d.Product)
+                                    .ThenInclude(p => p.Supplier)
+                            .Include(s => s.Payment)
+                            .Where(s => s.Details.Any(d => d.Product.SupplierId == supplierId))
+                            .AsNoTracking()
+                            .ToListAsync();
+        }
     }
 }

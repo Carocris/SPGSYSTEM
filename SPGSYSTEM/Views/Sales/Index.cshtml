@@ -15,9 +15,12 @@
                 </h2>
                 <p class="text-muted mb-0">Administra las ventas del sistema</p>
             </div>
-            <a asp-action="CreateEdit" class="btn btn-success">
-                <i class="fas fa-plus me-2"></i>Nueva Venta
-            </a>
+            @if (!User.IsInRole("Auditor"))
+            {
+                <a asp-action="CreateEdit" class="btn btn-success">
+                    <i class="fas fa-plus me-2"></i>Nueva Venta
+                </a>
+            }
         </div>
 
         <!-- Alert Messages -->
@@ -164,40 +167,39 @@
                                                    class="btn btn-outline-info btn-sm" title="Ver detalles">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
-                                                <a asp-action="CreateEdit" asp-route-id="@sale.Id"
-                                                   class="btn btn-outline-warning btn-sm" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                @if (sale.Payment == null)
+                                                @if (!User.IsInRole("Auditor"))
                                                 {
-                                                    <a asp-controller="Payments" asp-action="CreateEdit" asp-route-saleId="@sale.Id"
-                                                       class="btn btn-outline-success btn-sm" title="Crear pago">
-                                                    <i class="fas fa-credit-card"></i>
-                                                </a>
-                                                }
-                                                else if (sale.Payment.Status == PaymentStatusType.Cancelled)
-                                                {
-                                                    <a asp-controller="Payments" asp-action="CreateEdit" asp-route-id="@sale.Payment.Id"
-                                                       class="btn btn-outline-info btn-sm" title="Gestionar pago">
-                                                        <i class="fas fa-cog"></i>
+                                                    <a asp-action="CreateEdit" asp-route-id="@sale.Id"
+                                                       class="btn btn-outline-warning btn-sm" title="Editar">
+                                                        <i class="fas fa-edit"></i>
                                                     </a>
-                                                }
-                                                else if (sale.Payment.Status == PaymentStatusType.Completed)
-                                                {
-                                                    <button type="button" class="btn btn-outline-warning btn-sm"
-                                                            onclick="confirmCancelPayment(@sale.Payment.Id)" 
-                                                            title="Cancelar Pago">
-                                                        <i class="fas fa-times"></i>
+                                                    @if (sale.Payment == null)
+                                                    {
+                                                        <a asp-controller="Payments" asp-action="CreateEdit" asp-route-saleId="@sale.Id"
+                                                           class="btn btn-outline-success btn-sm" title="Crear pago">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                    }
+                                                    else if (sale.Payment.Status == PaymentStatusType.Cancelled)
+                                                    {
+                                                        <a asp-controller="Payments" asp-action="CreateEdit" asp-route-id="@sale.Payment.Id"
+                                                           class="btn btn-outline-info btn-sm" title="Gestionar pago">
+                                                            <i class="fas fa-cog"></i>
+                                                        </a>
+                                                    }
+                                                    else if (sale.Payment.Status == PaymentStatusType.Completed)
+                                                    {
+                                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                                                onclick="confirmCancelPayment(@sale.Payment.Id)" 
+                                                                title="Cancelar Pago">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    }
+                                                    <button type="button" class="btn btn-outline-danger btn-sm"
+                                                            title="Eliminar" onclick="confirmDelete(@sale.Id, '@sale.Id.ToString("D4")')">
+                                                        <i class="fas fa-trash"></i>
                                                     </button>
                                                 }
-                                                <button type="button" class="btn btn-outline-info btn-sm"
-                                                        title="Imprimir" onclick="printSale(@sale.Id)">
-                                                    <i class="fas fa-print"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-outline-danger btn-sm"
-                                                        title="Eliminar" onclick="confirmDelete(@sale.Id, '@sale.Id.ToString("D4")')">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -238,12 +240,6 @@
                                         <small class="text-muted">Ventas Canceladas</small>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="stat-item">
-                                        <h4 class="text-danger mb-1">@Model.Count(s => s.IsCancelled)</h4>
-                                        <small class="text-muted">Ventas Canceladas</small>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -259,9 +255,12 @@
                 </div>
                 <h4 class="text-muted mb-3">No hay ventas registradas</h4>
                 <p class="text-muted mb-4">Comienza registrando tu primera venta en el sistema</p>
-                <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
-                    <i class="fas fa-plus me-2"></i>Registrar Primera Venta
-                </a>
+                @if (!User.IsInRole("Auditor"))
+                {
+                    <a asp-action="CreateEdit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Registrar Primera Venta
+                    </a>
+                }
             </div>
         }
     </div>
@@ -359,10 +358,6 @@
             document.getElementById('deleteSaleId').value = saleId;
             document.getElementById('saleIdToDelete').textContent = saleNumber;
             new bootstrap.Modal(document.getElementById('deleteModal')).show();
-        }
-
-        function printSale(saleId) {
-            window.open(`/Sales/Print/${saleId}`, '_blank');
         }
 
         function confirmCancelPayment(paymentId) {

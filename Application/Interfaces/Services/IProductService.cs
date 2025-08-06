@@ -10,11 +10,13 @@ namespace Application.Interfaces.Services
 {
     public interface IProductService : IGenericService<Product>
     {
+        Task<List<Product>> GetBySupplierAsync(int supplierId);
         Task<List<ProductViewModel>> GetAllViewModelsAsync();
         Task<ProductViewModel?> GetViewModelByIdAsync(int id);
         Task<ProductSaveViewModel?> GetSaveViewModelByIdAsync(int id);
         Task<bool> CreateAsync(ProductSaveViewModel vm);
         Task<bool> UpdateAsync(ProductSaveViewModel vm);
-        Task<List<Product>> GetBySupplierAsync(int supplierId);
+        Task<bool> ExistsByNameAsync(string name, int? excludeId = null, int? supplierId = null);
+        Task<bool> UpdateStockAsync(int productId, int quantityToAdd, decimal? newPurchasePrice = null);
     }
 }

@@ -9,6 +9,8 @@ namespace Application.ViewModels.Product
 {
     public class ProductSaveViewModel : IValidatableObject
     {
+        public int Id { get; set; }
+
         [Required(ErrorMessage = "El código es requerido")]
         [StringLength(20, ErrorMessage = "El código no puede exceder 20 caracteres")]
         public string Code { get; set; }

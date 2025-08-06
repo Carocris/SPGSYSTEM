@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250804144149_AddSupplierIdToCategories")]
-    partial class AddSupplierIdToCategories
+    [Migration("20250806144140_AddUnitOfMeasureToProducts")]
+    partial class AddUnitOfMeasureToProducts
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -257,6 +257,10 @@ namespace Database.Migrations
 
                     b.Property<int?>("SupplierId")
                         .HasColumnType("int");
+
+                    b.Property<string>("UnitOfMeasure")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
 

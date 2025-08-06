@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Identity.Migrations
 {
     [DbContext(typeof(IdentityContext))]
-    [Migration("20250730143600_UpdateUserFieldsToCompanyNameAndContactName")]
-    partial class UpdateUserFieldsToCompanyNameAndContactName
+    [Migration("20250805192248_InitialIdentityMigration")]
+    partial class InitialIdentityMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

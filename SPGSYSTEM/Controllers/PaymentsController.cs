@@ -76,6 +76,7 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Payments/CreateEdit
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEdit(int? id = null)
         {
             try
@@ -120,6 +121,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/CreateEdit
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateEdit(PaymentSaveViewModel model, int? id, IFormFile transferReceiptFile)
         {
             try
@@ -222,6 +224,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/ChangeStatus
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeStatus(int id, PaymentStatusType newStatus)
         {
             try
@@ -259,6 +262,7 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Payments/SimulatePayment/5 (simular pago para una venta)
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SimulatePayment(int saleId)
         {
             try
@@ -300,6 +304,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/ProcessPayment (procesar pago simulado)
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ProcessPayment(PaymentSaveViewModel model, IFormFile? transferReceiptFile)
         {
             try
@@ -367,6 +372,7 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Payments/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -391,6 +397,7 @@ namespace SPGSYSTEM.Controllers
         // POST: Payments/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
@@ -439,6 +446,7 @@ namespace SPGSYSTEM.Controllers
         }
 
         // GET: Payments/Cancel/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Cancel(int id)
         {
             try

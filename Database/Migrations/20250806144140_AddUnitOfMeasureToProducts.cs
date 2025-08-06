@@ -5,25 +5,25 @@
 namespace Database.Migrations
 {
     /// <inheritdoc />
-    public partial class RemoveUnitOfMeasure : Migration
+    public partial class AddUnitOfMeasureToProducts : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
+            migrationBuilder.AddColumn<string>(
                 name: "UnitOfMeasure",
-                table: "Products");
+                table: "Products",
+                type: "nvarchar(10)",
+                maxLength: 10,
+                nullable: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
+            migrationBuilder.DropColumn(
                 name: "UnitOfMeasure",
-                table: "Products",
-                type: "nvarchar(20)",
-                maxLength: 20,
-                nullable: true);
+                table: "Products");
         }
     }
 }

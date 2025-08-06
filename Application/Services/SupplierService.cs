@@ -3,6 +3,7 @@ using Application.Interfaces.Services;
 using Application.ViewModels.Supplier;
 using AutoMapper;
 using Database.Entities;
+using Identity.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,11 +16,13 @@ namespace Application.Services
     {
         private readonly ISupplierRepository _supplierRepository;
         private readonly IMapper _mapper;
+        private readonly IAccountService _accountService;
 
-        public SupplierService(ISupplierRepository supplierRepository, IMapper mapper) : base(supplierRepository)
+        public SupplierService(ISupplierRepository supplierRepository, IMapper mapper, IAccountService accountService) : base(supplierRepository)
         {
             _supplierRepository = supplierRepository;
             _mapper = mapper;
+            _accountService = accountService;
         }
 
         public async Task<Supplier?> GetByUserIdAsync(string userId)
@@ -69,8 +72,18 @@ namespace Application.Services
                 Console.WriteLine($"SupplierService.GetByUserNameAsync: Total de proveedores encontrados: {suppliers.Count}");
                 
                 // Buscar el proveedor que tenga el UserId que corresponde al userName del sistema de autenticación
-                // El userName del sistema de autenticación es el mismo que el UserId en la entidad Supplier
-                var supplier = suppliers.FirstOrDefault(s => s.UserId == userName);
+                // Primero necesitamos obtener el ID del usuario por su nombre de usuario
+                var user = await _accountService.GetUserByNameAsync(userName);
+                if (user == null)
+                {
+                    Console.WriteLine($"SupplierService.GetByUserNameAsync: Usuario '{userName}' no encontrado en Identity");
+                    return null;
+                }
+                
+                Console.WriteLine($"SupplierService.GetByUserNameAsync: Usuario encontrado - ID: {user.Id}, UserName: {user.UserName}");
+                
+                // Ahora buscar el proveedor por el ID del usuario
+                var supplier = suppliers.FirstOrDefault(s => s.UserId == user.Id);
                 Console.WriteLine($"SupplierService.GetByUserNameAsync: Proveedor encontrado: {(supplier != null ? $"ID: {supplier.Id}, Name: {supplier.Name}, UserId: {supplier.UserId}" : "null")}");
                 
                 return supplier;

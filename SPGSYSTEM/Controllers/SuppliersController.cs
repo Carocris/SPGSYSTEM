@@ -47,6 +47,217 @@ namespace SPGSYSTEM.Controllers
             return View(new SupplierSaveViewModel());
         }
 
+        // GET: Suppliers/CreateForUser
+        public async Task<IActionResult> CreateForUser(string userName)
+        {
+            try
+            {
+                Console.WriteLine($"SuppliersController.CreateForUser: Creando proveedor para usuario: {userName}");
+                
+                // Verificar si el usuario existe
+                var user = await _accountService.GetUserByNameAsync(userName);
+                if (user == null)
+                {
+                    TempData["Error"] = $"El usuario '{userName}' no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Verificar si ya tiene un proveedor asociado
+                var existingSupplier = await _supplierService.GetByUserNameAsync(userName);
+                if (existingSupplier != null)
+                {
+                    TempData["Error"] = $"El usuario '{userName}' ya tiene un proveedor asociado: {existingSupplier.Name}";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Crear un modelo de proveedor pre-llenado
+                var model = new SupplierSaveViewModel
+                {
+                    Name = user.CompanyName ?? $"Empresa de {userName}",
+                    ContactPerson = user.ContactName ?? "Proveedor",
+                    Email = user.Email,
+                    Phone = user.PhoneNumber,
+                    UserId = user.Id,
+                    IsActive = true
+                };
+
+                ViewBag.UserName = userName;
+                ViewBag.UserInfo = user;
+                
+                return View("Create", model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al preparar la creación del proveedor: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: Suppliers/CreateForUser
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateForUser(string userName, SupplierSaveViewModel model)
+        {
+            try
+            {
+                Console.WriteLine($"SuppliersController.CreateForUser POST: Creando proveedor para usuario: {userName}");
+                
+                // Verificar si el usuario existe
+                var user = await _accountService.GetUserByNameAsync(userName);
+                if (user == null)
+                {
+                    TempData["Error"] = $"El usuario '{userName}' no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Asignar el UserId del usuario existente
+                model.UserId = user.Id;
+                
+                // Llamar al método Create normal
+                return await Create(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al crear el proveedor: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: Suppliers/AutoCreateForUser
+        public async Task<IActionResult> AutoCreateForUser(string userName)
+        {
+            try
+            {
+                Console.WriteLine($"SuppliersController.AutoCreateForUser: Creando proveedor automáticamente para usuario: {userName}");
+                
+                // Verificar si el usuario existe
+                var user = await _accountService.GetUserByNameAsync(userName);
+                if (user == null)
+                {
+                    TempData["Error"] = $"El usuario '{userName}' no existe.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Verificar si ya tiene un proveedor asociado
+                var existingSupplier = await _supplierService.GetByUserNameAsync(userName);
+                if (existingSupplier != null)
+                {
+                    TempData["Info"] = $"El usuario '{userName}' ya tiene un proveedor asociado: {existingSupplier.Name}";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Crear automáticamente un proveedor para el usuario
+                var model = new SupplierSaveViewModel
+                {
+                    Name = user.CompanyName ?? $"Empresa de {userName}",
+                    ContactPerson = user.ContactName ?? "Proveedor",
+                    Email = user.Email,
+                    Phone = user.PhoneNumber,
+                    UserId = user.Id,
+                    IsActive = true,
+                    Address = "Dirección por definir",
+                    City = "Ciudad por definir",
+                    Country = "República Dominicana",
+                    PostalCode = "00000",
+                    TaxId = "00000000000"
+                };
+
+                var success = await _supplierService.CreateAsync(model);
+                
+                if (success)
+                {
+                    TempData["Success"] = $"✅ Proveedor '{model.Name}' creado automáticamente para el usuario '{userName}'.\n\n" +
+                                         $"📋 INFORMACIÓN:\n" +
+                                         $"• Empresa: {model.Name}\n" +
+                                         $"• Usuario: {userName}\n" +
+                                         $"• Email: {user.Email}\n\n" +
+                                         $"⚠️ El usuario ya puede acceder al portal del proveedor.";
+                }
+                else
+                {
+                    TempData["Error"] = "Error al crear el proveedor automáticamente.";
+                }
+                
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al crear el proveedor automáticamente: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: Suppliers/CreateForCurrentUser
+        public async Task<IActionResult> CreateForCurrentUser()
+        {
+            try
+            {
+                var userName = User.Identity?.Name;
+                Console.WriteLine($"SuppliersController.CreateForCurrentUser: Creando proveedor para usuario actual: {userName}");
+                
+                if (string.IsNullOrEmpty(userName))
+                {
+                    TempData["Error"] = "No se pudo identificar el usuario actual.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Verificar si el usuario existe
+                var user = await _accountService.GetUserByNameAsync(userName);
+                if (user == null)
+                {
+                    TempData["Error"] = $"El usuario '{userName}' no existe.";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Verificar si ya tiene un proveedor asociado
+                var existingSupplier = await _supplierService.GetByUserNameAsync(userName);
+                if (existingSupplier != null)
+                {
+                    TempData["Info"] = $"Ya tienes un proveedor asociado: {existingSupplier.Name}";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Crear automáticamente un proveedor para el usuario
+                var model = new SupplierSaveViewModel
+                {
+                    Name = user.CompanyName ?? $"Empresa de {userName}",
+                    ContactPerson = user.ContactName ?? "Proveedor",
+                    Email = user.Email,
+                    Phone = user.PhoneNumber,
+                    UserId = user.Id,
+                    IsActive = true,
+                    Address = "Dirección por definir",
+                    City = "Ciudad por definir",
+                    Country = "República Dominicana",
+                    PostalCode = "00000",
+                    TaxId = "00000000000"
+                };
+
+                var success = await _supplierService.CreateAsync(model);
+                
+                if (success)
+                {
+                    TempData["Success"] = $"✅ Proveedor '{model.Name}' creado automáticamente para tu usuario.\n\n" +
+                                         $"📋 INFORMACIÓN:\n" +
+                                         $"• Empresa: {model.Name}\n" +
+                                         $"• Usuario: {userName}\n" +
+                                         $"• Email: {user.Email}\n\n" +
+                                         $"⚠️ Ya puedes acceder al portal del proveedor.";
+                }
+                else
+                {
+                    TempData["Error"] = "Error al crear el proveedor automáticamente.";
+                }
+                
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al crear el proveedor automáticamente: {ex.Message}";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
         // POST: Suppliers/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -54,112 +265,45 @@ namespace SPGSYSTEM.Controllers
         {
             Console.WriteLine($"SuppliersController.Create: Iniciando creación de proveedor '{model.Name}'");
             Console.WriteLine($"SuppliersController.Create: Email proporcionado: '{model.Email}'");
+            Console.WriteLine($"SuppliersController.Create: UserId proporcionado: '{model.UserId}'");
             
             if (ModelState.IsValid)
             {
                 Console.WriteLine($"SuppliersController.Create: ModelState es válido");
                 try
                 {
-                    // Crear el usuario de Identity primero
-                    var email = model.Email;
-                    string userName;
-                    
-                    // Si no se proporciona email, generar uno automáticamente
-                    if (string.IsNullOrWhiteSpace(email))
+                    // Si ya tenemos un UserId, no necesitamos crear un nuevo usuario
+                    if (!string.IsNullOrEmpty(model.UserId))
                     {
-                        // Limpiar el nombre de caracteres especiales y espacios
-                        var cleanName = model.Name.ToLower()
-                            .Replace(" ", "")
-                            .Replace("-", "")
-                            .Replace("_", "")
-                            .Replace(".", "")
-                            .Replace(",", "")
-                            .Replace("á", "a")
-                            .Replace("é", "e")
-                            .Replace("í", "i")
-                            .Replace("ó", "o")
-                            .Replace("ú", "u")
-                            .Replace("ñ", "n");
-                        
-                        email = $"{cleanName}@proveedor.com";
-                        userName = cleanName; // Usar el nombre limpio como username
-                        
-                        // Verificar si el username ya existe y agregar un número si es necesario
-                        var originalUserName = userName;
-                        var counter = 1;
-                        while (await _accountService.GetUserByNameAsync(userName) != null)
-                        {
-                            userName = $"{originalUserName}{counter}";
-                            counter++;
-                        }
-                        
-                        Console.WriteLine($"SuppliersController.Create: Email generado automáticamente: {email}");
-                        Console.WriteLine($"SuppliersController.Create: Username final: {userName}");
-                    }
-                    else
-                    {
-                        // Extraer el username de la parte antes del @ del email
-                        userName = email.Split('@')[0].ToLower();
-                        
-                        // Verificar si el username ya existe y agregar un número si es necesario
-                        var originalUserName = userName;
-                        var counter = 1;
-                        while (await _accountService.GetUserByNameAsync(userName) != null)
-                        {
-                            userName = $"{originalUserName}{counter}";
-                            counter++;
-                        }
-                        
-                        Console.WriteLine($"SuppliersController.Create: Usando email proporcionado: {email}");
-                        Console.WriteLine($"SuppliersController.Create: Username final: {userName}");
-                    }
-                    
-                    var registerRequest = new Identity.DTOs.RegisterRequest
-                    {
-                        CompanyName = model.Name, // Nombre de la empresa
-                        ContactName = model.ContactPerson ?? "Proveedor", // Persona de contacto
-                        Email = email,
-                        UserName = userName,
-                        PhoneNumber = model.Phone ?? "000-000-0000",
-                        Password = "Proveedor123!",
-                        ConfirmPassword = "Proveedor123!"
-                    };
+                        Console.WriteLine($"SuppliersController.Create: Usando UserId existente: {model.UserId}");
 
-                    Console.WriteLine($"SuppliersController.Create: RegisterRequest creado - Email: {registerRequest.Email}, UserName: {registerRequest.UserName}, CompanyName: {registerRequest.CompanyName}, ContactName: {registerRequest.ContactName}");
+                        // Verificar que el usuario existe
+                        var existingUser = await _accountService.GetUserByIdAsync(model.UserId);
+                        if (existingUser == null)
+                        {
+                            TempData["Error"] = "El usuario especificado no existe.";
+                            return View(model);
+                        }
 
-                    var registerResult = await _accountService.RegisterSupplierAsync(registerRequest, Request.Headers["Origin"].ToString() ?? "SPGSYSTEM");
-                    
-                    Console.WriteLine($"SuppliersController.Create: Resultado del registro - Success: {registerResult.Success}, HasError: {registerResult.HasError}, Error: {registerResult.Error}");
-                    
-                    if (registerResult.Success)
-                    {
-                        Console.WriteLine($"SuppliersController.Create: Usuario creado exitosamente. UserId: {registerResult.UserId}");
-                        
-                        // Asignar el UserId al proveedor
-                        model.UserId = registerResult.UserId;
-                        
-                        Console.WriteLine($"SuppliersController.Create: Creando proveedor con UserId: {model.UserId}");
-                        
-                        // Crear el proveedor
+                        Console.WriteLine($"SuppliersController.Create: Usuario encontrado: {existingUser.UserName}");
+
+                        // Crear el proveedor directamente
                         var success = await _supplierService.CreateAsync(model);
-                        
+
                         Console.WriteLine($"SuppliersController.Create: Resultado de creación de proveedor: {success}");
-                        
+
                         if (success)
                         {
-                            var credentialsMessage = $"✅ Proveedor '{model.Name}' creado exitosamente.\n\n" +
-                                                   $"🔐 CREDENCIALES DE ACCESO:\n" +
-                                                   $"• Usuario: {userName}\n" +
-                                                   $"• Contraseña: {registerRequest.Password}\n" +
-                                                   $"• Email: {email}\n\n" +
+                            var credentialsMessage = $"✅ Proveedor '{model.Name}' creado exitosamente para el usuario '{existingUser.UserName}'.\n\n" +
                                                    $"📋 INFORMACIÓN DEL PROVEEDOR:\n" +
                                                    $"• Empresa: {model.Name}\n" +
-                                                   $"• Contacto: {model.ContactPerson}\n\n" +
-                                                   $"⚠️ IMPORTANTE: Guarde estas credenciales. El proveedor podrá iniciar sesión inmediatamente.";
-                            
+                                                   $"• Contacto: {model.ContactPerson}\n" +
+                                                   $"• Usuario: {existingUser.UserName}\n" +
+                                                   $"• Email: {existingUser.Email}\n\n" +
+                                                   $"⚠️ IMPORTANTE: El usuario ya puede iniciar sesión con sus credenciales existentes.";
+
                             TempData["Success"] = credentialsMessage;
-                            Console.WriteLine($"SuppliersController.Create: Proveedor creado exitosamente");
-                            Console.WriteLine($"SuppliersController.Create: Credenciales - Usuario: {userName}, Email: {email}, Password: {registerRequest.Password}");
+                            Console.WriteLine($"SuppliersController.Create: Proveedor creado exitosamente para usuario existente");
                             return RedirectToAction(nameof(Index));
                         }
                         else
@@ -170,10 +314,122 @@ namespace SPGSYSTEM.Controllers
                     }
                     else
                     {
-                        TempData["Error"] = $"Error al crear el usuario: {registerResult.Error}";
-                        Console.WriteLine($"SuppliersController.Create: Error al crear usuario: {registerResult.Error}");
+                        // Crear el usuario de Identity primero
+                        var email = model.Email;
+                        string userName;
+
+                        // Si no se proporciona email, generar uno automáticamente
+                        if (string.IsNullOrWhiteSpace(email))
+                        {
+                            // Limpiar el nombre de caracteres especiales y espacios
+                            var cleanName = model.Name.ToLower()
+                                .Replace(" ", "")
+                                .Replace("-", "")
+                                .Replace("_", "")
+                                .Replace(".", "")
+                                .Replace(",", "")
+                                .Replace("á", "a")
+                                .Replace("é", "e")
+                                .Replace("í", "i")
+                                .Replace("ó", "o")
+                                .Replace("ú", "u")
+                                .Replace("ñ", "n");
+
+                            email = $"{cleanName}@proveedor.com";
+                            userName = cleanName; // Usar el nombre limpio como username
+
+                            // Verificar si el username ya existe y agregar un número si es necesario
+                            var originalUserName = userName;
+                            var counter = 1;
+                            while (await _accountService.GetUserByNameAsync(userName) != null)
+                            {
+                                userName = $"{originalUserName}{counter}";
+                                counter++;
+                            }
+
+                            Console.WriteLine($"SuppliersController.Create: Email generado automáticamente: {email}");
+                            Console.WriteLine($"SuppliersController.Create: Username final: {userName}");
+                        }
+                        else
+                        {
+                            // Extraer el username de la parte antes del @ del email
+                            userName = email.Split('@')[0].ToLower();
+
+                            // Verificar si el username ya existe y agregar un número si es necesario
+                            var originalUserName = userName;
+                            var counter = 1;
+                            while (await _accountService.GetUserByNameAsync(userName) != null)
+                            {
+                                userName = $"{originalUserName}{counter}";
+                                counter++;
+                            }
+
+                            Console.WriteLine($"SuppliersController.Create: Usando email proporcionado: {email}");
+                            Console.WriteLine($"SuppliersController.Create: Username final: {userName}");
+                        }
+
+                        var registerRequest = new Identity.DTOs.RegisterRequest
+                        {
+                            CompanyName = model.Name, // Nombre de la empresa
+                            ContactName = model.ContactPerson ?? "Proveedor", // Persona de contacto
+                            Email = email,
+                            UserName = userName,
+                            PhoneNumber = model.Phone ?? "000-000-0000",
+                            Password = "Proveedor123!",
+                            ConfirmPassword = "Proveedor123!"
+                        };
+
+                        Console.WriteLine($"SuppliersController.Create: RegisterRequest creado - Email: {registerRequest.Email}, UserName: {registerRequest.UserName}, CompanyName: {registerRequest.CompanyName}, ContactName: {registerRequest.ContactName}");
+
+                        var registerResult = await _accountService.RegisterSupplierAsync(registerRequest, Request.Headers["Origin"].ToString() ?? "SPGSYSTEM");
+
+                        Console.WriteLine($"SuppliersController.Create: Resultado del registro - Success: {registerResult.Success}, HasError: {registerResult.HasError}, Error: {registerResult.Error}");
+
+                        if (registerResult.Success)
+                        {
+                            Console.WriteLine($"SuppliersController.Create: Usuario creado exitosamente. UserId: {registerResult.UserId}");
+
+                            // Asignar el UserId al proveedor
+                            model.UserId = registerResult.UserId;
+
+                            Console.WriteLine($"SuppliersController.Create: Creando proveedor con UserId: {model.UserId}");
+
+                            // Crear el proveedor
+                            var success = await _supplierService.CreateAsync(model);
+
+                            Console.WriteLine($"SuppliersController.Create: Resultado de creación de proveedor: {success}");
+
+                            if (success)
+                            {
+                                var credentialsMessage = $"✅ Proveedor '{model.Name}' creado exitosamente.\n\n" +
+                                                       $"🔐 CREDENCIALES DE ACCESO:\n" +
+                                                       $"• Usuario: {userName}\n" +
+                                                       $"• Contraseña: {registerRequest.Password}\n" +
+                                                       $"• Email: {email}\n\n" +
+                                                       $"📋 INFORMACIÓN DEL PROVEEDOR:\n" +
+                                                       $"• Empresa: {model.Name}\n" +
+                                                       $"• Contacto: {model.ContactPerson}\n\n" +
+                                                       $"⚠️ IMPORTANTE: Guarde estas credenciales. El proveedor podrá iniciar sesión inmediatamente.";
+
+                                TempData["Success"] = credentialsMessage;
+                                Console.WriteLine($"SuppliersController.Create: Proveedor creado exitosamente");
+                                Console.WriteLine($"SuppliersController.Create: Credenciales - Usuario: {userName}, Email: {email}, Password: {registerRequest.Password}");
+                                return RedirectToAction(nameof(Index));
+                            }
+                            else
+                            {
+                                TempData["Error"] = "Error al crear el proveedor en la base de datos.";
+                                Console.WriteLine($"SuppliersController.Create: Error al crear proveedor en BD");
+                            }
+                        }
+                        else
+                        {
+                            TempData["Error"] = $"Error al crear el usuario: {registerResult.Error}";
+                            Console.WriteLine($"SuppliersController.Create: Error al crear usuario: {registerResult.Error}");
+                        }
                     }
                 }
+
                 catch (Exception ex)
                 {
                     TempData["Error"] = $"Error inesperado: {ex.Message}";
